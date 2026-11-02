@@ -8,6 +8,8 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Login API တွင် သုံးထားသော "admin_token" နှင့် ကိုက်ညီစေရန် ပြင်ဆင်ခြင်း
   const token = request.cookies.get("admin_token")?.value;
 
   // Admin Login Page သို့ သွားနေလျှင်

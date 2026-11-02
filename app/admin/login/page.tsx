@@ -28,9 +28,8 @@ export default function AdminLoginPage() {
         throw new Error(data.message || "Login လုပ်ဆောင်မှု မအောင်မြင်ပါ။");
       }
 
-      // Login အဆင်ပြေလျှင် Admin Dashboard သို့ လမ်းကြောင်းပြောင်းမည်
-      router.push("/admin");
-      router.refresh();
+      // Cookie အသစ်ပါဝင်လာစေရန် Browser ကို တိုက်ရိုက် Reload ဖြင့် Admin သို့ ပို့မည်
+      window.location.href = "/admin";
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -88,20 +87,6 @@ export default function AdminLoginPage() {
             {loading ? "Logging in..." : "Sign In"}
           </button>
         </form>
-
-        {/* Info Helper for Testing */}
-        <div className="mt-6 p-3 bg-gray-50 rounded text-xs text-gray-600 border border-gray-200">
-          <p className="font-semibold text-gray-700 mb-1">
-            Default Login Info:
-          </p>
-          <p>
-            Email:{" "}
-            <span className="font-mono text-black">admin@futurehub.com</span>
-          </p>
-          <p>
-            Password: <span className="font-mono text-black">admin123456</span>
-          </p>
-        </div>
       </div>
     </div>
   );
