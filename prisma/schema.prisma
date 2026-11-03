@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  passwordHash String
+  status       Int           @default(1)
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  posts        ProductPost[] @relation("UserAuthors")
+  userRoles    UserRole[]
+  createdCards CardItem[]    @relation("CardCreator")
+  updatedCards CardItem[]    @relation("CardUpdater")
+
+  @@map("users")
+}
+
+model ProductCategory {
+  id        Int           @id @default(autoincrement())
+  name      String        @unique
+  slug      String        @unique
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // Relations
+  posts     ProductPost[]
+
+  @@map("product_categories")
+}
+
+model CardItem {
+  id          Int                  @id @default(autoincrement())
+  productId   Int?
+  sectionId   Int?
+  type        String
+  creatorId   Int?
+  updaterId   Int?
+  number      String?
+  icon        String?
+  title       String?
+  description String?              @db.Text
+  imageUrl    String?
+  sortOrder   Decimal              @default(0) @db.Decimal(10, 2)
+  isActive    Boolean              @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  // Relations
+  product     ProductPost?         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  section     PageSectionEditable? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  creator     User?                @relation("CardCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  updater     User?                @relation("CardUpdater", fields: [updaterId], references: [id], onDelete: SetNull)
+
+  @@map("card_items")
+}
+
+model UserRole {
+  userId    Int
+  roleId    Int
+  deletedAt DateTime?
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  label       String
+  description String?          @db.Text
+  isSystem    Boolean          @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  userRoles   UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  deletedAt    DateTime?
+
+  // Relations
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Permission {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  resource    String
+  action      String
+  deletedAt   DateTime?
+  description String?          @db.Text
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  roles       RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model PageSectionEditable {
+  id          Int       @id @default(autoincrement())
+  page        String
+  sectionKey  String
+  title       String
+  subtitle    String?
+  description String?   @db.Text
+  imageUrl    String?
+  isActive    Boolean   @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  cards       CardItem[]
+
+  @@map("page_section_editables")
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  title       String
+  subtitle    String?
+  description String?   @db.Text
+  clientLogo  String?
+  status      Int       @default(1)
+  sortOrder   Decimal   @default(0) @db.Decimal(10, 2)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("projects")
+}
+
+model TeamMember {
+  id        Int       @id @default(autoincrement())
+  name      String
+  position  String
+  imageUrl  String?
+  bio       String?   @db.Text
+  sortOrder Decimal   @default(0) @db.Decimal(10, 2)
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("team_members")
+}
+
+model Inquiry {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String    @db.LongText
+  status    Int       @default(0)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("inquiries")
+}
+
+model SiteSetting {
+  id             Int       @id @default(autoincrement())
+  logoHeader     String?
+  logoFooter     String?
+  favicon        String?
+  siteName       String
+  siteTagline    String?
+  emails         Json?
+  phones         Json?
+  contactAddress String?
+  socialLinks    Json?
+  footerText     String?
+  metaTitle      String?
+  metaDescription String?  @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("site_settings")
+}
+
+model SeoPage {
+  id        Int       @id @default(autoincrement())
+  pageName  String    @unique
+  metaTitle String?
+  metaDesc  String?   @db.Text
+  keywords  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("seo_pages")
+}
+
+model ProductPost {
+  id          Int             @id @default(autoincrement())
+  categoryId  Int
+  authorId    Int
+  authorType  String          // 'USER' သို့မဟုတ် 'TEAM_MEMBER' (Polymorphic tracking အတွက်)
+  type        String
+  title       String
+  slug        String          @unique
+  description String?         @db.Text
+  content     String?         @db.LongText
+  imageUrl    String?
+  status      Int             @default(1)
+  publishedAt DateTime?
+  deletedAt   DateTime?
+  metaTitle   String?
+  metaDesc    String?         @db.Text
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  category    ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author      User            @relation("UserAuthors", fields: [authorId], references: [id], onDelete: Restrict)
+  cards       CardItem[]
+
+  @@map("product_posts")
+}
