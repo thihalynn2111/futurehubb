@@ -26,18 +26,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // Admin Dashboard Route များကို Protection ပေးခြင်း
-  if (pathname.startsWith("/admin")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
+  // if (pathname.startsWith("/admin")) {
+  //   if (!token) {
+  //     return NextResponse.redirect(new URL("/admin/login", request.url));
+  //   }
 
-    try {
-      await jwtVerify(token, JWT_SECRET);
-      return NextResponse.next();
-    } catch {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
-  }
+  //   try {
+  //     await jwtVerify(token, JWT_SECRET);
+  //     return NextResponse.next();
+  //   } catch {
+  //     return NextResponse.redirect(new URL("/admin/login", request.url));
+  //   }
+  // }
 
   return NextResponse.next();
 }
