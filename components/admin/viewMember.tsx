@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Loader2, Edit3, Trash2, User, Plus } from "lucide-react";
-
+import Swal from "sweetalert2";
 export default function Member() {
   const router = useRouter();
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
@@ -31,12 +31,17 @@ export default function Member() {
   }, []);
 
   async function handleDelete(id: number) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this team member?",
-    );
-
-    if (!confirmed) return;
-
+    const confirmed = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+    if (!confirmed.isConfirmed) return;
     try {
       const response = await fetch(`/api/admin/team-members/${id}`, {
         method: "DELETE",
@@ -51,11 +56,20 @@ export default function Member() {
       setTeamMembers((previous) =>
         previous.filter((member) => member.id !== id),
       );
-
-      alert("Team member deleted successfully!");
+      Swal.fire({
+        title: "Success!",
+        text: "Team member deleted successfully!",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
     } catch (error) {
       console.error("DELETE MEMBER ERROR:", error);
-      alert(error instanceof Error ? error.message : "Something went wrong");
+      Swal.fire({
+        title: "Error!",
+        text: error instanceof Error ? error.message : "Something went wrong",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   }
 
