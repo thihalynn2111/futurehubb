@@ -1,6 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Save, Loader2, User, Briefcase, FileText, Upload } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  User,
+  Briefcase,
+  FileText,
+  Upload,
+  ListOrdered,
+} from "lucide-react";
 import Swal from "sweetalert2";
 type EditPartnerProps = {
   id: number;
@@ -16,6 +24,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
     subtitle: "",
     description: "",
     clientLogo: "",
+    sortOrder: "",
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string>("");
@@ -52,6 +61,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             subtitle: result.data.subtitle || "",
             description: result.data.description || "",
             clientLogo: result.data.clientLogo || "",
+            sortOrder: result.data.sortOrder || "",
           });
         }
       } catch (error) {
@@ -235,7 +245,26 @@ export default function EditPartner({ id }: EditPartnerProps) {
             placeholder="Enter project title"
           />
         </div>
-
+        {/*sort order */}
+        <div>
+          <label
+            className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
+            htmlFor="sortOrder"
+          >
+            <ListOrdered size={16} className="text-orange-600 mr-1" />
+            <span>Sort Order</span>
+          </label>
+          <input
+            type="number"
+            id="sortOrder"
+            name="sortOrder"
+            value={formData.sortOrder}
+            onChange={(e) =>
+              setFormData({ ...formData, sortOrder: e.target.value })
+            }
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+          />
+        </div>
         <div>
           <label
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"

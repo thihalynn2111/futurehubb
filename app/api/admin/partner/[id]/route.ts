@@ -73,7 +73,8 @@ export async function PUT(
     const subtitle = body.subtitle || body.formData?.subtitle;
     const description = body.description || body.formData?.description;
     const imageUrl = body.imageUrl;
-
+    const sortOrder =
+      body.sortOrder !== undefined ? body.sortOrder : body.formData?.sortOrder;
     const updatedPartner = await prisma.projects.update({
       where: { id: partnerID },
       data: {
@@ -86,6 +87,10 @@ export async function PUT(
           imageUrl !== undefined && imageUrl !== ""
             ? imageUrl
             : existingPartner.clientLogo,
+        sortOrder:
+          sortOrder !== undefined
+            ? Number(sortOrder)
+            : existingPartner.sortOrder,
       },
     });
 

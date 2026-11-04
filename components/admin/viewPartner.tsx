@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Loader2, Edit3, Trash2, User, Plus } from "lucide-react";
+import Swal from "sweetalert2";
 export default function ViewProjects() {
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
@@ -31,9 +32,16 @@ export default function ViewProjects() {
     fetchData();
   }, []);
   async function handleDelete(id: number) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete this partner? ${id}`,
-    );
+    const confirmed = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
 
     if (!confirmed) return;
 
@@ -52,10 +60,19 @@ export default function ViewProjects() {
         previous.filter((project) => project.id !== id),
       );
 
-      alert("Partner deleted successfully!");
+      Swal.fire({
+        title: "Success!",
+        text: "Partner deleted successfully!",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
     } catch (error) {
-      console.error("DELETE PARTNER ERROR:", error);
-      alert(error instanceof Error ? error.message : "Something went wrong");
+      Swal.fire({
+        title: "Error!",
+        text: error instanceof Error ? error.message : "Something went wrong",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   }
   if (loading) {
