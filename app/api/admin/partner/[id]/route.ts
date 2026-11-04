@@ -8,7 +8,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const partner = await prisma.project.findUnique({
+    const partner = await prisma.projects.findUnique({
       where: {
         id: Number(id),
         deletedAt: null,
@@ -58,7 +58,7 @@ export async function PUT(
 
     const body = await request.json();
 
-    const existingPartner = await prisma.project.findUnique({
+    const existingPartner = await prisma.projects.findUnique({
       where: { id: partnerID },
     });
 
@@ -74,7 +74,7 @@ export async function PUT(
     const description = body.description || body.formData?.description;
     const imageUrl = body.imageUrl;
 
-    const updatedPartner = await prisma.project.update({
+    const updatedPartner = await prisma.projects.update({
       where: { id: partnerID },
       data: {
         title: title ? title.trim() : existingPartner.title,

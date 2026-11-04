@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!body.title?.trim() || !body.description?.trim()) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Title and description are required",
-        },
+        { success: false, message: "Title and description are required" },
         { status: 400 },
       );
     }

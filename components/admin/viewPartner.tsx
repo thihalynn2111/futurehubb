@@ -85,7 +85,7 @@ export default function ViewProjects() {
           onClick={() => router.push(`/admin/addProject`)}
           className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center  disabled:opacity-50"
         >
-          <span>Add Team </span>
+          <span>Add Partner </span>
         </button>
       </div>
 
