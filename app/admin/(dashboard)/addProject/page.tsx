@@ -1,5 +1,6 @@
 // import Projects from "@/app/component/admin/project";
 // import AdminDashboard from "../../component/admin/Sidebar";
+
 import Projects from "@/components/admin/project";
 export default function projectSection() {
   return (

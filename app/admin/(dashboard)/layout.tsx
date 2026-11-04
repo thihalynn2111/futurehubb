@@ -3,7 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-
+import {
+  LayoutDashboard,
+  Boxes,
+  Image as ImageIcon,
+  FileText,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 export default function AdminLayout({
   children,
 }: {
@@ -12,7 +19,7 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
+  const [isPageInfoOpen, setIsPageInfoOpen] = useState(false);
   // 👇 Category / Subtitles များဖြင့် အုပ်စုဖွဲ့ထားသော Menu List
   const menuGroups = [
     {
@@ -109,6 +116,45 @@ export default function AdminLayout({
               </div>
             </div>
           ))}
+          <div></div>
+          <button
+            onClick={() => setIsPageInfoOpen(!isPageInfoOpen)}
+            className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition"
+          >
+            <div className="flex items-center space-x-3">
+              <FileText size={18} />
+              <span>Page Information</span>
+            </div>
+            {isPageInfoOpen ? (
+              <ChevronDown size={16} />
+            ) : (
+              <ChevronRight size={16} />
+            )}
+          </button>
+
+          {/* Sub-menu items (Dropdown List) */}
+          {isPageInfoOpen && (
+            <div className="pl-10 pr-2 py-1 space-y-1 mt-1 bg-gray-900/50 rounded-lg">
+              <Link
+                href="/admin/homeSection"
+                className="block px-3 py-2 rounded-md text-sm text-gray-400 hover:text-orange-400 hover:bg-gray-800/60 transition"
+              >
+                Home Page
+              </Link>
+              <Link
+                href="/admin/aboutSection"
+                className="block px-3 py-2 rounded-md text-sm text-gray-400 hover:text-orange-400 hover:bg-gray-800/60 transition"
+              >
+                About Page
+              </Link>
+              <Link
+                href="/admin/contactSection"
+                className="block px-3 py-2 rounded-md text-sm text-gray-400 hover:text-orange-400 hover:bg-gray-800/60 transition"
+              >
+                Contact Page
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* User Info / Footer in Sidebar */}
@@ -127,6 +173,7 @@ export default function AdminLayout({
             </div>
           )}
         </div>
+        {/* 🌟 Page Information Dropdown Menu */}
       </aside>
 
       {/* 2. MAIN CONTENT AREA CONTAINER */}

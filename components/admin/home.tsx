@@ -8,7 +8,6 @@ type HomeCard = {
   type: string | null;
   title: string | null;
   description: string | null;
-  imageUrl: string | null;
 };
 
 type HomeSection = {
@@ -116,7 +115,48 @@ export default function Home() {
       </div>
     );
   }
+  // Update an existing card
+  const handleCardInputChange = (
+    sectionId: number,
+    cardIndex: number,
+    field: keyof HomeCard,
+    value: string,
+  ) => {
+    setSections((previousSections) =>
+      previousSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              cards: section.cards.map((card, index) =>
+                index === cardIndex ? { ...card, [field]: value } : card,
+              ),
+            }
+          : section,
+      ),
+    );
+  };
 
+  // Add a new card
+  const handleAddCard = (sectionId: number) => {
+    setSections((previousSections) =>
+      previousSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              cards: [
+                ...section.cards,
+                {
+                  sectionID: section.id!,
+                  type: section.sectionKey,
+                  title: "",
+                  description: "",
+                },
+              ],
+            }
+          : section,
+      ),
+    );
+  };
   return (
     <div className="p-8 max-w-5xl mx-auto text-gray-900 font-sans">
       {/* Header Section */}
@@ -193,11 +233,132 @@ export default function Home() {
                     placeholder="Enter section title..."
                   />
                 </div>
+                {section.sectionKey === "roadmap" && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Subtitle
+                    </label>
+                    <input
+                      type="text"
+                      value={section.subtitle ?? ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          section.id!,
+                          "subtitle",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                      placeholder="Enter subtitle..."
+                    />
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={section.description ?? ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            section.id!,
+                            "description",
+                            e.target.value,
+                          )
+                        }
+                        rows={3}
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        placeholder="Enter section description..."
+                      />
+                    </div>
+                    {/* Card Management */}
+                    <div className="mt-8 border-t border-gray-200 pt-6">
+                      <div className="flex items-center justify-between mb-5">
+                        <h3 className="text-lg font-bold text-gray-800">
+                          Manage Cards
+                        </h3>
 
+                        <button
+                          type="button"
+                          onClick={() => handleAddCard(section.id!)}
+                          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                          + Add Card
+                        </button>
+                      </div>
+
+                      {section.cards.map((card, cardIndex) => (
+                        <div
+                          key={card.id ?? `new-${section.id}-${cardIndex}`}
+                          className="border border-gray-200 rounded-xl p-5 mb-4 bg-gray-50"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-semibold text-gray-700">
+                              Card {cardIndex + 1}
+                            </h4>
+
+                            <span className="text-xs text-gray-400">
+                              {card.id ? `ID: ${card.id}` : "New Card"}
+                            </span>
+                          </div>
+
+                          <div className="space-y-4">
+                            {/* Card Title */}
+                            <div>
+                              <label className="block text-sm font-medium mb-1">
+                                Card Title
+                              </label>
+
+                              <input
+                                type="text"
+                                value={card.title ?? ""}
+                                onChange={(e) =>
+                                  handleCardInputChange(
+                                    section.id!,
+                                    cardIndex,
+                                    "title",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Enter card title..."
+                                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500"
+                              />
+                            </div>
+
+                            {/* Card Description */}
+                            <div>
+                              <label className="block text-sm font-medium mb-1">
+                                Card Description
+                              </label>
+
+                              <textarea
+                                value={card.description ?? ""}
+                                onChange={(e) =>
+                                  handleCardInputChange(
+                                    section.id!,
+                                    cardIndex,
+                                    "description",
+                                    e.target.value,
+                                  )
+                                }
+                                rows={3}
+                                placeholder="Enter card description..."
+                                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {section.cards.length === 0 && (
+                        <p className="text-sm text-gray-400 text-center py-6 border border-dashed rounded-xl">
+                          No cards available. Click Add Card to create one.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* Description Textarea (แสดงเฉพาะ section ที่มี description သို့မဟုတ် roadmap/seo/hero စသည်တို့အတွက်) */}
                 {(section.sectionKey === "seo" ||
-                  section.sectionKey === "hero" ||
-                  section.sectionKey === "roadmap") && (
+                  section.sectionKey === "hero") && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
                       Description
