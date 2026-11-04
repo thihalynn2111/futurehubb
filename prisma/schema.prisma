@@ -247,3 +247,15 @@ model ProductPost {
 
   @@map("product_posts")
 }
+model Gallery {
+  id        Int       @id @default(autoincrement())
+  imageUrl  String    @db.Text
+  title     String?
+  date      DateTime?
+  sortOrder Decimal   @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("images")
+}
