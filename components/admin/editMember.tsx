@@ -1,6 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Save, Loader2, User, Briefcase, FileText, Upload } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  User,
+  Briefcase,
+  FileText,
+  Upload,
+  ListOrdered,
+} from "lucide-react";
 import Swal from "sweetalert2";
 type EditMemberProps = {
   id: number;
@@ -82,9 +90,6 @@ export default function EditMember({ id }: EditMemberProps) {
         <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
           Edit Team Member
         </h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Update team member profile details, position, and information.
-        </p>
       </div>
 
       <form
@@ -191,7 +196,7 @@ export default function EditMember({ id }: EditMemberProps) {
               </p>
             </div>
           </div>
-          <span className="text-xs text-gray-400">Partner Logo</span>
+          <span className="text-xs text-gray-400">Member Profile</span>
         </div>
 
         {/* Name Input */}
@@ -252,7 +257,25 @@ export default function EditMember({ id }: EditMemberProps) {
             placeholder="Enter short biography..."
           />
         </div>
-
+        <div>
+          <label
+            className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
+            htmlFor="sortOrder"
+          >
+            <ListOrdered size={16} className="text-orange-600 mr-1" />
+            <span>Sort Order</span>
+          </label>
+          <input
+            type="number"
+            id="sortOrder"
+            name="sortOrder"
+            value={formData.sortOrder}
+            onChange={(e) =>
+              setFormData({ ...formData, sortOrder: Number(e.target.value) })
+            }
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+          />
+        </div>
         {/* Submit Button */}
         <div className="flex justify-end pt-4 border-t border-gray-100">
           <button
