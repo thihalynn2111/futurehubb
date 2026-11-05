@@ -118,6 +118,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
               type: card.type ?? section.sectionKey,
               title: card.title ?? null,
               description: card.description ?? null,
+              imageUrl: card.imageUrl ?? null,
               sortOrder: index,
               isActive: true,
               deletedAt: null,

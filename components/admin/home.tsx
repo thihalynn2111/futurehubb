@@ -15,6 +15,7 @@ type HomeCard = {
   type: string | null;
   title: string | null;
   description: string | null;
+  imageUrl: string | null;
 };
 
 type HomeSection = {
@@ -47,7 +48,13 @@ export default function Home() {
   const [previewImages, setPreviewImages] = useState<Record<number, string>>(
     {},
   );
+  const [selectedCardImages, setSelectedCardImages] = useState<
+    Record<string, File>
+  >({});
 
+  const [previewCardImages, setPreviewCardImages] = useState<
+    Record<string, string>
+  >({});
   const [seo, setSeo] = useState<SeoPage>({
     pageName: "home",
     metaTitle: "",
@@ -139,30 +146,71 @@ export default function Home() {
   const handleSave = async () => {
     try {
       setSaving(true);
+
       const updatedSections = await Promise.all(
         sections.map(async (section) => {
           if (!section.id) return section;
 
-          const file = selectedImages[section.id];
-          if (!file) return section;
+          let updatedSection = { ...section };
 
-          const formData = new FormData();
-          formData.append("file", file);
+          // 1. Upload Section Image
+          const sectionFile = selectedImages[section.id];
 
-          const uploadResponse = await fetch("/api/admin/upload", {
-            method: "POST",
-            body: formData,
-          });
+          if (sectionFile) {
+            const formData = new FormData();
+            formData.append("file", sectionFile);
 
-          const uploadResult = await uploadResponse.json();
+            const uploadResponse = await fetch("/api/admin/upload", {
+              method: "POST",
+              body: formData,
+            });
 
-          if (!uploadResponse.ok || !uploadResult.success) {
-            throw new Error(uploadResult.message || "Image upload failed");
+            const uploadResult = await uploadResponse.json();
+
+            if (!uploadResponse.ok || !uploadResult.success) {
+              throw new Error(
+                uploadResult.message || "Section image upload failed",
+              );
+            }
+
+            updatedSection.imageUrl = uploadResult.imageUrl;
           }
 
+          // 2. Upload Card Images
+          const updatedCards = await Promise.all(
+            section.cards.map(async (card, cardIndex) => {
+              const cardKey = `${section.id}-${card.id ?? `new-${cardIndex}`}`;
+
+              const cardFile = selectedCardImages[cardKey];
+
+              if (!cardFile) return card;
+
+              const formData = new FormData();
+              formData.append("file", cardFile);
+
+              const uploadResponse = await fetch("/api/admin/upload", {
+                method: "POST",
+                body: formData,
+              });
+
+              const uploadResult = await uploadResponse.json();
+
+              if (!uploadResponse.ok || !uploadResult.success) {
+                throw new Error(
+                  uploadResult.message || "Card image upload failed",
+                );
+              }
+
+              return {
+                ...card,
+                imageUrl: uploadResult.imageUrl,
+              };
+            }),
+          );
+
           return {
-            ...section,
-            imageUrl: uploadResult.imageUrl,
+            ...updatedSection,
+            cards: updatedCards,
           };
         }),
       );
@@ -239,8 +287,21 @@ export default function Home() {
                   title: "",
                   description: "",
                   subtitle: "",
+                  imageUrl: "",
                 },
               ],
+            }
+          : section,
+      ),
+    );
+  };
+  const handleRemoveCard = (sectionId: number, cardIndex: number) => {
+    setSections((previousSections) =>
+      previousSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              cards: section.cards.filter((_, index) => index !== cardIndex),
             }
           : section,
       ),
@@ -480,20 +541,93 @@ export default function Home() {
                               Card {cardIndex + 1}
                             </h4>
 
-                            {card.id != null && (
-                              <span className="text-xs text-gray-400">
-                                <button
-                                  onClick={() => handleDelete(card.id!)}
-                                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                                >
-                                  <Trash2 size={16} />
-                                  <span>Delete</span>
-                                </button>
-                              </span>
-                            )}
+                            <span className="text-xs text-gray-400">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (card.id) {
+                                    handleDelete(card.id);
+                                  } else {
+                                    handleRemoveCard(section.id!, cardIndex);
+                                  }
+                                }}
+                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                              >
+                                <Trash2 size={16} />
+                                <span>Delete</span>
+                              </button>
+                            </span>
                           </div>
 
                           <div className="space-y-4">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Card Image
+                            </label>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                              <div className="w-[200px] h-[120px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
+                                {(() => {
+                                  const cardKey = `${section.id}-${card.id ?? `new-${cardIndex}`}`;
+                                  const imageSrc =
+                                    previewCardImages[cardKey] || card.imageUrl;
+
+                                  return imageSrc ? (
+                                    <img
+                                      src={imageSrc}
+                                      alt="Card preview"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="flex flex-col items-center text-gray-400 text-xs">
+                                      <ImageIcon size={24} className="mb-1" />
+                                      <span>No image</span>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+
+                              <div>
+                                <label
+                                  htmlFor={`bg-${card.id}`}
+                                  className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
+                                >
+                                  <Upload
+                                    size={16}
+                                    className="text-orange-600"
+                                  />
+                                  <span>Choose New Image</span>
+                                </label>
+                                <input
+                                  id={`bg-${card.id}`}
+                                  hidden
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+
+                                    if (file) {
+                                      const previewUrl =
+                                        URL.createObjectURL(file);
+
+                                      const cardKey = `${section.id}-${card.id ?? `new-${cardIndex}`}`;
+
+                                      setSelectedCardImages((previous) => ({
+                                        ...previous,
+                                        [cardKey]: file,
+                                      }));
+
+                                      setPreviewCardImages((previous) => ({
+                                        ...previous,
+                                        [cardKey]: previewUrl,
+                                      }));
+                                    }
+                                  }}
+                                />
+                                <p className="text-xs text-gray-400 mt-2">
+                                  Recommended size: 800x500px (PNG, JPG)
+                                </p>
+                              </div>
+                            </div>
+
                             {/* Card Title */}
                             <div>
                               <label className="block text-sm font-medium mb-1">

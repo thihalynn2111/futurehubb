@@ -15,11 +15,11 @@ export async function DELETE(
       );
     }
 
-    const member = await prisma.projects.findUnique({
+    const card = await prisma.cardItem.findUnique({
       where: { id: cardId },
     });
 
-    if (!member || member.deletedAt !== null) {
+    if (!card || card.deletedAt !== null) {
       return NextResponse.json(
         { success: false, message: "Card not found" },
         { status: 404 },
