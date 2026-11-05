@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Loader2, Edit3, Trash2, User, Plus } from "lucide-react";
+import {
+  Users,
+  Loader2,
+  Edit3,
+  Trash2,
+  User,
+  Plus,
+  FolderKanban,
+} from "lucide-react";
 import Swal from "sweetalert2";
 export default function ViewProjects() {
   const router = useRouter();

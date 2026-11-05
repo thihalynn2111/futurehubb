@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+
 import {
   Save,
   Upload,
@@ -27,6 +28,14 @@ type HomeSection = {
   cards: HomeCard[];
 };
 
+type SeoPage = {
+  id?: number;
+  pageName: string;
+  metaTitle: string;
+  metaDesc: string;
+  keywords: string;
+};
+
 export default function Home() {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,12 +48,26 @@ export default function Home() {
     {},
   );
 
+  const [seo, setSeo] = useState<SeoPage>({
+    pageName: "home",
+    metaTitle: "",
+    metaDesc: "",
+    keywords: "",
+  });
+
   useEffect(() => {
     async function fetchSections() {
       try {
         const response = await fetch("/api/admin/pages/home");
         const result = await response.json();
         setSections(result.data);
+        setSeo({
+          id: result.seo?.id,
+          pageName: result.seo?.pageName ?? "home",
+          metaTitle: result.seo?.metaTitle ?? "",
+          metaDesc: result.seo?.metaDesc ?? "",
+          keywords: result.seo?.keywords ?? "",
+        });
       } catch (error) {
         console.error("Error fetching sections:", error);
         setError("Error fetching sections");
@@ -155,10 +178,19 @@ export default function Home() {
       if (!result.success) {
         throw new Error(result.message || "Error saving sections");
       }
-      alert("Changes saved successfully!");
+      Swal.fire({
+        title: "Success!",
+        text: "Updated successfully!",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
     } catch (error) {
-      console.error("Error saving sections:", error);
-      setError("Error saving sections");
+      Swal.fire({
+        title: "Error!",
+        text: "Update Fail",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     } finally {
       setSaving(false);
     }
@@ -206,6 +238,7 @@ export default function Home() {
                   type: section.sectionKey,
                   title: "",
                   description: "",
+                  subtitle: "",
                 },
               ],
             }
@@ -256,6 +289,66 @@ export default function Home() {
       )}
 
       <form className="space-y-6">
+        {/* SEO Settings */}
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm mt-6">
+          <h2 className="text-xl font-semibold mb-6">SEO Settings</h2>
+
+          {/* Meta Title */}
+          <div className="mb-5">
+            <label className="block text-sm font-medium mb-2">Meta Title</label>
+
+            <input
+              type="text"
+              value={seo.metaTitle}
+              onChange={(e) =>
+                setSeo((prev) => ({
+                  ...prev,
+                  metaTitle: e.target.value,
+                }))
+              }
+              className="w-full border border-gray-300 rounded-lg p-3"
+              placeholder="Enter meta title"
+            />
+          </div>
+
+          {/* Meta Description */}
+          <div className="mb-5">
+            <label className="block text-sm font-medium mb-2">
+              Meta Description
+            </label>
+
+            <textarea
+              value={seo.metaDesc}
+              onChange={(e) =>
+                setSeo((prev) => ({
+                  ...prev,
+                  metaDesc: e.target.value,
+                }))
+              }
+              className="w-full border border-gray-300 rounded-lg p-3"
+              rows={4}
+              placeholder="Enter meta description"
+            />
+          </div>
+
+          {/* Keywords */}
+          <div className="mb-5">
+            <label className="block text-sm font-medium mb-2">Keywords</label>
+
+            <input
+              type="text"
+              value={seo.keywords}
+              onChange={(e) =>
+                setSeo((prev) => ({
+                  ...prev,
+                  keywords: e.target.value,
+                }))
+              }
+              className="w-full border border-gray-300 rounded-lg p-3"
+              placeholder="Enter keywords separated by commas"
+            />
+          </div>
+        </div>
         {sections.map((section) => {
           const sectionTitle = section.sectionKey
             ? section.sectionKey.charAt(0).toUpperCase() +
@@ -289,6 +382,42 @@ export default function Home() {
                     placeholder="Enter section title..."
                   />
                 </div>
+                {section.sectionKey === "hero" && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Subtitle
+                    </label>
+                    <input
+                      type="text"
+                      value={section.subtitle ?? ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          section.id!,
+                          "subtitle",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                      placeholder="Enter subtitle..."
+                    />
+                    <label className="block text-sm font-semibold text-gray-700 mb-1 mt-4">
+                      Contact button label
+                    </label>
+                    <input
+                      type="text"
+                      value={section.description ?? ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          section.id!,
+                          "description",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                      placeholder="Enter button title..."
+                    />
+                  </div>
+                )}
                 {section.sectionKey === "roadmap" && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -418,28 +547,6 @@ export default function Home() {
                         </p>
                       )}
                     </div>
-                  </div>
-                )}
-                {/* Description Textarea (แสดงเฉพาะ section ที่มี description သို့မဟုတ် roadmap/seo/hero စသည်တို့အတွက်) */}
-                {(section.sectionKey === "seo" ||
-                  section.sectionKey === "hero") && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      value={section.description ?? ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          section.id!,
-                          "description",
-                          e.target.value,
-                        )
-                      }
-                      rows={3}
-                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
-                      placeholder="Enter section description..."
-                    />
                   </div>
                 )}
 

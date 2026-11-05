@@ -25,9 +25,15 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         },
       },
     });
+    const seo = await prisma.seoPage.findUnique({
+      where: {
+        pageName: page,
+      },
+    });
     return NextResponse.json({
       success: true,
       data: sections,
+      seo: seo,
     });
   } catch (error) {
     console.error("GET PAGE ERROR:", error);
