@@ -1,7 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Save, Upload, Loader2, Image as ImageIcon } from "lucide-react";
-
+import {
+  Save,
+  Upload,
+  Loader2,
+  Trash2,
+  Image as ImageIcon,
+} from "lucide-react";
+import Swal from "sweetalert2";
 type HomeCard = {
   id?: number;
   sectionID: number;
@@ -48,7 +54,57 @@ export default function Home() {
     }
     fetchSections();
   }, []);
+  async function handleDelete(id: number) {
+    setLoading(true);
+    const confirmed = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
 
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetch(`/api/admin/card/${id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to delete card");
+      }
+
+      // Card ကိုပဲ ဖယ်မယ်။ Section ကို မဖယ်ဘူး။
+      setSections((previous) =>
+        previous.map((section) => ({
+          ...section,
+          cards: section.cards.filter((card) => card.id !== id),
+        })),
+      );
+
+      Swal.fire({
+        title: "Success!",
+        text: "Card deleted successfully!",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: error instanceof Error ? error.message : "Something went wrong",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
   const handleInputChange = (id: number, field: string, value: string) => {
     setSections((previousSections) =>
       previousSections.map((section) =>
@@ -295,9 +351,17 @@ export default function Home() {
                               Card {cardIndex + 1}
                             </h4>
 
-                            <span className="text-xs text-gray-400">
-                              {card.id ? `ID: ${card.id}` : "New Card"}
-                            </span>
+                            {card.id != null && (
+                              <span className="text-xs text-gray-400">
+                                <button
+                                  onClick={() => handleDelete(card.id!)}
+                                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                                >
+                                  <Trash2 size={16} />
+                                  <span>Delete</span>
+                                </button>
+                              </span>
+                            )}
                           </div>
 
                           <div className="space-y-4">

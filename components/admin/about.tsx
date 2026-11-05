@@ -33,6 +33,53 @@ export default function AboutSection() {
   const [previewImages, setPreviewImages] = useState<Record<number, string>>(
     {},
   );
+  const defaultSections: AboutSection[] = [
+    {
+      page: "about",
+      sectionKey: "hero",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "about",
+      sectionKey: "mission",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "about",
+      sectionKey: "vision",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "about",
+      sectionKey: "why choose us",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "about",
+      sectionKey: "team",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+  ];
 
   useEffect(() => {
     async function fetchSections() {
@@ -42,8 +89,16 @@ export default function AboutSection() {
         if (!response.ok || !result.success) {
           throw new Error(result.message || "Failed to fetch about data");
         }
+        const mergedSections = defaultSections.map((defaultSection) => {
+          const existingSection = result.data.find(
+            (item: AboutSection) =>
+              item.sectionKey === defaultSection.sectionKey,
+          );
 
-        setSections(result.data);
+          return existingSection || defaultSection;
+        });
+
+        setSections(mergedSections);
       } catch (error) {
         console.error("Error fetching sections:", error);
         setError("Error fetching sections");
@@ -179,7 +234,7 @@ export default function AboutSection() {
 
           return (
             <div
-              key={section.id}
+              key={section.id ?? `default-${section.sectionKey}`}
               className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm"
             >
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2 border-b border-gray-100 pb-4">
@@ -372,22 +427,145 @@ export default function AboutSection() {
                   </>
                 )}
 
-                {/* Contact Section */}
-                {section.sectionKey === "contact" && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      value={section.title ?? ""}
-                      onChange={(e) =>
-                        handleInputChange(section.id!, "title", e.target.value)
-                      }
-                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
-                      placeholder="Enter contact title..."
-                    />
-                  </div>
+                {/* why choose us Section */}
+                {section.sectionKey === "why choose us" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={section.title ?? ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            section.id!,
+                            "title",
+                            e.target.value,
+                          )
+                        }
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        placeholder="Enter title..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={section.description ?? ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            section.id!,
+                            "description",
+                            e.target.value,
+                          )
+                        }
+                        rows={3}
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        placeholder="Enter description..."
+                      />
+                    </div>
+                  </>
+                )}
+
+                {section.sectionKey === "team" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={section.title ?? ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            section.id!,
+                            "title",
+                            e.target.value,
+                          )
+                        }
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        placeholder="Enter hero title..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={section.description ?? ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            section.id!,
+                            "description",
+                            e.target.value,
+                          )
+                        }
+                        rows={3}
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        placeholder="Enter hero description..."
+                      />
+                    </div>
+                    <div className="pt-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Section Image
+                      </label>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div className="w-[200px] h-[120px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
+                          {(section.id && previewImages[section.id]) ||
+                          section.imageUrl ? (
+                            <img
+                              src={
+                                (section.id && previewImages[section.id]) ||
+                                section.imageUrl!
+                              }
+                              alt="Section preview"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center text-gray-400 text-xs">
+                              <ImageIcon size={24} className="mb-1" />
+                              <span>No image</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor={`bg-${section.id}`}
+                            className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
+                          >
+                            <Upload size={16} className="text-orange-600" />
+                            <span>Choose New Image</span>
+                          </label>
+                          <input
+                            id={`bg-${section.id}`}
+                            hidden
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file && section.id) {
+                                const previewUrl = URL.createObjectURL(file);
+                                setSelectedImages((previous) => ({
+                                  ...previous,
+                                  [section.id!]: file,
+                                }));
+                                setPreviewImages((previous) => ({
+                                  ...previous,
+                                  [section.id!]: previewUrl,
+                                }));
+                              }
+                            }}
+                          />
+                          <p className="text-xs text-gray-400 mt-2">
+                            Recommended size: 800x500px (PNG, JPG)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
