@@ -1,6 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// ✏️ UPDATE (PUT method for frontend compatibility)
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const resolvedParams = await params;
+    const id = parseInt(resolvedParams.id, 10);
+    const body = await req.json();
+
+    const updatedCategory = await prisma.productCategory.update({
+      where: { id },
+      data: {
+        name: body.name,
+        slug: body.slug,
+        status: body.status !== undefined ? Number(body.status) : undefined,
+      },
+    });
+
+    return NextResponse.json(
+      { message: "Category updated successfully", updatedCategory },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
+
 // ✏️ UPDATE (Edit name/slug or change status / archive / draft)
 export async function PATCH(
   req: Request,

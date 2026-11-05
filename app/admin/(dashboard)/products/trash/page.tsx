@@ -12,21 +12,21 @@ export default function ProductTrashPage() {
   // Fetch all trashed items
   const fetchTrashData = async () => {
     try {
-      // 1. Fetch categories and filter deletedAt
-      const resCat = await fetch("/api/admin/categories");
+      // 1. Fetch trashed categories (🔥 ?trash=true ကို ထည့်သွင်းပေးပါ)
+      const resCat = await fetch("/api/admin/categories?trash=true");
       if (resCat.ok) {
         const dataCat = await resCat.json();
-        setTrashedCategories(dataCat.filter((c: any) => c.deletedAt));
+        setTrashedCategories(dataCat);
       }
 
-      // 2. Fetch product posts and filter deletedAt
-      const resPost = await fetch("/api/admin/products");
+      // 2. Fetch trashed product posts (including category relation)
+      const resPost = await fetch("/api/admin/products?trash=true");
       if (resPost.ok) {
         const dataPost = await resPost.json();
-        setTrashedPosts(dataPost.filter((p: any) => p.deletedAt));
+        setTrashedPosts(dataPost);
       }
 
-      // 3. Fetch card items and filter deletedAt (adjust endpoint if needed)
+      // 3. Fetch trashed card items (including product and category relations)
       const resCard = await fetch("/api/admin/card-items");
       if (resCard.ok) {
         const dataCard = await resCard.json();
@@ -44,12 +44,10 @@ export default function ProductTrashPage() {
   }, []);
 
   // --- RESTORE HANDLERS ---
-
-  // 1. Restore Category (uses /api/admin/categories/[id]/restore with PATCH)
   const handleRestoreCategory = async (id: number) => {
     try {
-      const res = await fetch(`/api/admin/categories/${id}/restore`, {
-        method: "PATCH",
+      const res = await fetch(`/api/admin/categories/${id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
@@ -63,7 +61,6 @@ export default function ProductTrashPage() {
     }
   };
 
-  // 2. Restore Product Post (uses /api/admin/products/[id] with PUT)
   const handleRestorePost = async (id: number) => {
     try {
       const res = await fetch(`/api/admin/products/${id}`, {
@@ -81,7 +78,6 @@ export default function ProductTrashPage() {
     }
   };
 
-  // 3. Restore Card Item (uses /api/admin/card-items/[id] with PUT)
   const handleRestoreCard = async (id: number) => {
     try {
       const res = await fetch(`/api/admin/card-items/${id}`, {
@@ -218,6 +214,7 @@ export default function ProductTrashPage() {
               <thead>
                 <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">Title</th>
+                  <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Deleted At</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
@@ -228,6 +225,11 @@ export default function ProductTrashPage() {
                     <tr key={post.id} className="hover:bg-slate-50">
                       <td className="py-3.5 px-4 font-semibold text-slate-900">
                         {post.title}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg font-bold">
+                          {post.category?.name || "N/A"}
+                        </span>
                       </td>
                       <td className="py-3.5 px-4 text-slate-500">
                         {post.deletedAt
@@ -253,7 +255,7 @@ export default function ProductTrashPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={4}
                       className="text-center py-6 text-slate-400 text-xs"
                     >
                       No trashed product posts found.
@@ -275,42 +277,59 @@ export default function ProductTrashPage() {
               <thead>
                 <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">Card Title</th>
+                  <th className="py-3 px-4">Parent Product</th>
+                  <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Deleted At</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {trashedCards.length > 0 ? (
-                  trashedCards.map((card) => (
-                    <tr key={card.id} className="hover:bg-slate-50">
-                      <td className="py-3.5 px-4 font-semibold text-slate-900">
-                        {card.title}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-500">
-                        {card.deletedAt
-                          ? new Date(card.deletedAt).toLocaleString()
-                          : "N/A"}
-                      </td>
-                      <td className="py-3.5 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleRestoreCard(card.id)}
-                          className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
-                        >
-                          Restore
-                        </button>
-                        <button
-                          onClick={() => handlePermanentDeleteCard(card.id)}
-                          className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
-                        >
-                          Delete Permanently
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  trashedCards.map((card) => {
+                    const parentPost = card.product || card.productPost;
+                    const parentCategory = parentPost?.category;
+
+                    return (
+                      <tr key={card.id} className="hover:bg-slate-50">
+                        <td className="py-3.5 px-4 font-semibold text-slate-900">
+                          {card.title}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg font-bold">
+                            {parentPost?.title || "N/A"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg font-bold">
+                            {parentCategory?.name || "N/A"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-500">
+                          {card.deletedAt
+                            ? new Date(card.deletedAt).toLocaleString()
+                            : "N/A"}
+                        </td>
+                        <td className="py-3.5 px-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleRestoreCard(card.id)}
+                            className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
+                          >
+                            Restore
+                          </button>
+                          <button
+                            onClick={() => handlePermanentDeleteCard(card.id)}
+                            className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
+                          >
+                            Delete Permanently
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={5}
                       className="text-center py-6 text-slate-400 text-xs"
                     >
                       No trashed card items found.

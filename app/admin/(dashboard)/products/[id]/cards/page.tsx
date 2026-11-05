@@ -23,16 +23,26 @@ export default function ProductCardsManagementPage({
 
   const fetchProductCards = async () => {
     try {
-      const res = await fetch(`/api/admin/products`);
-      if (res.ok) {
-        const products = await res.json();
+      setLoading(true);
+
+      // 1. Fetch Product details (title အတွက်)
+      const resProd = await fetch(`/api/admin/products`);
+      if (resProd.ok) {
+        const products = await resProd.json();
         const currentProduct = products.find(
           (p: any) => p.id.toString() === productId,
         );
         setProduct(currentProduct);
-        // If your API returns cards or you fetch card-items separately, filter by productId
-        const filteredCards = currentProduct?.cards || [];
-        setCards(filteredCards);
+      }
+
+      // 2. Fetch cards directly by productId from card-items API 🔥
+      const resCards = await fetch(
+        `/api/admin/card-items?productId=${productId}`,
+      );
+      if (resCards.ok) {
+        const cardData = await resCards.json();
+        // Soft delete မဖြစ်သေးသော card များကို စစ်ထုတ်မည်
+        setCards(cardData.filter((c: any) => !c.deletedAt));
       }
     } catch (err) {
       console.error("Error fetching product cards:", err);
@@ -42,7 +52,9 @@ export default function ProductCardsManagementPage({
   };
 
   useEffect(() => {
-    fetchProductCards();
+    if (productId) {
+      fetchProductCards();
+    }
   }, [productId]);
 
   // Handle Edit Click

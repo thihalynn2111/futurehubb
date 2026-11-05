@@ -28,6 +28,7 @@ export default function AdminProductsPage() {
 
   const [editingPost, setEditingPost] = useState<any>(null);
   const [editPostTitle, setEditPostTitle] = useState("");
+  const [editPostSlug, setEditPostSlug] = useState(""); // 🔥 Slug state for product edit
   const [editPostCatId, setEditPostCatId] = useState("");
   const [editPostImage, setEditPostImage] = useState("");
   const [editPostDesc, setEditPostDesc] = useState("");
@@ -135,6 +136,7 @@ export default function AdminProductsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: postTitle,
+        slug: postTitle.toLowerCase().replace(/\s+/g, "-"),
         categoryId: Number(postCategoryId),
         imageUrl: postImage,
         description: postDesc,
@@ -162,6 +164,7 @@ export default function AdminProductsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: editPostTitle,
+        slug: editPostSlug || editPostTitle.toLowerCase().replace(/\s+/g, "-"), // 🔥 Slug ကို ထည့်သွင်းပေးခြင်း
         categoryId: Number(editPostCatId),
         imageUrl: editPostImage,
         description: editPostDesc,
@@ -256,6 +259,148 @@ export default function AdminProductsPage() {
             🗑️ View Trash Bin
           </Link>
         </div>
+
+        {/* 🚀 EDIT MODALS SECTION */}
+        {editingCategory && (
+          <div className="bg-blue-50/90 border-2 border-blue-400 p-6 rounded-2xl space-y-4 shadow-lg">
+            <h3 className="text-sm font-bold text-blue-900">
+              ✏️ Edit Category: {editingCategory.name}
+            </h3>
+            <form onSubmit={handleUpdateCategory} className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-blue-800 uppercase">
+                    Category Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editCatName}
+                    onChange={(e) => setEditCatName(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-blue-300 text-slate-800 text-xs focus:outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-blue-800 uppercase">
+                    Slug
+                  </label>
+                  <input
+                    type="text"
+                    value={editCatSlug}
+                    onChange={(e) => setEditCatSlug(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-blue-300 text-slate-800 text-xs focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingCategory(null)}
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold cursor-pointer transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {editingPost && (
+          <div className="bg-emerald-50/90 border-2 border-emerald-400 p-6 rounded-2xl space-y-4 shadow-lg">
+            <h3 className="text-sm font-bold text-emerald-900">
+              ✏️ Edit Product Post: {editingPost.title}
+            </h3>
+            <form onSubmit={handleUpdatePost} className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-emerald-800 uppercase">
+                    Category
+                  </label>
+                  <select
+                    value={editPostCatId}
+                    onChange={(e) => setEditPostCatId(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none cursor-pointer"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-emerald-800 uppercase">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editPostTitle}
+                    onChange={(e) => setEditPostTitle(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-emerald-800 uppercase">
+                    Slug
+                  </label>
+                  <input
+                    type="text"
+                    value={editPostSlug}
+                    onChange={(e) => setEditPostSlug(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-emerald-800 uppercase">
+                    Image URL
+                  </label>
+                  <input
+                    type="text"
+                    value={editPostImage}
+                    onChange={(e) => setEditPostImage(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none"
+                    placeholder="Image URL"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-emerald-800 uppercase">
+                  Description
+                </label>
+                <textarea
+                  value={editPostDesc}
+                  onChange={(e) => setEditPostDesc(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none resize-none"
+                  rows={2}
+                  placeholder="Description"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingPost(null)}
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold cursor-pointer transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* 🚀 3 CREATION FORMS SECTION */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -440,106 +585,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* 📋 EDIT MODALS */}
-        {editingCategory && (
-          <div className="bg-blue-50/80 border border-blue-200 p-6 rounded-2xl space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-blue-900">
-              Edit Category: {editingCategory.name}
-            </h3>
-            <form onSubmit={handleUpdateCategory} className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  value={editCatName}
-                  onChange={(e) => setEditCatName(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white rounded-xl border border-blue-200 text-slate-800 text-xs focus:outline-none"
-                  required
-                />
-                <input
-                  type="text"
-                  value={editCatSlug}
-                  onChange={(e) => setEditCatSlug(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white rounded-xl border border-blue-200 text-slate-800 text-xs focus:outline-none"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
-                >
-                  Save Changes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingCategory(null)}
-                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {editingPost && (
-          <div className="bg-emerald-50/80 border border-emerald-200 p-6 rounded-2xl space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-emerald-900">
-              Edit Product Post: {editingPost.title}
-            </h3>
-            <form onSubmit={handleUpdatePost} className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <select
-                  value={editPostCatId}
-                  onChange={(e) => setEditPostCatId(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-200 text-slate-800 text-xs focus:outline-none cursor-pointer"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  value={editPostTitle}
-                  onChange={(e) => setEditPostTitle(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-200 text-slate-800 text-xs focus:outline-none"
-                  required
-                />
-                <input
-                  type="text"
-                  value={editPostImage}
-                  onChange={(e) => setEditPostImage(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-200 text-slate-800 text-xs focus:outline-none"
-                  placeholder="Image URL"
-                />
-              </div>
-              <textarea
-                value={editPostDesc}
-                onChange={(e) => setEditPostDesc(e.target.value)}
-                className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-200 text-slate-800 text-xs focus:outline-none resize-none"
-                rows={2}
-                placeholder="Description"
-              />
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
-                >
-                  Save Changes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingPost(null)}
-                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
         {/* 📋 TABLES SECTION */}
         <div className="space-y-6">
           {/* 1. Categories Management Table */}
@@ -575,6 +620,7 @@ export default function AdminProductsPage() {
                               setEditingCategory(cat);
                               setEditCatName(cat.name);
                               setEditCatSlug(cat.slug);
+                              window.scrollTo({ top: 0, behavior: "smooth" });
                             }}
                             className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold cursor-pointer transition"
                           >
@@ -630,7 +676,6 @@ export default function AdminProductsPage() {
                 <tbody className="divide-y divide-slate-100/80 text-xs">
                   {posts.length > 0 ? (
                     posts.map((post) => {
-                      const hasCards = post.cards && post.cards.length > 0;
                       return (
                         <tr
                           key={post.id}
@@ -646,21 +691,22 @@ export default function AdminProductsPage() {
                             {post.slug}
                           </td>
                           <td className="py-3.5 px-4 text-right space-x-1.5">
-                            {hasCards && (
-                              <Link
-                                href={`/admin/products/${post.id}/cards`}
-                                className="px-3 py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg text-xs font-semibold inline-block transition"
-                              >
-                                View Cards
-                              </Link>
-                            )}
+                            <Link
+                              href={`/admin/products/${post.id}/cards`}
+                              className="px-3 py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg text-xs font-semibold inline-block transition"
+                            >
+                              View Cards
+                            </Link>
+
                             <button
                               onClick={() => {
                                 setEditingPost(post);
                                 setEditPostTitle(post.title);
+                                setEditPostSlug(post.slug || ""); // 🔥 Set slug when clicking edit
                                 setEditPostCatId(post.categoryId);
                                 setEditPostImage(post.imageUrl || "");
                                 setEditPostDesc(post.description || "");
+                                window.scrollTo({ top: 0, behavior: "smooth" });
                               }}
                               className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold cursor-pointer transition"
                             >

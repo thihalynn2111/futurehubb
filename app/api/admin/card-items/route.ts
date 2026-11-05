@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET: Fetch all card items (active & trashed for trash bin management)
-export async function GET() {
+// GET: Fetch card items (productId ပါလာပါက ၎င်းနှင့်ဆိုင်သော cards များကိုသာ စစ်ထုတ်ပေးမည်)
+export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    const productId = url.searchParams.get("productId");
+
     const cards = await prisma.cardItem.findMany({
-      include: { product: true },
+      where: {
+        // 🔥 productId ပါလာပါက ၎င်းနှင့်ကိုက်ညီသော cards များကိုသာ ယူမည် (မပါလျှင် အားလုံးယူမည်)
+        ...(productId ? { productId: Number(productId) } : {}),
+      },
+      include: {
+        product: {
+          include: {
+            category: true,
+          },
+        },
+      },
       orderBy: { id: "desc" },
     });
+
     return NextResponse.json(cards, { status: 200 });
   } catch (error: any) {
     console.error("Error fetching card items:", error);
@@ -35,7 +49,7 @@ export async function POST(req: Request) {
         description: description || null,
         imageUrl: imageUrl || null,
         type: type || "default",
-        creatorId: 1, // Default Admin User ID (သင့် Database ထဲရှိ user id နဲ့ ကိုက်ညီအောင် ပြင်နိုင်သည်)
+        creatorId: 1, // Default Admin User ID
       },
     });
 

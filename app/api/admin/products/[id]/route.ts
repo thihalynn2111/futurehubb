@@ -41,7 +41,7 @@ export async function PUT(
     const { id } = await params;
     const restored = await prisma.productPost.update({
       where: { id: Number(id) },
-      data: { deletedAt: null }, // Restore
+      data: { deletedAt: null }, // Restore by setting deletedAt to null
     });
     return NextResponse.json(restored, { status: 200 });
   } catch (error: any) {
