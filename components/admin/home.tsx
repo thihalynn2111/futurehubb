@@ -55,6 +55,53 @@ export default function Home() {
   const [previewCardImages, setPreviewCardImages] = useState<
     Record<string, string>
   >({});
+  const defaultSections: HomeSection[] = [
+    {
+      page: "home",
+      sectionKey: "hero",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "home",
+      sectionKey: "contact call to action",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "home",
+      sectionKey: "about call to action",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "home",
+      sectionKey: "roadmap",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+    {
+      page: "home",
+      sectionKey: "Technology",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
+  ];
   const [seo, setSeo] = useState<SeoPage>({
     pageName: "home",
     metaTitle: "",
@@ -67,7 +114,19 @@ export default function Home() {
       try {
         const response = await fetch("/api/admin/pages/home");
         const result = await response.json();
-        setSections(result.data);
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Failed to fetch about data");
+        }
+        const mergedSections = defaultSections.map((defaultSection) => {
+          const existingSection = result.data.find(
+            (item: HomeSection) =>
+              item.sectionKey === defaultSection.sectionKey,
+          );
+
+          return existingSection || defaultSection;
+        });
+
+        setSections(mergedSections);
         setSeo({
           id: result.seo?.id,
           pageName: result.seo?.pageName ?? "home",
@@ -109,8 +168,6 @@ export default function Home() {
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Failed to delete card");
       }
-
-      // Card ကိုပဲ ဖယ်မယ်။ Section ကို မဖယ်ဘူး။
       setSections((previous) =>
         previous.map((section) => ({
           ...section,
@@ -175,8 +232,6 @@ export default function Home() {
 
             updatedSection.imageUrl = uploadResult.imageUrl;
           }
-
-          // 2. Upload Card Images
           const updatedCards = await Promise.all(
             section.cards.map(async (card, cardIndex) => {
               const cardKey = `${section.id}-${card.id ?? `new-${cardIndex}`}`;
@@ -419,7 +474,7 @@ export default function Home() {
 
           return (
             <div
-              key={section.id}
+              key={section.id ?? `default-${section.sectionKey}`}
               className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm"
             >
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2 border-b border-gray-100 pb-4">
@@ -443,7 +498,9 @@ export default function Home() {
                     placeholder="Enter section title..."
                   />
                 </div>
-                {section.sectionKey === "hero" && (
+                {(section.sectionKey === "hero" ||
+                  section.sectionKey === "contact call to action" ||
+                  section.sectionKey === "about call to action") && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
                       Subtitle
@@ -476,6 +533,27 @@ export default function Home() {
                       }
                       className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
                       placeholder="Enter button title..."
+                    />
+                  </div>
+                )}
+                {(section.sectionKey === "about call to action" ||
+                  section.sectionKey === "contact call to action") && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      value={section.description ?? ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          section.id!,
+                          "description",
+                          e.target.value,
+                        )
+                      }
+                      rows={3}
+                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                      placeholder="Enter section description..."
                     />
                   </div>
                 )}
@@ -683,7 +761,125 @@ export default function Home() {
                     </div>
                   </div>
                 )}
+                {section.sectionKey === "Technology" && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Subtitle
+                    </label>
+                    <input
+                      type="text"
+                      value={section.subtitle ?? ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          section.id!,
+                          "subtitle",
+                          e.target.value,
+                        )
+                      }
+                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                      placeholder="Enter subtitle..."
+                    />
 
+                    {/* Card Management */}
+                    <div className="mt-8 border-t border-gray-200 pt-6">
+                      <div className="flex items-center justify-between mb-5">
+                        <h3 className="text-lg font-bold text-gray-800">
+                          Manage Cards
+                        </h3>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAddCard(section.id!)}
+                          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                          + Add Card
+                        </button>
+                      </div>
+
+                      {section.cards.map((card, cardIndex) => (
+                        <div
+                          key={card.id ?? `new-${section.id}-${cardIndex}`}
+                          className="border border-gray-200 rounded-xl p-5 mb-4 bg-gray-50"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-semibold text-gray-700">
+                              Technology Card {cardIndex + 1}
+                            </h4>
+
+                            <span className="text-xs text-gray-400">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (card.id) {
+                                    handleDelete(card.id);
+                                  } else {
+                                    handleRemoveCard(section.id!, cardIndex);
+                                  }
+                                }}
+                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                              >
+                                <Trash2 size={16} />
+                                <span>Delete</span>
+                              </button>
+                            </span>
+                          </div>
+
+                          <div className="space-y-4">
+                            {/* Card Title */}
+                            <div>
+                              <label className="block text-sm font-medium mb-1">
+                                Technology Language
+                              </label>
+
+                              <input
+                                type="text"
+                                value={card.title ?? ""}
+                                onChange={(e) =>
+                                  handleCardInputChange(
+                                    section.id!,
+                                    cardIndex,
+                                    "title",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Enter card title..."
+                                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500"
+                              />
+                            </div>
+
+                            {/* Card Description */}
+                            <div>
+                              <label className="block text-sm font-medium mb-1">
+                                Description
+                              </label>
+
+                              <textarea
+                                value={card.description ?? ""}
+                                onChange={(e) =>
+                                  handleCardInputChange(
+                                    section.id!,
+                                    cardIndex,
+                                    "description",
+                                    e.target.value,
+                                  )
+                                }
+                                rows={3}
+                                placeholder="Enter card description..."
+                                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {section.cards.length === 0 && (
+                        <p className="text-sm text-gray-400 text-center py-6 border border-dashed rounded-xl">
+                          No cards available. Click Add Card to create one.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* Image Upload for Hero Section */}
                 {section.sectionKey === "hero" && (
                   <div className="pt-2">
