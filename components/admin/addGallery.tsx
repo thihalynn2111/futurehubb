@@ -133,7 +133,6 @@ export default function AddGallery() {
       setLoading(false);
     }
   };
-
   return (
     <div className="p-8 max-w-4xl mx-auto text-gray-900 font-sans">
       {/* Header Section */}

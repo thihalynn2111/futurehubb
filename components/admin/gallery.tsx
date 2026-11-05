@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Trash, User, Edit3, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 type gallery = {
   id?: number;
   imageUrl: string;
@@ -34,6 +35,48 @@ export default function Gallery() {
     };
     fetchData();
   }, []);
+  async function handleDelete(id: number) {
+    const confirmed = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/admin/gallery/${id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to delete partner");
+      }
+
+      setGallery((previous) => previous.filter((gallery) => gallery.id !== id));
+
+      Swal.fire({
+        title: "Success!",
+        text: "Partner deleted successfully!",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: error instanceof Error ? error.message : "Something went wrong",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
+  }
   return (
     <div className="p-8 max-w-7xl mx-auto text-gray-900 font-sans">
       <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
@@ -103,13 +146,13 @@ export default function Gallery() {
                     <Edit3 size={16} className="text-orange-600" />
                     <span>Edit</span>
                   </button>
-                  {/* <button
+                  <button
                     onClick={() => handleDelete(gallery.id)}
                     className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
                   >
                     <Trash2 size={16} />
                     <span>Delete</span>
-                  </button> */}
+                  </button>
                 </div>
               </div>
             ))}

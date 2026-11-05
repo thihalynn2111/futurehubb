@@ -157,41 +157,40 @@ export async function DELETE(
 
     if (!Number.isInteger(galleryId) || galleryId <= 0) {
       return NextResponse.json(
-        { success: false, message: "Invalid member ID" },
+        { success: false, message: "Invalid gallery ID" },
         { status: 400 },
       );
     }
 
-    const member = await prisma.teamMember.findUnique({
+    const gallery = await prisma.gallery.findUnique({
       where: { id: galleryId },
     });
 
-    if (!member || member.deletedAt !== null) {
+    if (!gallery || gallery.deletedAt !== null) {
       return NextResponse.json(
-        { success: false, message: "Team member not found" },
+        { success: false, message: "Team gallery not found" },
         { status: 404 },
       );
     }
 
-    await prisma.teamMember.update({
+    await prisma.gallery.update({
       where: { id: galleryId },
       data: {
-        isActive: false,
         deletedAt: new Date(),
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Team member deleted successfully",
+      message: "Gallery deleted successfully",
     });
   } catch (error) {
-    console.error("DELETE TEAM MEMBER ERROR:", error);
+    console.error("DELETE GALLERY ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to delete team member",
+        message: "Failed to delete Gallery",
       },
       { status: 500 },
     );
