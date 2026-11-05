@@ -1,300 +1,365 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 
-const DEFAULT_MOCK_INQUIRIES = [
-  {
-    id: 1,
-    name: "Su Su",
-    email: "susu@example.com",
-    phone: "09-123456789",
-    subject: "ဈေးနှုန်းမေးမြန်းရန်",
-    message: "မင်္ဂလာပါ၊ iPhone 15 Pro Max ရဲ့ ဈေးနှုန်းကို သိလိုပါတယ်။",
-    status: 1, // 1: DRAFT / IN_PROGRESS
-    reply: "ok i think you are now in interested in our phone service...",
-    createdAt: "2023-10-27T10:30:00.000Z",
-  },
-  {
-    id: 2,
-    name: "Aung Aung",
-    email: "aungaung@example.com",
-    phone: "09-987654321",
-    subject: "Website Error",
-    message: "Admin dashboard ထဲသို့ ဝင်သည့်အခါ Error အနည်းငယ် တက်နေပါသည်။",
-    status: 2, // 2: RESOLVED
-    reply: "ကျေးဇူးတင်ပါတယ်၊ ပြဿနာကို ဖြေရှင်းပြီးဖြစ်ပါသည်။",
-    createdAt: "2023-10-26T14:20:00.000Z",
-  },
-];
+export default function AdminInquiriesPage() {
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function InquiriesPage() {
-  const [inquiries, setInquiries] = useState<any[]>(DEFAULT_MOCK_INQUIRIES);
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("ALL");
+  // Search & Filter States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
+  // Reply Form State
   const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
-  const [replyText, setReplyText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [replyMessage, setReplyMessage] = useState("");
+  const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    fetchInquiries();
-  }, []);
-
-  const fetchInquiries = async () => {
+  const fetchData = async () => {
     try {
+      const meRes = await fetch("/api/auth/me");
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        if (meData?.user) {
+          setUserRoles(meData.user.roles || []);
+          setUserPermissions(meData.user.permissions || []);
+        }
+      }
+
       const res = await fetch("/api/admin/inquiries");
-      const data = await res.json();
-      if (res.ok && Array.isArray(data) && data.length > 0) {
+      if (res.ok) {
+        const data = await res.json();
         setInquiries(data);
       }
     } catch (err) {
-      console.log("Using default mock inquiries.");
-    }
-  };
-
-  // ၁။ Save as Draft နှိပ်ပါက Status ကို အလိုအလျောက် 1 (IN_PROGRESS/DRAFT) သို့ ပြောင်းမည်
-  const handleSaveDraft = async () => {
-    if (!selectedInquiry) return;
-    setLoading(true);
-
-    try {
-      await fetch(`/api/admin/inquiries/${selectedInquiry.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reply: replyText, status: 1 }),
-      });
-
-      alert("Saved as Draft! You can continue tomorrow. 📝");
-      setSelectedInquiry(null);
-    } catch (err: any) {
-      alert("Draft saved!");
-      setSelectedInquiry(null);
+      console.error("Error fetching data:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ၂။ Send Reply နှိပ်ပါက Status ကို အလိုအလျောက် 2 (RESOLVED) သို့ ပြောင်းမည်
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const isSuperAdmin = userRoles.some(
+    (role) =>
+      role.toLowerCase() === "super-admin" ||
+      role.toLowerCase() === "super_admin" ||
+      role.toLowerCase() === "admin",
+  );
+
+  const canUpdate =
+    isSuperAdmin || userPermissions.includes("inquiries:update");
+  const canDelete =
+    isSuperAdmin || userPermissions.includes("inquiries:delete");
+
+  // Handle Send Reply & Mark Resolved
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedInquiry) return;
-    setLoading(true);
+    if (!replyMessage.trim()) {
+      alert("Please enter a reply message.");
+      return;
+    }
 
+    setSending(true);
     try {
-      await fetch(`/api/admin/inquiries/${selectedInquiry.id}`, {
-        method: "PATCH",
+      const res = await fetch("/api/admin/reply", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reply: replyText, status: 2 }),
+        body: JSON.stringify({
+          inquiryId: selectedInquiry.id,
+          toEmail: selectedInquiry.email,
+          subject: selectedInquiry.subject,
+          message: replyMessage,
+        }),
       });
 
-      alert("Reply sent successfully! 🎉");
-      setSelectedInquiry(null);
-    } catch (err: any) {
-      alert("Sent successfully!");
-      setSelectedInquiry(null);
+      if (res.ok) {
+        alert("Reply sent successfully and marked as resolved! ✅");
+        setReplyMessage("");
+        setSelectedInquiry(null);
+        fetchData();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || "Failed to send email via Nodemailer.");
+      }
+    } catch (err) {
+      console.error("Error sending reply:", err);
+      alert("Something went wrong while sending the reply.");
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   };
 
-  const getStatusLabel = (status: number) => {
-    switch (Number(status)) {
-      case 0:
-        return "PENDING";
-      case 1:
-        return "DRAFT / IN_PROGRESS";
-      case 2:
-        return "RESOLVED";
-      default:
-        return "PENDING";
+  // Handle Soft Delete / Trash
+  const handleSoftDelete = async (id: number) => {
+    if (!confirm("Move this inquiry to Trash?")) return;
+    try {
+      const res = await fetch(`/api/admin/inquiries/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setSelectedInquiry(null);
+        fetchData();
+      } else {
+        alert("Failed to trash inquiry");
+      }
+    } catch (err) {
+      console.error("Error trashing inquiry:", err);
     }
   };
 
+  // Filter inquiries
   const filteredInquiries = inquiries.filter((item) => {
     const matchesSearch =
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      (item.subject &&
-        item.subject.toLowerCase().includes(search.toLowerCase()));
+      item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.email?.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchesStatus =
-      filterStatus === "ALL" || Number(item.status) === Number(filterStatus);
+      statusFilter === "all" ||
+      (statusFilter === "pending" && item.status === 0) ||
+      (statusFilter === "resolved" && item.status === 1);
+
     return matchesSearch && matchesStatus;
   });
 
+  if (loading)
+    return (
+      <div className="p-8 text-center text-slate-600">Loading inquiries...</div>
+    );
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-12">
-      {!selectedInquiry ? (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">
-            📥 Inquiries (မေးမြန်းချက်များ)
-          </h3>
-
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <input
-              type="text"
-              placeholder="Search by name or subject..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-lg text-sm text-gray-900"
-            />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border rounded-lg text-sm text-gray-900 bg-gray-50 font-medium"
-            >
-              <option value="ALL">All Status</option>
-              <option value={0}>PENDING (0)</option>
-              <option value={1}>DRAFT (1)</option>
-              <option value={2}>RESOLVED (2)</option>
-            </select>
+    <div className="p-8 text-slate-800 min-h-screen bg-slate-100 space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header section */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Admin Management Portal
+            </h1>
           </div>
+          <Link
+            href="/admin/inquiries/trash"
+            className="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-700 shadow-sm cursor-pointer"
+          >
+            🗑️ View Inquiries Trash
+          </Link>
+        </div>
 
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b bg-gray-50 text-gray-700 text-sm">
-                <th className="p-3">ID</th>
-                <th className="p-3">NAME</th>
-                <th className="p-3">SUBJECT</th>
-                <th className="p-3">STATUS</th>
-                <th className="p-3">ACTION</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y text-gray-800">
-              {filteredInquiries.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
-                    No inquiries found.
-                  </td>
-                </tr>
-              ) : (
-                filteredInquiries.map((item) => {
-                  const sLabel = getStatusLabel(item.status);
-                  return (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="p-3 font-medium">{item.id}</td>
-                      <td className="p-3">{item.name}</td>
-                      <td className="p-3">{item.subject || "No Subject"}</td>
-                      <td className="p-3">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            Number(item.status) === 2
-                              ? "bg-emerald-100 text-emerald-800"
-                              : Number(item.status) === 1
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {sLabel}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => {
-                            setSelectedInquiry(item);
-                            setReplyText(item.reply || "");
-                          }}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold"
-                        >
-                          View / Reply
-                        </button>
+        {/* If selectedInquiry exists, show reply form view */}
+        {selectedInquiry ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+            <div className="flex justify-between items-center border-b pb-4">
+              <button
+                onClick={() => setSelectedInquiry(null)}
+                className="text-sm font-bold text-blue-600 hover:underline cursor-pointer"
+              >
+                ← Back to Inquiries List
+              </button>
+              <div className="space-x-2">
+                {canDelete && (
+                  <button
+                    onClick={() => handleSoftDelete(selectedInquiry.id)}
+                    className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl text-xs font-bold cursor-pointer"
+                  >
+                    Trash
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  From
+                </label>
+                <div className="font-semibold text-slate-900">
+                  {selectedInquiry.name}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  Email
+                </label>
+                <div className="text-blue-600 font-medium">
+                  {selectedInquiry.email}
+                </div>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={selectedInquiry.subject || "No Subject"}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-700 outline-none"
+                />
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  Message
+                </label>
+                <div className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-700 whitespace-pre-wrap">
+                  {selectedInquiry.message}
+                </div>
+              </div>
+            </div>
+
+            {/* REPLY FORM */}
+            <form
+              onSubmit={handleSendReply}
+              className="space-y-4 pt-4 border-t"
+            >
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  Reply / Draft Message:
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                  placeholder="Type your reply message here..."
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedInquiry(null)}
+                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                {canUpdate && (
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer disabled:opacity-50"
+                  >
+                    {sending ? "Sending..." : "🚀 Send Reply & Mark Resolved"}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-bold text-slate-800">
+                📬 Inquiries (မေးမြန်းချက်များ)
+              </h2>
+            </div>
+
+            {/* Search and Filter */}
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+              <input
+                type="text"
+                placeholder="Search by name or subject..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full md:w-96 px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+                    <th className="py-3 px-4 w-16">ID</th>
+                    <th className="py-3 px-4">NAME</th>
+                    <th className="py-3 px-4">SUBJECT</th>
+                    <th className="py-3 px-4">STATUS</th>
+                    <th className="py-3 px-4 text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {filteredInquiries.length > 0 ? (
+                    filteredInquiries.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50">
+                        <td className="py-4 px-4 font-semibold text-slate-600">
+                          {item.id}
+                        </td>
+
+                        <td className="py-4 px-4">
+                          <div className="font-semibold text-slate-900">
+                            {item.name}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {item.email}
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-4 text-slate-700 font-medium">
+                          {item.subject || "No Subject"}
+                        </td>
+
+                        <td className="py-4 px-4">
+                          {item.status === 1 ? (
+                            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                              RESOLVED
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                              PENDING
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-4 px-4 text-right space-x-2">
+                          <button
+                            onClick={() => setSelectedInquiry(item)}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer"
+                          >
+                            View / Reply
+                          </button>
+
+                          {canDelete && (
+                            <button
+                              onClick={() => handleSoftDelete(item.id)}
+                              className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl text-xs font-bold cursor-pointer transition"
+                            >
+                              Trash
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="text-center py-8 text-slate-400"
+                      >
+                        No inquiries found.
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
-          <div className="flex justify-between items-center border-b pb-4">
-            <h3 className="text-xl font-bold text-gray-900">
-              ✉️ Inquiry Details & Reply (ID: {selectedInquiry.id})
-            </h3>
-            <button
-              onClick={() => setSelectedInquiry(null)}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-lg text-sm font-semibold transition"
-            >
-              ← Back to List
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-            <div>
-              <strong className="text-gray-900">From:</strong>{" "}
-              {selectedInquiry.name}
-            </div>
-            <div>
-              <strong className="text-gray-900">Email:</strong>{" "}
-              {selectedInquiry.email}
-            </div>
-            <div>
-              <strong className="text-gray-900">Phone:</strong>{" "}
-              {selectedInquiry.phone || "N/A"}
-            </div>
-            <div>
-              <strong className="text-gray-900">Date:</strong>{" "}
-              {new Date(selectedInquiry.createdAt).toLocaleString()}
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          <div>
-            <strong className="text-sm text-gray-900">Subject:</strong>
-            <p className="text-gray-800 mt-1 bg-gray-50 p-3 rounded-lg border">
-              {selectedInquiry.subject || "N/A"}
-            </p>
-          </div>
-
-          <div>
-            <strong className="text-sm text-gray-900">Message:</strong>
-            <p className="text-gray-800 mt-1 bg-gray-50 p-3 rounded-lg border whitespace-pre-wrap">
-              {selectedInquiry.message}
-            </p>
-          </div>
-
-          <form onSubmit={handleSendReply} className="space-y-4 pt-4 border-t">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Reply / Draft Message:
-              </label>
-              <textarea
-                rows={4}
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Type your reply or draft notes here..."
-                className="w-full px-3 py-2 border rounded-lg text-gray-900 text-sm"
-              />
-            </div>
-
-            {/* Status Dropdown မပါတော့ဘဲ ခလုတ်နှစ်ခုဖြင့်သာ အလုပ်လုပ်ပါမည် */}
-            <div className="flex flex-wrap gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                disabled={loading}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-5 rounded-lg text-sm transition disabled:opacity-50"
-              >
-                💾 Save as Draft
-              </button>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg text-sm transition disabled:opacity-50"
-              >
-                🚀 Send Reply & Mark Resolved
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedInquiry(null)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg text-sm transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

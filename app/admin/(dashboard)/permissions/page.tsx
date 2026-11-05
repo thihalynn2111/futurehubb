@@ -163,7 +163,6 @@ export default function PermissionsPage() {
     }
   };
 
-  // Predefined standard resources for dropdown
   const predefinedResources = [
     { key: "posts", label: "Products / Posts" },
     { key: "projects", label: "Projects" },
@@ -173,7 +172,6 @@ export default function PermissionsPage() {
     { key: "site_settings", label: "Site Settings" },
   ];
 
-  // Dynamically get unique resources from database permissions so custom ones appear automatically in Matrix
   const uniqueResourcesFromDb = Array.from(
     new Set(permissions.map((p) => p.resource.toLowerCase())),
   );
@@ -236,6 +234,24 @@ export default function PermissionsPage() {
 
                       {["create", "read", "update", "delete"].map(
                         (actionType) => {
+                          // 🔒 Inquiries အတွက် CREATE နေရာတွင် Lock Icon ထည့်သွင်းခြင်း
+                          if (
+                            resKey.toLowerCase() === "inquiries" &&
+                            actionType === "create"
+                          ) {
+                            return (
+                              <td
+                                key={actionType}
+                                className="p-3 text-center"
+                                title="Inquiry creation is disabled"
+                              >
+                                <span className="inline-flex items-center justify-center text-gray-400 font-bold cursor-not-allowed">
+                                  🔒
+                                </span>
+                              </td>
+                            );
+                          }
+
                           const perm = getPerm(actionType);
                           return (
                             <td key={actionType} className="p-3 text-center">
