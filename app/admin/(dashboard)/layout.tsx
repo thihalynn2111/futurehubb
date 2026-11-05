@@ -33,6 +33,8 @@ export default function AdminLayout({
         { name: "Permissions", href: "/admin/permissions", icon: "🔑" },
         { name: "User Management", href: "/admin/users", icon: "👤" },
         { name: "Inquiries", href: "/admin/inquiries", icon: "📩" },
+        { name: "Gallery", href: "/admin/gallery", icon: "📷" },
+        { name: "Partner", href: "/admin/projectSection", icon: "🤝" },
       ],
     },
     {
