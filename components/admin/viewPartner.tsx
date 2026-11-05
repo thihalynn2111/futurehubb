@@ -89,14 +89,11 @@ export default function ViewProjects() {
       <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
           <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
-            Catalogue Management
+            Partner Management
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
             Projects
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            View and manage all your portfolio projects and client showcases.
-          </p>
         </div>
         <button
           onClick={() => router.push(`/admin/addProject`)}

@@ -39,17 +39,15 @@ export default function Gallery() {
       <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
           <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
-            Team Management
+            Gallery Management
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
-            Team Members
+            Gallery
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Manage your company team members, roles, and profiles.
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Manage your gallery</p>
         </div>
         <button
-          onClick={() => router.push(`/admin/addGallery`)}
+          onClick={() => router.push(`/admin/gallery/new`)}
           className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center  disabled:opacity-50"
         >
           <span>Add Gallery </span>
@@ -76,7 +74,7 @@ export default function Gallery() {
                       {gallery.imageUrl ? (
                         <img
                           src={gallery.imageUrl}
-                          alt={gallery.name}
+                          alt={gallery.title}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -84,24 +82,21 @@ export default function Gallery() {
                       )}
                     </div>
                     <h2 className="text-xl font-bold text-gray-900 text-center">
-                      {gallery.name}
+                      {gallery.title}
                     </h2>
                     <span className="text-orange-600 text-xs font-semibold tracking-wider uppercase mt-0.5">
-                      {gallery.position}
+                      {gallery.date
+                        ? new Date(gallery.date).toISOString().split("T")[0]
+                        : "-"}
                     </span>
                   </div>
-
-                  {/* Bio */}
-                  <p className="text-gray-500 text-sm text-center mb-6 line-clamp-3">
-                    {gallery.bio ? gallery.bio : "No biography provided."}
-                  </p>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
                   <button
                     onClick={() =>
-                      router.push(`/admin/teamgallery/${gallery.id}/edit`)
+                      router.push(`/admin/gallery/${gallery.id}/edit`)
                     }
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-xl border border-gray-200 transition flex items-center justify-center space-x-1.5 text-sm shadow-sm"
                   >
