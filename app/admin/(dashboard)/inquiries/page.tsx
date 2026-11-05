@@ -96,6 +96,29 @@ export default function AdminInquiriesPage() {
     }
   };
 
+  // Handle Save as Draft (Status = 2)
+  const handleSaveAsDraft = async () => {
+    if (!selectedInquiry) return;
+    try {
+      const res = await fetch(`/api/admin/inquiries/${selectedInquiry.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: 2 }), // 2 = Draft
+      });
+
+      if (res.ok) {
+        alert("Saved as Draft successfully! 📝");
+        setSelectedInquiry(null);
+        fetchData();
+      } else {
+        alert("Failed to save draft.");
+      }
+    } catch (err) {
+      console.error("Error saving draft:", err);
+      alert("Something went wrong while saving draft.");
+    }
+  };
+
   // Handle Soft Delete / Trash
   const handleSoftDelete = async (id: number) => {
     if (!confirm("Move this inquiry to Trash?")) return;
@@ -124,7 +147,8 @@ export default function AdminInquiriesPage() {
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "pending" && item.status === 0) ||
-      (statusFilter === "resolved" && item.status === 1);
+      (statusFilter === "resolved" && item.status === 1) ||
+      (statusFilter === "draft" && item.status === 2);
 
     return matchesSearch && matchesStatus;
   });
@@ -212,7 +236,7 @@ export default function AdminInquiriesPage() {
               </div>
             </div>
 
-            {/* REPLY FORM */}
+            {/* REPLY / DRAFT FORM */}
             <form
               onSubmit={handleSendReply}
               className="space-y-4 pt-4 border-t"
@@ -223,7 +247,6 @@ export default function AdminInquiriesPage() {
                 </label>
                 <textarea
                   rows={4}
-                  required
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   placeholder="Type your reply message here..."
@@ -231,15 +254,24 @@ export default function AdminInquiriesPage() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-3 pt-2">
+              {/* ACTION BUTTONS WITH DRAFT BUTTON */}
+              <div className="flex justify-between items-center pt-2">
                 <button
                   type="button"
-                  onClick={() => setSelectedInquiry(null)}
-                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                  onClick={handleSaveAsDraft}
+                  className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer"
                 >
-                  Cancel
+                  💾 Save as Draft
                 </button>
-                {canUpdate && (
+
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedInquiry(null)}
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
                     disabled={sending}
@@ -247,7 +279,7 @@ export default function AdminInquiriesPage() {
                   >
                     {sending ? "Sending..." : "🚀 Send Reply & Mark Resolved"}
                   </button>
-                )}
+                </div>
               </div>
             </form>
           </div>
@@ -277,6 +309,7 @@ export default function AdminInquiriesPage() {
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="resolved">Resolved</option>
+                <option value="draft">Draft / In Progress</option>
               </select>
             </div>
 
@@ -317,6 +350,10 @@ export default function AdminInquiriesPage() {
                           {item.status === 1 ? (
                             <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
                               RESOLVED
+                            </span>
+                          ) : item.status === 2 ? (
+                            <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                              DRAFT
                             </span>
                           ) : (
                             <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold uppercase tracking-wider">

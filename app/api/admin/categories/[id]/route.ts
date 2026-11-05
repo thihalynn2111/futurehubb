@@ -16,7 +16,7 @@ export async function PATCH(
       data: {
         name: body.name,
         slug: body.slug,
-        status: body.status !== undefined ? Number(body.status) : undefined, // 1: Active, 0: Draft, 2: Archive
+        status: body.status !== undefined ? Number(body.status) : undefined,
       },
     });
 
@@ -41,16 +41,21 @@ export async function DELETE(
     const permanent = searchParams.get("permanent") === "true";
 
     if (permanent) {
-      // ❌ Permanent Delete (အပြီးတိုင်ဖျက်မည်)
+      // ❌ Permanent Delete: ဆက်စပ်နေသော product posts များကို အရင်ဖျက်ပြီးမှ category ကို ဖျက်မည် (Foreign key constraint error ဖြေရှင်းရန်)
+      await prisma.productPost.deleteMany({
+        where: { categoryId: id },
+      });
+
       await prisma.productCategory.delete({
         where: { id },
       });
+
       return NextResponse.json(
-        { message: "Category permanently deleted" },
+        { message: "Category and related posts permanently deleted" },
         { status: 200 },
       );
     } else {
-      // ♻️ Soft Delete (Trash သို့ ပို့မည် - deletedAt တွင် အချိန်ထည့်မည်)
+      // ♻️ Soft Delete (Trash သို့ ပို့မည်)
       const softDeleted = await prisma.productCategory.update({
         where: { id },
         data: { deletedAt: new Date() },
@@ -61,6 +66,7 @@ export async function DELETE(
       );
     }
   } catch (error: any) {
+    console.error("Permanent delete error:", error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
