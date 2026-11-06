@@ -49,7 +49,7 @@ export default function Home() {
   >({});
   const defaultSections: HomeSection[] = [
     {
-      page: "home",
+      page: "contact",
       sectionKey: "hero",
       title: "",
       subtitle: "",
@@ -58,7 +58,7 @@ export default function Home() {
       cards: [],
     },
     {
-      page: "home",
+      page: "contact",
       sectionKey: "info",
       title: "",
       subtitle: "",
@@ -67,7 +67,7 @@ export default function Home() {
       cards: [],
     },
     {
-      page: "home",
+      page: "contact",
       sectionKey: "contact-box",
       title: "",
       subtitle: "",
@@ -80,7 +80,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchSections() {
       try {
-        const response = await fetch("/api/admin/pages/home");
+        const response = await fetch("/api/admin/pages/contact");
         const result = await response.json();
         if (!response.ok || !result.success) {
           throw new Error(result.message || "Failed to fetch about data");
@@ -231,7 +231,7 @@ export default function Home() {
         }),
       );
 
-      const response = await fetch("/api/admin/pages/home", {
+      const response = await fetch("/api/admin/pages/contact", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -332,11 +332,9 @@ export default function Home() {
             Configuration
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
-            Home Page Management
+            Contact Page Management
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Update your home page sections, titles, descriptions, and media.
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Update your Contact</p>
         </div>
         <button
           type="button"
@@ -417,25 +415,10 @@ export default function Home() {
                       className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
                       placeholder="Enter subtitle..."
                     />
-                    <label className="block text-sm font-semibold text-gray-700 mb-1 mt-4">
-                      Contact button label
-                    </label>
-                    <input
-                      type="text"
-                      value={section.description ?? ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          section.id!,
-                          "description",
-                          e.target.value,
-                        )
-                      }
-                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
-                      placeholder="Enter button title..."
-                    />
                   </div>
                 )}
-                {section.sectionKey === "info" && (
+                {(section.sectionKey === "info" ||
+                  section.sectionKey === "contact-box") && (
                   <div>
                     {" "}
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -504,7 +487,7 @@ export default function Home() {
 
                           <div className="space-y-4">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Contact Social
+                              Card Image
                             </label>
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                               <div className="w-[200px] h-[120px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
