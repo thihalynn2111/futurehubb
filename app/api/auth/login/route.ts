@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma"; // 👈 သင့်ပရောဂျက်၏ Global Prisma Client ကို သုံးခြင်း
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 
-const prisma = new PrismaClient();
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "your-fallback-secret-key-change-it",
 );
@@ -65,7 +64,7 @@ export async function POST(request: Request) {
       ),
     );
 
-    // 4. JWT Token ထုတ်ယူခြင်း
+    // 4. JWT Token ထုတ်ယူခြင်း (Roles နှင့် Permissions များပါ ထည့်သွင်းချုပ်ဆိုမည်)
     const token = await new SignJWT({
       userId: user.id,
       email: user.email,

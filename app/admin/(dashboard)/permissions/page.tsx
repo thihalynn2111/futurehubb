@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function PermissionsPage() {
   const [roles, setRoles] = useState<any[]>([]);
@@ -38,7 +39,8 @@ export default function PermissionsPage() {
         }
       }
       if (Array.isArray(permsData)) {
-        setPermissions(permsData);
+        // Active permissions များကိုသာ စစ်ထုတ်ယူခြင်း (deletedAt မပါသည်များ)
+        setPermissions(permsData.filter((p: any) => !p.deletedAt));
       }
     } catch (err) {
       console.error("Failed to fetch data:", err);
@@ -143,8 +145,13 @@ export default function PermissionsPage() {
     }
   };
 
-  const handleDeletePermission = async (id: number) => {
-    if (!confirm("ဒီ Permission ကို အမှန်တကယ် ဖျက်မှာ သေချာပါသလား?")) return;
+  // 🗑️ Soft Delete Single Permission
+  const handleSoftDeletePermission = async (id: number, name: string) => {
+    if (
+      !confirm(`⚠️ Permission '${name}' ကို Trash သို့ ပို့ရန် သေချာပါသလား?`)
+    ) {
+      return;
+    }
 
     try {
       const res = await fetch(`/api/admin/permissions/${id}`, {
@@ -152,23 +159,26 @@ export default function PermissionsPage() {
       });
 
       if (res.ok) {
-        showToast("Permission Deleted Successfully! 🗑️");
+        showToast("Permission moved to trash! 🗑️");
         fetchData();
       } else {
-        alert("Failed to delete permission");
+        const data = await res.json();
+        alert(data.error || "Failed to trash permission");
       }
     } catch (err) {
-      console.error("Error deleting permission:", err);
+      console.error("Error trashing permission:", err);
       alert("Something went wrong.");
     }
   };
 
+  // 🔥 Predefined Resources
   const predefinedResources = [
-    { key: "posts", label: "Products / Posts" },
-    { key: "projects", label: "Projects" },
-    { key: "roles", label: "Roles Management" },
-    { key: "users", label: "User Management" },
     { key: "inquiries", label: "Inquiries" },
+    { key: "categories", label: "Product Categories" },
+    { key: "posts", label: "Product Posts" },
+    { key: "cards", label: "Card Items" },
+    { key: "users", label: "User Management" },
+    { key: "roles", label: "Roles Management" },
     { key: "site_settings", label: "Site Settings" },
   ];
 
@@ -184,7 +194,25 @@ export default function PermissionsPage() {
         </div>
       )}
 
-      {/* 1. EDIT PERMISSIONS MATRIX (Dynamic) */}
+      {/* Header View Trash Link */}
+      <div className="flex justify-between items-center bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+        <div>
+          <h1 className="text-xl font-bold text-slate-950">
+            Permission Management Portal
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Define and configure role access control matrices.
+          </p>
+        </div>
+        <Link
+          href="/admin/permissions/trash"
+          className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center gap-2 cursor-pointer"
+        >
+          🗑️ View Trash Bin
+        </Link>
+      </div>
+
+      {/* 1. EDIT PERMISSIONS MATRIX (Dynamic with Trash Row Button) */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="bg-slate-900 text-white px-6 py-4 font-bold text-lg">
           🔐 Edit Permissions (CRUD Matrix)
@@ -197,7 +225,7 @@ export default function PermissionsPage() {
             <select
               value={selectedRoleId}
               onChange={(e) => setSelectedRoleId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 bg-gray-50"
+              className="w-full px-3 py-2 border rounded-md text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer"
             >
               {roles.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -216,6 +244,7 @@ export default function PermissionsPage() {
                   <th className="p-3 text-center">READ</th>
                   <th className="p-3 text-center">UPDATE</th>
                   <th className="p-3 text-center">DELETE</th>
+                  <th className="p-3 text-right">ROW ACTION</th>
                 </tr>
               </thead>
               <tbody className="text-sm divide-y text-gray-800">
@@ -228,13 +257,44 @@ export default function PermissionsPage() {
                     );
                   };
 
+                  // 🗑️ Handle soft deleting all permissions in this resource row
+                  const handleSoftDeleteRow = async () => {
+                    if (
+                      !confirm(
+                        `⚠️ Move all permissions for resource '${resKey.toUpperCase()}' to trash?`,
+                      )
+                    ) {
+                      return;
+                    }
+
+                    try {
+                      const resourcePerms = permissions.filter(
+                        (p) =>
+                          p.resource.toLowerCase() === resKey.toLowerCase(),
+                      );
+
+                      for (const p of resourcePerms) {
+                        await fetch(`/api/admin/permissions/${p.id}`, {
+                          method: "DELETE",
+                        });
+                      }
+
+                      showToast(
+                        `Resource '${resKey.toUpperCase()}' moved to trash! 🗑️`,
+                      );
+                      fetchData();
+                    } catch (err) {
+                      console.error("Error trashing resource row:", err);
+                      alert("Failed to trash resource row");
+                    }
+                  };
+
                   return (
                     <tr key={resKey} className="hover:bg-gray-50">
                       <td className="p-3 font-semibold uppercase">{resKey}</td>
 
                       {["create", "read", "update", "delete"].map(
                         (actionType) => {
-                          // 🔒 Inquiries အတွက် CREATE နေရာတွင် Lock Icon ထည့်သွင်းခြင်း
                           if (
                             resKey.toLowerCase() === "inquiries" &&
                             actionType === "create"
@@ -271,6 +331,18 @@ export default function PermissionsPage() {
                           );
                         },
                       )}
+
+                      {/* 🗑️ Trash Row Button */}
+                      <td className="p-3 text-right">
+                        <button
+                          type="button"
+                          onClick={handleSoftDeleteRow}
+                          className="px-2.5 py-1 bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 rounded-md text-xs font-semibold cursor-pointer transition"
+                          title={`Trash all ${resKey} permissions`}
+                        >
+                          🗑️ Trash Row
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -281,7 +353,7 @@ export default function PermissionsPage() {
           <div style={{ marginTop: "20px", textAlign: "right" }}>
             <button
               onClick={handleSaveRolePermissions}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md transition cursor-pointer"
             >
               💾 Save Permissions Matrix
             </button>
@@ -302,7 +374,7 @@ export default function PermissionsPage() {
                 <th className="p-3">PERMISSION NAME</th>
                 <th className="p-3">RESOURCE</th>
                 <th className="p-3">DESCRIPTION</th>
-                <th className="p-3">ACTIONS</th>
+                <th className="p-3 text-right">ACTION</th>
               </tr>
             </thead>
             <tbody className="text-sm divide-y text-gray-800">
@@ -316,16 +388,23 @@ export default function PermissionsPage() {
                   </td>
                   <td className="p-3 font-semibold uppercase">{p.resource}</td>
                   <td className="p-3">{p.description}</td>
-                  <td className="p-3">
+                  <td className="p-3 text-right">
                     <button
-                      onClick={() => handleDeletePermission(p.id)}
-                      className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                      onClick={() => handleSoftDeletePermission(p.id, p.name)}
+                      className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 rounded-md text-xs font-semibold cursor-pointer transition"
                     >
-                      🗑️ Delete
+                      🗑️ Trash
                     </button>
                   </td>
                 </tr>
               ))}
+              {permissions.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    No active permissions found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -344,7 +423,7 @@ export default function PermissionsPage() {
             <select
               value={selectedResource}
               onChange={(e) => setSelectedResource(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 bg-gray-50"
+              className="w-full px-3 py-2 border rounded-md text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer"
               required
             >
               <option value="">-- Select Resource --</option>
@@ -382,7 +461,7 @@ export default function PermissionsPage() {
             <select
               value={selectedAction}
               onChange={(e) => setSelectedAction(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 bg-gray-50"
+              className="w-full px-3 py-2 border rounded-md text-gray-900 font-medium focus:ring-2 focus:ring-blue-500 bg-gray-50 cursor-pointer"
             >
               <option value="create">create</option>
               <option value="read">read</option>
@@ -420,7 +499,7 @@ export default function PermissionsPage() {
           <div style={{ marginTop: "15px", textAlign: "right" }}>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md transition cursor-pointer"
             >
               💾 Save Permission
             </button>

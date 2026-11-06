@@ -13,7 +13,7 @@ export default function AdminLayout({
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // 👇 Category / Subtitles များဖြင့် အုပ်စုဖွဲ့ထားသော Menu List
+  // 👇 Category / Subtitles များဖြင့် အုပ်စုဖွဲ့ထားသော Menu List (Site Settings Trash အပါအဝင်)
   const menuGroups = [
     {
       category: "", // Dashboard အတွက် ခေါင်းစဉ်မလိုပါ
@@ -33,6 +33,11 @@ export default function AdminLayout({
       items: [
         { name: "Products", href: "/admin/products", icon: "📦" },
         { name: "Site Settings", href: "/admin/site-settings", icon: "⚙️" },
+        {
+          name: "Settings Trash",
+          href: "/admin/site-settings/trash",
+          icon: "🗑️",
+        },
       ],
     },
   ];
@@ -67,7 +72,7 @@ export default function AdminLayout({
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-400 hover:text-white p-1 rounded-md focus:outline-none"
+            className="text-gray-400 hover:text-white p-1 rounded-md focus:outline-none cursor-pointer"
           >
             {sidebarOpen ? "◀" : "▶"}
           </button>
@@ -149,7 +154,7 @@ export default function AdminLayout({
             </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-700 text-sm font-semibold px-3 py-1.5 rounded-md border border-gray-300 transition-colors"
+              className="flex items-center gap-2 bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-700 text-sm font-semibold px-3 py-1.5 rounded-md border border-gray-300 transition-colors cursor-pointer"
             >
               🚪 Logout
             </button>
