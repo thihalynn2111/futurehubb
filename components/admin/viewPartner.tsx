@@ -51,7 +51,7 @@ export default function ViewProjects() {
       cancelButtonText: "Cancel",
     });
 
-    if (!confirmed) return;
+    if (!confirmed.isConfirmed) return;
 
     try {
       const response = await fetch(`/api/admin/partner/${id}`, {

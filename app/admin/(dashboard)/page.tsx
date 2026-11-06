@@ -15,13 +15,13 @@ export default function AdminDashboardPage() {
     {
       title: "Gallery",
       description: "Curate the project and product showcase gallery.",
-      href: "/admin/projects", // သို့မဟုတ် /admin/gallery
+      href: "/admin/gallery", // သို့မဟုတ် /admin/gallery
       icon: "🖼️",
     },
     {
       title: "Partner Carousel",
       description: "Update the partner logo carousel and brand sliders.",
-      href: "/admin/team", // သို့မဟုတ် သက်ဆိုင်ရာ route
+      href: "/admin/projectSection", // သို့မဟုတ် သက်ဆိုင်ရာ route
       icon: "🤝",
     },
     {

@@ -35,6 +35,7 @@ export default function AdminLayout({
         { name: "Inquiries", href: "/admin/inquiries", icon: "📩" },
         { name: "Gallery", href: "/admin/gallery", icon: "📷" },
         { name: "Partner", href: "/admin/projectSection", icon: "🤝" },
+        { name: "Team member", href: "/admin/viewMember", icon: "👥" },
       ],
     },
     {
