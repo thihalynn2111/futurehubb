@@ -214,6 +214,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             <span>Company name</span>
           </label>
           <input
+            required
             type="text"
             id="name"
             value={formData.title}
@@ -235,6 +236,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             <span>Project title</span>
           </label>
           <input
+            required
             type="text"
             id="position"
             value={formData.subtitle}
@@ -274,6 +276,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             <span>Description</span>
           </label>
           <textarea
+            required
             id="bio"
             value={formData.description ?? ""}
             onChange={(e) =>

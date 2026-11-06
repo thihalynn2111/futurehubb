@@ -617,12 +617,6 @@ export default function Home() {
                           </div>
                         </div>
                       ))}
-
-                      {section.cards.length === 0 && (
-                        <p className="text-sm text-gray-400 text-center py-6 border border-dashed rounded-xl">
-                          No cards available. Click Add Card to create one.
-                        </p>
-                      )}
                     </div>
                   </div>
                 )}

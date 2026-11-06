@@ -209,6 +209,7 @@ export default function EditMember({ id }: EditMemberProps) {
             <span>Name</span>
           </label>
           <input
+            required
             type="text"
             id="name"
             value={formData.name}
@@ -228,6 +229,7 @@ export default function EditMember({ id }: EditMemberProps) {
             <span>Position</span>
           </label>
           <input
+            required
             type="text"
             id="position"
             value={formData.position}
@@ -249,6 +251,7 @@ export default function EditMember({ id }: EditMemberProps) {
             <span>Bio</span>
           </label>
           <textarea
+            required
             id="bio"
             value={formData.bio ?? ""}
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}

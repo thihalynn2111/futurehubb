@@ -206,6 +206,7 @@ export default function AddGallery() {
             <span>Title</span>
           </label>
           <input
+            aria-required
             type="text"
             id="title"
             name="title"
@@ -227,9 +228,11 @@ export default function AddGallery() {
             <span>Date</span>
           </label>
           <input
+            aria-required
             id="date"
             name="date"
             type="date"
+            required
             value={formData.date ?? ""}
             onChange={(e) =>
               setFormData({

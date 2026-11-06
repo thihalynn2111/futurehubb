@@ -38,7 +38,7 @@ export default function Gallery() {
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "You want to delete this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -47,7 +47,7 @@ export default function Gallery() {
       cancelButtonText: "Cancel",
     });
 
-    if (!confirmed) return;
+    if (!confirmed.isConfirmed) return;
 
     try {
       const response = await fetch(`/api/admin/gallery/${id}`, {
@@ -64,7 +64,7 @@ export default function Gallery() {
 
       Swal.fire({
         title: "Success!",
-        text: "Partner deleted successfully!",
+        text: "Gallery deleted successfully!",
         icon: "success",
         confirmButtonText: "OK",
       });
