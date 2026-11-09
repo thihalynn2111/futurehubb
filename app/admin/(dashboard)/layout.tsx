@@ -156,6 +156,12 @@ export default function AdminLayout({
               >
                 Contact Page
               </Link>
+              <Link
+                href="/admin/gallerySection"
+                className="block px-3 py-2 rounded-md text-sm text-gray-400 hover:text-orange-400 hover:bg-gray-800/60 transition"
+              >
+                Gallery Page
+              </Link>
             </div>
           )}
         </nav>

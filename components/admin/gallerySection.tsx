@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Save, Upload, Loader2, Image as ImageIcon } from "lucide-react";
 import Swal from "sweetalert2";
 
-type HomeSection = {
+type GallerySection = {
   id?: number;
   page: string | null;
   sectionKey: string;
@@ -15,7 +15,7 @@ type HomeSection = {
 };
 
 export default function GallerySection() {
-  const [sections, setSections] = useState<HomeSection[]>([]);
+  const [sections, setSections] = useState<GallerySection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +27,7 @@ export default function GallerySection() {
   );
 
   // Default sections
-  const defaultSections: HomeSection[] = [
+  const defaultSections: GallerySection[] = [
     {
       page: "home",
       sectionKey: "hero",
@@ -60,7 +60,7 @@ export default function GallerySection() {
 
         const mergedSections = defaultSections.map((defaultSection) => {
           const existingSection = result.data.find(
-            (item: HomeSection) =>
+            (item: GallerySection) =>
               item.sectionKey === defaultSection.sectionKey,
           );
 
@@ -85,7 +85,7 @@ export default function GallerySection() {
   // 2. Update section input values
   const handleInputChange = (
     sectionKey: string,
-    field: keyof HomeSection,
+    field: keyof GallerySection,
     value: string,
   ) => {
     setSections((previousSections) =>
@@ -229,11 +229,11 @@ export default function GallerySection() {
           </span>
 
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
-            Home Page Management
+            Gallery Page Management
           </h1>
 
           <p className="text-gray-500 text-sm mt-1">
-            Update your home page sections, titles, descriptions, and images.
+            Update your gallery page sections, titles, descriptions, and images.
           </p>
         </div>
 
