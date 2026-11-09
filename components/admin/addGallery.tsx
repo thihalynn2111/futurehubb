@@ -99,7 +99,7 @@ export default function AddGallery() {
       // STEP 3: Success Message
       await Swal.fire({
         title: "Success!",
-        text: "Project added successfully!",
+        text: "Gallery added successfully!",
         icon: "success",
         confirmButtonText: "OK",
       });
@@ -141,22 +141,19 @@ export default function AddGallery() {
           Catalogue Management
         </span>
         <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
-          Add New Project
+          Add New Gallery
         </h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Create a new project entry with description, imagery, and details.
-        </p>
+        <p className="text-gray-500 text-sm mt-1">Create a new gallery</p>
       </div>
 
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6"
       >
-        {/* Project Image Upload */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
             <ImageIcon size={16} className="text-orange-600 mr-1" />
-            <span>Project Image / Logo</span>
+            <span>Image</span>
           </label>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div className="w-[180px] h-[120px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
@@ -274,7 +271,7 @@ export default function AddGallery() {
             ) : (
               <Save size={18} />
             )}
-            <span>{loading ? "Adding Project..." : "Add Project"}</span>
+            <span>{loading ? "Adding Gallery..." : "Add Gallery"}</span>
           </button>
         </div>
       </form>

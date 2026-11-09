@@ -106,24 +106,22 @@ export default function GalleryClient({
       )}
       {header && (
         <section className="px-6 py-16 text-center text-black">
-          <h2 className="mb-8 text-4xl font-bold">{header.title}</h2>
-          <h3 className="mb-8 text-4xl font-bold">{header.subtitle}</h3>
+          <h2 className="mb-3 text-4xl font-bold">{header.title}</h2>
+          <h3 className="mb-3 text-4xl font-bold">{header.subtitle}</h3>
           <p>{header.description}</p>
           {Gallery.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 mt-5">
               {Gallery.map((img) => (
-                <div
-                  key={img.id}
-                  className="overflow-hidden rounded-xl bg-white p-5 shadow-md"
-                >
+                <div key={img.id} className="mb-4 break-inside-avoid">
                   <img
                     src={resolveImage(img.imageUrl, "/default-avatar.png")}
-                    alt=""
-                    className="mx-auto mb-4 h-48 w-48  object-cover"
+                    alt={img.title ?? "Gallery image"}
+                    className="w-full h-auto rounded-xl object-cover"
                   />
 
-                  <h3 className="text-xl font-bold">{img.title}</h3>
-                  <h4>
+                  <h3 className="mt-2 text-lg font-semibold">{img.title}</h3>
+
+                  <h4 className="text-sm text-gray-500">
                     {img.date
                       ? new Date(img.date).toLocaleDateString("en-CA")
                       : ""}
@@ -132,7 +130,7 @@ export default function GalleryClient({
               ))}
             </div>
           ) : (
-            <p className="text-gray-500">No team members available.</p>
+            <p className="text-gray-500">No images available.</p>
           )}
         </section>
       )}

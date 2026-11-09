@@ -66,7 +66,7 @@ export default function EditGallery({ id }: galleryProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-400px text-gray-500 font-sans">
-        <Loader2 className="animate-spin mr-2" size={24} /> Loading member
+        <Loader2 className="animate-spin mr-2" size={24} /> Loading gallery
         details...
       </div>
     );
@@ -181,7 +181,7 @@ export default function EditGallery({ id }: galleryProps) {
                 className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
               >
                 <Upload size={16} className="text-orange-600" />
-                <span>Choose Profile Photo</span>
+                <span>Choose Gallery</span>
               </label>
               <input
                 id="img"
@@ -269,7 +269,7 @@ export default function EditGallery({ id }: galleryProps) {
             ) : (
               <Save size={18} />
             )}
-            <span>{saving ? "Updating..." : "Update Member"}</span>
+            <span>{saving ? "Updating..." : "Update Gallery"}</span>
           </button>
         </div>
       </form>

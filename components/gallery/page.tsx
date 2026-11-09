@@ -31,7 +31,7 @@ export default async function AboutPage() {
           deletedAt: null,
         },
         orderBy: {
-          sortOrder: "asc",
+          date: "asc",
         },
       }),
     ]);
