@@ -272,20 +272,78 @@ export default function HomeClient({
 
       {/* ===================== ABOUT CALL TO ACTION ===================== */}
       {about && (
-        <section className="py-12 text-center">
-          {about.subtitle && (
-            <p className="text-sm uppercase tracking-widest text-teal-700">
-              {about.subtitle}
-            </p>
-          )}
-          <h2 className="mt-2 text-3xl font-bold">{about.title}</h2>
-          {about.description && (
-            <Link href="/about">
-              <button className="mt-6 rounded-xl bg-teal-700 px-6 py-3 text-white">
-                {about.description}
-              </button>
-            </Link>
-          )}
+        <section className="py-12 px-4 max-w-6xl mx-auto space-y-12 text-black">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            {about.cards && about.cards[0] && (
+              <div
+                key={about.cards[0].id}
+                className="tech-card rounded-2xl border p-6 shadow bg-white md:col-span-4 flex flex-col justify-center items-center text-center"
+              >
+                {about.cards[0].imageUrl && (
+                  <img
+                    src={resolveImage(about.cards[0].imageUrl, "")}
+                    alt={about.cards[0].title ?? ""}
+                    className="mb-4 h-32 w-full rounded-xl object-cover"
+                  />
+                )}
+                {about.cards[0].title && (
+                  <h3 className="pb-2 text-center text-2xl font-semibold">
+                    {about.cards[0].title}
+                  </h3>
+                )}
+                {about.cards[0].description && (
+                  <p className="leading-7 text-gray-600 text-center font-bold text-blue-600">
+                    {about.cards[0].description}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="md:col-span-8 text-left space-y-4">
+              {about.subtitle && (
+                <p className="text-sm uppercase tracking-widest text-teal-700 font-semibold">
+                  {about.subtitle}
+                </p>
+              )}
+              <h2 className="text-3xl font-bold">{about.title}</h2>
+              {about.description && (
+                <Link
+                  href="/user/about"
+                  className="mt-4 inline-block rounded-xl bg-teal-700 px-6 py-3 text-white shadow hover:bg-teal-800 transition text-center"
+                >
+                  {about.description}
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="tech-grid grid grid-cols-1 gap-6 md:grid-cols-3">
+            {about.cards &&
+              about.cards.slice(1).map((card) => (
+                <div
+                  key={card.id}
+                  className="tech-card rounded-2xl border p-6 shadow bg-white"
+                >
+                  {card.imageUrl && (
+                    <img
+                      src={resolveImage(card.imageUrl, "")}
+                      alt={card.title ?? ""}
+                      className="mb-4 h-40 w-full rounded-xl object-cover"
+                    />
+                  )}
+                  {card.title && (
+                    <h3 className="pb-2 text-center text-2xl font-semibold">
+                      {card.title}
+                    </h3>
+                  )}
+                  {card.description && (
+                    <p className="leading-7 text-gray-600 text-center">
+                      {card.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+          </div>
         </section>
       )}
 

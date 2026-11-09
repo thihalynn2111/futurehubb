@@ -42,10 +42,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<Record<number, File>>(
+  const [selectedImages, setSelectedImages] = useState<Record<string, File>>(
     {},
   );
-  const [previewImages, setPreviewImages] = useState<Record<number, string>>(
+
+  const [previewImages, setPreviewImages] = useState<Record<string, string>>(
     {},
   );
   const [selectedCardImages, setSelectedCardImages] = useState<
@@ -192,10 +193,16 @@ export default function Home() {
       setLoading(false);
     }
   }
-  const handleInputChange = (id: number, field: string, value: string) => {
+  const handleInputChange = (
+    sectionKey: string,
+    field: string,
+    value: string,
+  ) => {
     setSections((previousSections) =>
       previousSections.map((section) =>
-        section.id === id ? { ...section, [field]: value } : section,
+        section.sectionKey === sectionKey
+          ? { ...section, [field]: value }
+          : section,
       ),
     );
   };
@@ -211,7 +218,7 @@ export default function Home() {
           let updatedSection = { ...section };
 
           // 1. Upload Section Image
-          const sectionFile = selectedImages[section.id];
+          const sectionFile = selectedImages[section.sectionKey ?? ""];
 
           if (sectionFile) {
             const formData = new FormData();
@@ -471,7 +478,10 @@ export default function Home() {
               section.sectionKey.slice(1) +
               " Section"
             : "Section";
-
+          const imagePreview =
+            (section.sectionKey ? previewImages[section.sectionKey] : "") ||
+            section.imageUrl ||
+            "";
           return (
             <div
               key={section.id ?? `default-${section.sectionKey}`}
@@ -492,7 +502,11 @@ export default function Home() {
                     type="text"
                     value={section.title ?? ""}
                     onChange={(e) =>
-                      handleInputChange(section.id!, "title", e.target.value)
+                      handleInputChange(
+                        section.sectionKey!,
+                        "title",
+                        e.target.value,
+                      )
                     }
                     className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
                     placeholder="Enter section title..."
@@ -510,7 +524,7 @@ export default function Home() {
                       value={section.subtitle ?? ""}
                       onChange={(e) =>
                         handleInputChange(
-                          section.id!,
+                          section.sectionKey!,
                           "subtitle",
                           e.target.value,
                         )
@@ -526,7 +540,7 @@ export default function Home() {
                       value={section.description ?? ""}
                       onChange={(e) =>
                         handleInputChange(
-                          section.id!,
+                          section.sectionKey!,
                           "description",
                           e.target.value,
                         )
@@ -536,27 +550,7 @@ export default function Home() {
                     />
                   </div>
                 )}
-                {(section.sectionKey === "about call to action" ||
-                  section.sectionKey === "contact call to action") && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      value={section.description ?? ""}
-                      onChange={(e) =>
-                        handleInputChange(
-                          section.id!,
-                          "description",
-                          e.target.value,
-                        )
-                      }
-                      rows={3}
-                      className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
-                      placeholder="Enter section description..."
-                    />
-                  </div>
-                )}
+
                 {section.sectionKey === "roadmap" && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -567,7 +561,7 @@ export default function Home() {
                       value={section.subtitle ?? ""}
                       onChange={(e) =>
                         handleInputChange(
-                          section.id!,
+                          section.sectionKey!,
                           "subtitle",
                           e.target.value,
                         )
@@ -583,7 +577,7 @@ export default function Home() {
                         value={section.description ?? ""}
                         onChange={(e) =>
                           handleInputChange(
-                            section.id!,
+                            section.sectionKey!,
                             "description",
                             e.target.value,
                           )
@@ -765,7 +759,7 @@ export default function Home() {
                       value={section.subtitle ?? ""}
                       onChange={(e) =>
                         handleInputChange(
-                          section.id!,
+                          section.sectionKey!,
                           "subtitle",
                           e.target.value,
                         )
@@ -876,19 +870,15 @@ export default function Home() {
                     </label>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       <div className="w-[200px] h-[120px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
-                        {(section.id && previewImages[section.id]) ||
-                        section.imageUrl ? (
+                        {imagePreview ? (
                           <img
-                            src={
-                              (section.id && previewImages[section.id]) ||
-                              section.imageUrl!
-                            }
+                            src={imagePreview}
                             alt="Section preview"
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="flex flex-col items-center text-gray-400 text-xs">
-                            <ImageIcon size={24} className="mb-1" />
+                          <div>
+                            <ImageIcon size={24} />
                             <span>No image</span>
                           </div>
                         )}
@@ -909,15 +899,15 @@ export default function Home() {
                           accept="image/*"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file && section.id) {
+                            if (file && section.sectionKey) {
                               const previewUrl = URL.createObjectURL(file);
                               setSelectedImages((previous) => ({
                                 ...previous,
-                                [section.id!]: file,
+                                [section.sectionKey!]: file,
                               }));
                               setPreviewImages((previous) => ({
                                 ...previous,
-                                [section.id!]: previewUrl,
+                                [section.sectionKey!]: previewUrl,
                               }));
                             }
                           }}
@@ -927,6 +917,165 @@ export default function Home() {
                         </p>
                       </div>
                     </div>
+                  </div>
+                )}
+                {(section.sectionKey === "about call to action" ||
+                  section.sectionKey === "contact call to action") && (
+                  <div className="mt-8 border-t border-gray-200 pt-6">
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-lg font-bold text-gray-800">
+                        Manage Cards
+                      </h3>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddCard(section.id!)}
+                        className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+                      >
+                        + Add Card
+                      </button>
+                    </div>
+
+                    {section.cards.map((card, cardIndex) => (
+                      <div
+                        key={card.id ?? `new-${section.id}-${cardIndex}`}
+                        className="border border-gray-200 rounded-xl p-5 mb-4 bg-gray-50"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-semibold text-gray-700">
+                            Card {cardIndex + 1}
+                          </h4>
+
+                          <span className="text-xs text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (card.id) {
+                                  handleDelete(card.id);
+                                } else {
+                                  handleRemoveCard(section.id!, cardIndex);
+                                }
+                              }}
+                              className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                            >
+                              <Trash2 size={16} />
+                              <span>Delete</span>
+                            </button>
+                          </span>
+                        </div>
+
+                        <div className="space-y-4">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Card Image
+                          </label>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div className="w-[200px] h-[120px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
+                              {(() => {
+                                const cardKey = `${section.id}-${card.id ?? `new-${cardIndex}`}`;
+                                const imageSrc =
+                                  previewCardImages[cardKey] || card.imageUrl;
+
+                                return imageSrc ? (
+                                  <img
+                                    src={imageSrc}
+                                    alt="Card preview"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center text-gray-400 text-xs">
+                                    <ImageIcon size={24} className="mb-1" />
+                                    <span>No image</span>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+
+                            <div>
+                              <label
+                                htmlFor={`bg-${card.id}`}
+                                className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
+                              >
+                                <Upload size={16} className="text-orange-600" />
+                                <span>Choose New Image</span>
+                              </label>
+                              <input
+                                id={`bg-${card.id}`}
+                                hidden
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+
+                                  if (file) {
+                                    const previewUrl =
+                                      URL.createObjectURL(file);
+
+                                    const cardKey = `${section.id}-${card.id ?? `new-${cardIndex}`}`;
+
+                                    setSelectedCardImages((previous) => ({
+                                      ...previous,
+                                      [cardKey]: file,
+                                    }));
+
+                                    setPreviewCardImages((previous) => ({
+                                      ...previous,
+                                      [cardKey]: previewUrl,
+                                    }));
+                                  }
+                                }}
+                              />
+                              <p className="text-xs text-gray-400 mt-2">
+                                Recommended size: 800x500px (PNG, JPG)
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Card Title */}
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              Card Title
+                            </label>
+
+                            <input
+                              type="text"
+                              value={card.title ?? ""}
+                              onChange={(e) =>
+                                handleCardInputChange(
+                                  section.id!,
+                                  cardIndex,
+                                  "title",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Enter card title..."
+                              className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500"
+                            />
+                          </div>
+
+                          {/* Card Description */}
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              Card Description
+                            </label>
+
+                            <textarea
+                              value={card.description ?? ""}
+                              onChange={(e) =>
+                                handleCardInputChange(
+                                  section.id!,
+                                  cardIndex,
+                                  "description",
+                                  e.target.value,
+                                )
+                              }
+                              rows={3}
+                              placeholder="Enter card description..."
+                              className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

@@ -8,6 +8,7 @@ export default function section() {
 
       <main className="flex-1 p-8">
         <Home />
+        
       </main>
     </div>
   );
