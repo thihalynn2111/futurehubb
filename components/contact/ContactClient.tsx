@@ -142,7 +142,7 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
       )}
 
       {/* ===================== INFO ===================== */}
-      {info && (
+      {/* {info && (
         <section className="py-12 text-center text-black">
           <div>
             <h2 className="text-center text-4xl">Contact Info</h2>
@@ -166,10 +166,10 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
             </div>
           </div>
         </section>
-      )}
+      )} */}
 
       {/* ===================== contact box ===================== */}
-      {contact && (
+      {/* {contact && (
         <section ref={aboutRef} id="about" className="py-16 text-black">
           <div className="flex flex-col gap-8 md:flex-row ">
             <div className="w-full p-4 md:w-1/2">
@@ -204,7 +204,124 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
             </div>
           </div>
         </section>
-      )}
+      )} */}
+
+      {/*new design */}
+      <div className="grid grid-cols-2 text-black gap-2 mt-12">
+        <div className="rounded shadow-sm m-4 py-16 p-5">
+          {info && (
+            <section ref={aboutRef} id="about" className=" text-teal-800 py-3">
+              <h1 className="text-2xl mb-3 font-bold ">{info.title}</h1>
+              <p>{info.subtitle}</p>
+              <div className="grid grid-cols-2 gap-5 p-3">
+                {info.cards.map((card) => (
+                  <div key={card.id}>
+                    <i className="fa-solid fa-location-crosshairs text-4xl"></i>
+                    <br />
+                    <h2 className="text-xl font-bold">{card.title}</h2>
+                    <p>{card.description}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+        <div className=" ml-4">
+          {contact && (
+            <section ref={aboutRef} id="about" className=" text-black">
+              {/* <div > */}
+              {/* <div className="w-full p-4 md:w-1/2">
+                  <img
+                    src={
+                      contact.imageUrl ??
+                      "/public/uploads/05c581ba-6737-409e-82fb-b4d514f97e6a.jpg"
+                    }
+                  />
+                </div> */}
+
+              <div className="rounded-xl bg-teal-100 mt-3 p-6 md:p-8">
+                <h3 className="mb-2 text-2xl font-bold text-center">
+                  {contact.title}
+                </h3>
+
+                <form className="max-w-lg mx-auto space-y-4">
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Name
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      placeholder="Enter your name"
+                      className="w-full rounded-lg border border-gray-200 bg-white p-3 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="example@gmail.com"
+                      className="w-full rounded-lg border border-gray-200 bg-white p-3 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="subj"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Subject
+                    </label>
+                    <input
+                      id="subj"
+                      name="subj"
+                      type="text"
+                      placeholder="Enter subject"
+                      className="w-full rounded-lg border border-gray-200 bg-white p-3 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="message"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Message
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      rows={5}
+                      placeholder="Write your message..."
+                      className="w-full rounded-lg border border-gray-200 bg-white p-3 outline-none resize-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full rounded-lg bg-teal-700 px-6 py-3 text-white shadow hover:bg-teal-800 transition "
+                  >
+                    Send Message
+                  </button>
+                </form>
+              </div>
+              {/* </div> */}
+            </section>
+          )}
+        </div>
+      </div>
     </main>
   );
 }

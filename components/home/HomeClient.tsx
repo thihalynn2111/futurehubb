@@ -161,7 +161,7 @@ export default function HomeClient({
   );
 
   return (
-    <main ref={container}>
+    <main ref={container} className="bg-white text-black">
       {/* ===================== HERO ===================== */}
       {hero && (
         <section
@@ -170,7 +170,7 @@ export default function HomeClient({
             backgroundImage: `url('${resolveImage(hero.imageUrl, "/bg.png")}')`,
           }}
         >
-          <div className="ml-16 text-white">
+          <div className="ml-16 text-black">
             <h1 className="hero-title text-5xl font-bold">{hero.title}</h1>
             <p className="hero-description mt-4 text-lg">{hero.subtitle}</p>
             <br />
@@ -240,7 +240,7 @@ export default function HomeClient({
       {/* ===================== LOGO LOOP ===================== */}
       {projects.length > 0 && (
         <section className="overflow-hidden py-8">
-          <h2 className="mb-4 text-center text-4xl">
+          <h2 className="mb-4 text-center text-4xl text-black">
             Trusted by global companies
           </h2>
 
@@ -277,7 +277,7 @@ export default function HomeClient({
             {about.cards && about.cards[0] && (
               <div
                 key={about.cards[0].id}
-                className="tech-card rounded-2xl border p-6 shadow bg-white md:col-span-4 flex flex-col justify-center items-center text-center"
+                className="tech-card rounded-2xl p-6 shadow-sm bg-white md:col-span-4 flex flex-col justify-center items-center text-center"
               >
                 {about.cards[0].imageUrl && (
                   <img
@@ -287,7 +287,7 @@ export default function HomeClient({
                   />
                 )}
                 {about.cards[0].title && (
-                  <h3 className="pb-2 text-center text-2xl font-semibold">
+                  <h3 className="pb-2 text-center text-1xl font-semibold">
                     {about.cards[0].title}
                   </h3>
                 )}
@@ -322,7 +322,7 @@ export default function HomeClient({
               about.cards.slice(1).map((card) => (
                 <div
                   key={card.id}
-                  className="tech-card rounded-2xl border p-6 shadow bg-white"
+                  className="tech-card rounded-2xl p-6 shadow-sm bg-white"
                 >
                   {card.imageUrl && (
                     <img
@@ -332,7 +332,7 @@ export default function HomeClient({
                     />
                   )}
                   {card.title && (
-                    <h3 className="pb-2 text-center text-2xl font-semibold">
+                    <h3 className="pb-2 text-center text-1xl font-semibold">
                       {card.title}
                     </h3>
                   )}
@@ -386,45 +386,53 @@ export default function HomeClient({
 
       {/* ===================== ROADMAP ===================== */}
       {roadmap && (
-        <section className="px-8 py-12">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-[1fr_2fr]">
-            <div>
-              <h2 className="mb-6 text-3xl font-bold">{roadmap.title}</h2>
-              <p className="mt-4 text-gray-600">{roadmap.subtitle}</p>
-            </div>
+        <div>
+          <h2 className="text-3xl font-bold text-center">{roadmap.title}</h2>
+          <h1 className="text-center">{roadmap.subtitle}</h1>
+          <div className="flex items-start justify-center overflow-x-auto py-6">
+            {roadmap.cards.map((c, index) => (
+              <div key={c.id} className="flex shrink-0 items-start">
+                {/* Image and Text */}
+                <div className="flex w-24 flex-col items-center text-center">
+                  <img
+                    src={resolveImage(c.imageUrl, "/default-avatar.png")}
+                    alt={c.title ?? "Roadmap"}
+                    className="h-24 w-24 rounded-full border-2 border-gray-300 object-cover"
+                  />
 
-            <div className="space-y-4">
-              {roadmap.cards.map((c) => (
-                <div key={c.id} className="rounded-xl border p-4">
-                  <h3 className="font-semibold">{c.title}</h3>
-                  <p className="text-gray-600">{c.description}</p>
+                  <h3 className="mt-4 w-36 font-semibold">{c.title}</h3>
+                  <p className="mt-2 w-36 text-sm text-gray-600">
+                    {c.description}
+                  </p>
                 </div>
-              ))}
-            </div>
+
+                {/* Dotted Line */}
+                {index !== roadmap.cards.length - 1 && (
+                  <div className="mt-12 w-30 border-t-2 border-dotted border-gray-400" />
+                )}
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
       )}
 
       {/* ===================== PARTNERS SLIDER ===================== */}
       {projects.length > 0 && (
         <section className="overflow-hidden px-6 py-16">
-          <h2 className="mb-10 text-center text-4xl font-bold">Our Partners</h2>
+          <h2 className="mb-10 text-4xl font-bold">Our Partners</h2>
 
           <div className="overflow-hidden">
-            <div ref={sliderRef} className="flex gap-6">
+            <div ref={sliderRef} className="flex gap-3">
               {projects.map((partner) => (
-                <div
-                  key={partner.id}
-                  className="w-full shrink-0 rounded-xl bg-white p-6 shadow-lg md:w-[calc((100%-3rem)/3)]"
-                >
+                <div key={partner.id}>
                   {partner.clientLogo && (
                     <img
                       src={resolveImage(partner.clientLogo, "")}
                       alt={partner.title ?? "partner"}
-                      className="mx-auto mb-4 h-40 w-full rounded-xl object-contain"
+                      className=" w-full h-64 object-cover rounded-md"
                     />
                   )}
-                  <h3 className="mb-3 text-center text-xl font-bold text-gray-900">
+                  <h3 className=" text-center text-xl font-bold text-gray-900">
                     {partner.title}
                   </h3>
                   <p className="text-center leading-7 text-gray-600">
