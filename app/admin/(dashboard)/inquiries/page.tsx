@@ -45,6 +45,7 @@ export default function AdminInquiriesPage() {
     fetchData();
   }, []);
 
+  // 🔑 Clean Permission Matrix Engine (Universal Super Admin Bypass + Dynamic Permissions)
   const isSuperAdmin = userRoles.some(
     (role) =>
       role.toLowerCase() === "super-admin" ||
@@ -52,10 +53,14 @@ export default function AdminInquiriesPage() {
       role.toLowerCase() === "admin",
   );
 
-  const canUpdate =
-    isSuperAdmin || userPermissions.includes("inquiries:update");
-  const canDelete =
-    isSuperAdmin || userPermissions.includes("inquiries:delete");
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // Inquiries CRUD Permission mapping (Creation is excluded for admins here)
+  const canReadInquiries = hasPermission("inquiries:read");
+  const canUpdateInquiries = hasPermission("inquiries:update");
+  const canDeleteInquiries = hasPermission("inquiries:delete");
 
   // Handle Send Reply & Mark Resolved
   const handleSendReply = async (e: React.FormEvent) => {
@@ -187,7 +192,7 @@ export default function AdminInquiriesPage() {
                 ← Back to Inquiries List
               </button>
               <div className="space-x-2">
-                {canDelete && (
+                {canDeleteInquiries && (
                   <button
                     onClick={() => handleSoftDelete(selectedInquiry.id)}
                     className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl text-xs font-bold cursor-pointer"
@@ -256,29 +261,25 @@ export default function AdminInquiriesPage() {
 
               {/* ACTION BUTTONS WITH DRAFT BUTTON */}
               <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  onClick={handleSaveAsDraft}
-                  className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer"
-                >
-                  💾 Save as Draft
-                </button>
-
                 <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedInquiry(null)}
-                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={sending}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer disabled:opacity-50"
-                  >
-                    {sending ? "Sending..." : "🚀 Send Reply & Mark Resolved"}
-                  </button>
+                  {canUpdateInquiries && (
+                    <button
+                      type="button"
+                      onClick={handleSaveAsDraft}
+                      className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer"
+                    >
+                      💾 Save as Draft
+                    </button>
+                  )}
+                  {canUpdateInquiries && (
+                    <button
+                      type="submit"
+                      disabled={sending}
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer disabled:opacity-50"
+                    >
+                      {sending ? "Sending..." : "🚀 Send Reply & Mark Resolved"}
+                    </button>
+                  )}
                 </div>
               </div>
             </form>
@@ -313,87 +314,93 @@ export default function AdminInquiriesPage() {
               </select>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
-                    <th className="py-3 px-4 w-16">ID</th>
-                    <th className="py-3 px-4">NAME</th>
-                    <th className="py-3 px-4">SUBJECT</th>
-                    <th className="py-3 px-4">STATUS</th>
-                    <th className="py-3 px-4 text-right">ACTION</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
-                  {filteredInquiries.length > 0 ? (
-                    filteredInquiries.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="py-4 px-4 font-semibold text-slate-600">
-                          {item.id}
-                        </td>
+            {/* Table or Read Protection */}
+            {canReadInquiries ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+                      <th className="py-3 px-4 w-16">ID</th>
+                      <th className="py-3 px-4">NAME</th>
+                      <th className="py-3 px-4">SUBJECT</th>
+                      <th className="py-3 px-4">STATUS</th>
+                      <th className="py-3 px-4 text-right">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm">
+                    {filteredInquiries.length > 0 ? (
+                      filteredInquiries.map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50">
+                          <td className="py-4 px-4 font-semibold text-slate-600">
+                            {item.id}
+                          </td>
 
-                        <td className="py-4 px-4">
-                          <div className="font-semibold text-slate-900">
-                            {item.name}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {item.email}
-                          </div>
-                        </td>
+                          <td className="py-4 px-4">
+                            <div className="font-semibold text-slate-900">
+                              {item.name}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {item.email}
+                            </div>
+                          </td>
 
-                        <td className="py-4 px-4 text-slate-700 font-medium">
-                          {item.subject || "No Subject"}
-                        </td>
+                          <td className="py-4 px-4 text-slate-700 font-medium">
+                            {item.subject || "No Subject"}
+                          </td>
 
-                        <td className="py-4 px-4">
-                          {item.status === 1 ? (
-                            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
-                              RESOLVED
-                            </span>
-                          ) : item.status === 2 ? (
-                            <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wider">
-                              DRAFT
-                            </span>
-                          ) : (
-                            <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold uppercase tracking-wider">
-                              PENDING
-                            </span>
-                          )}
-                        </td>
+                          <td className="py-4 px-4">
+                            {item.status === 1 ? (
+                              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                                RESOLVED
+                              </span>
+                            ) : item.status === 2 ? (
+                              <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                                DRAFT
+                              </span>
+                            ) : (
+                              <span className="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                                PENDING
+                              </span>
+                            )}
+                          </td>
 
-                        <td className="py-4 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => setSelectedInquiry(item)}
-                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer"
-                          >
-                            View / Reply
-                          </button>
-
-                          {canDelete && (
+                          <td className="py-4 px-4 text-right space-x-2">
                             <button
-                              onClick={() => handleSoftDelete(item.id)}
-                              className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl text-xs font-bold cursor-pointer transition"
+                              onClick={() => setSelectedInquiry(item)}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer"
                             >
-                              Trash
+                              View / Reply
                             </button>
-                          )}
+
+                            {canDeleteInquiries && (
+                              <button
+                                onClick={() => handleSoftDelete(item.id)}
+                                className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl text-xs font-bold cursor-pointer transition"
+                              >
+                                Trash
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="text-center py-8 text-slate-400"
+                        >
+                          No inquiries found.
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="text-center py-8 text-slate-400"
-                      >
-                        No inquiries found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-rose-500 font-medium">
+                You do not have permission (`inquiries:read`) to view inquiries.
+              </div>
+            )}
           </div>
         )}
       </div>

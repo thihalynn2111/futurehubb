@@ -13,6 +13,8 @@ export default function ProductCardsManagementPage({
 
   const [product, setProduct] = useState<any>(null);
   const [cards, setCards] = useState<any[]>([]);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Edit Modal/Form States
@@ -25,7 +27,17 @@ export default function ProductCardsManagementPage({
     try {
       setLoading(true);
 
-      // 1. Fetch Product details (title အတွက်)
+      // 0. Fetch user auth & permissions
+      const meRes = await fetch("/api/auth/me");
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        if (meData?.user) {
+          setUserRoles(meData.user.roles || []);
+          setUserPermissions(meData.user.permissions || []);
+        }
+      }
+
+      // 1. Fetch Product details
       const resProd = await fetch(`/api/admin/products`);
       if (resProd.ok) {
         const products = await resProd.json();
@@ -35,13 +47,12 @@ export default function ProductCardsManagementPage({
         setProduct(currentProduct);
       }
 
-      // 2. Fetch cards directly by productId from card-items API 🔥
+      // 2. Fetch cards directly by productId from card-items API
       const resCards = await fetch(
         `/api/admin/card-items?productId=${productId}`,
       );
       if (resCards.ok) {
         const cardData = await resCards.json();
-        // Soft delete မဖြစ်သေးသော card များကို စစ်ထုတ်မည်
         setCards(cardData.filter((c: any) => !c.deletedAt));
       }
     } catch (err) {
@@ -56,6 +67,26 @@ export default function ProductCardsManagementPage({
       fetchProductCards();
     }
   }, [productId]);
+
+  // 🔑 Clean Permission Matrix Engine (Universal Super Admin Bypass + Dynamic Permissions)
+  const isSuperAdmin = userRoles.some(
+    (role) =>
+      role.toLowerCase() === "super-admin" ||
+      role.toLowerCase() === "super_admin" ||
+      role.toLowerCase() === "admin",
+  );
+
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // Cards Permissions
+  const canReadCards =
+    hasPermission("cards:read") || hasPermission("products:read");
+  const canUpdateCards =
+    hasPermission("cards:update") || hasPermission("products:update");
+  const canDeleteCards =
+    hasPermission("cards:delete") || hasPermission("products:delete");
 
   // Handle Edit Click
   const handleEditClick = (card: any) => {
@@ -141,55 +172,68 @@ export default function ProductCardsManagementPage({
             လုပ်ခြင်း၊ Delete (Trash) ပြုလုပ်ခြင်းတို့ လုပ်ဆောင်နိုင်ပါသည်။
           </p>
 
-          <div className="overflow-x-auto pt-4">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Card Title</th>
-                  <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {cards.length > 0 ? (
-                  cards.map((card) => (
-                    <tr key={card.id} className="hover:bg-slate-50">
-                      <td className="py-3 px-4 font-semibold text-slate-900">
-                        {card.title}
-                      </td>
-                      <td className="py-3 px-4 text-slate-500 truncate max-w-sm">
-                        {card.description || "N/A"}
-                      </td>
-                      <td className="py-3 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleEditClick(card)}
-                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCard(card.id)}
-                          className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-bold cursor-pointer"
-                        >
-                          Trash
-                        </button>
+          {canReadCards ? (
+            <div className="overflow-x-auto pt-4">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+                    <th className="py-3 px-4">Card Title</th>
+                    <th className="py-3 px-4">Description</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {cards.length > 0 ? (
+                    cards.map((card) => (
+                      <tr key={card.id} className="hover:bg-slate-50">
+                        <td className="py-3 px-4 font-semibold text-slate-900">
+                          {card.title}
+                        </td>
+                        <td className="py-3 px-4 text-slate-500 truncate max-w-sm">
+                          {card.description || "N/A"}
+                        </td>
+                        <td className="py-3 px-4 text-right space-x-2">
+                          {canUpdateCards && (
+                            <button
+                              onClick={() => handleEditClick(card)}
+                              className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold cursor-pointer"
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {canDeleteCards && (
+                            <button
+                              onClick={() => handleDeleteCard(card.id)}
+                              className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-bold cursor-pointer"
+                            >
+                              Trash
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="text-center py-6 text-slate-400"
+                      >
+                        No cards created for this product yet.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={3} className="text-center py-6 text-slate-400">
-                      No cards created for this product yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-6 text-rose-500 text-xs font-medium">
+              You do not have permission to view product cards.
+            </div>
+          )}
         </div>
 
-        {/* Edit Modal / Form Section (Displays when a card is selected for editing) */}
-        {editingCard && (
+        {/* Edit Modal / Form Section */}
+        {editingCard && canUpdateCards && (
           <div className="bg-[#0b132b] text-white rounded-2xl p-6 shadow-lg space-y-4 border border-slate-800">
             <h2 className="text-lg font-bold text-teal-400">
               Edit Card Item: {editingCard.title}

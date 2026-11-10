@@ -8,33 +8,75 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Login API တွင် သုံးထားသော "admin_token" နှင့် ကိုက်ညီစေရန် ပြင်ဆင်ခြင်း
   const token = request.cookies.get("admin_token")?.value;
 
-  // Admin Login Page သို့ သွားနေလျှင်
+  // 1. Admin Login Page သို့ သွားနေလျှင်
   if (pathname === "/admin/login") {
     if (token) {
       try {
         await jwtVerify(token, JWT_SECRET);
         return NextResponse.redirect(new URL("/admin", request.url));
       } catch {
-        // Token မမှန်ပါက Login Screen တွင် ဆက်ရှိမည်
+        // Token မမှန်ပါက Login Page တွင် ဆက်ရှိမည်
       }
     }
     return NextResponse.next();
   }
 
-  // Admin Dashboard Route များကို Protection ပေးခြင်း
+  // 2. Admin Dashboard Route များကို စစ်ဆေးခြင်း
   if (pathname.startsWith("/admin")) {
     if (!token) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET);
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+      const roles = (payload.roles as string[]) || [];
+      const permissions = (payload.permissions as string[]) || [];
+
+      // SUPER_ADMIN ဖြစ်ပါက အားလုံးဝင်ခွင့်ရှိသည်
+      if (roles.includes("SUPER_ADMIN") || roles.includes("super_admin")) {
+        return NextResponse.next();
+      }
+
+      const segments = pathname.split("/").filter(Boolean);
+      let resource = segments[1]; // ဥပမာ - products, posts, inquiries စသည်ဖြင့်
+
+      if (!resource) {
+        return NextResponse.next();
+      }
+
+      // 🔗 URL Resource နဲ့ Database Permission Resource နာမည် မတူတာများကို Map လုပ်ပေးခြင်း
+      if (resource === "products") {
+        resource = "posts"; // URL က products ဆိုရင် DB ထဲက posts နဲ့ တိုက်စစ်မည်
+      }
+
+      let requiredAction = "read";
+      const subActionOrId = segments[2];
+
+      if (subActionOrId === "create" || pathname.includes("/create")) {
+        requiredAction = "create";
+      } else if (
+        subActionOrId === "edit" ||
+        pathname.includes("/edit") ||
+        pathname.includes("/update")
+      ) {
+        requiredAction = "update";
+      }
+
+      const requiredPermission = `${resource}:${requiredAction}`;
+
+      const hasPermission =
+        permissions.includes(requiredPermission) ||
+        permissions.includes(`${resource}:read`);
+
+      if (!hasPermission) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+
       return NextResponse.next();
-    } catch {
+    } catch (error) {
+      console.error("Middleware token verification error:", error);
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }

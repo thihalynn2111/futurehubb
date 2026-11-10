@@ -7,26 +7,40 @@ export default function ProductTrashPage() {
   const [trashedCategories, setTrashedCategories] = useState<any[]>([]);
   const [trashedPosts, setTrashedPosts] = useState<any[]>([]);
   const [trashedCards, setTrashedCards] = useState<any[]>([]);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all trashed items
+  // Fetch all trashed items & Auth permissions
   const fetchTrashData = async () => {
     try {
-      // 1. Fetch trashed categories (🔥 ?trash=true ကို ထည့်သွင်းပေးပါ)
+      setLoading(true);
+
+      // 0. Fetch user auth & permissions (Super Admin & Matrix support)
+      const meRes = await fetch("/api/auth/me");
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        if (meData?.user) {
+          setUserRoles(meData.user.roles || []);
+          setUserPermissions(meData.user.permissions || []);
+        }
+      }
+
+      // 1. Fetch trashed categories
       const resCat = await fetch("/api/admin/categories?trash=true");
       if (resCat.ok) {
         const dataCat = await resCat.json();
         setTrashedCategories(dataCat);
       }
 
-      // 2. Fetch trashed product posts (including category relation)
+      // 2. Fetch trashed product posts
       const resPost = await fetch("/api/admin/products?trash=true");
       if (resPost.ok) {
         const dataPost = await resPost.json();
         setTrashedPosts(dataPost);
       }
 
-      // 3. Fetch trashed card items (including product and category relations)
+      // 3. Fetch trashed card items
       const resCard = await fetch("/api/admin/card-items");
       if (resCard.ok) {
         const dataCard = await resCard.json();
@@ -42,6 +56,32 @@ export default function ProductTrashPage() {
   useEffect(() => {
     fetchTrashData();
   }, []);
+
+  // 🔑 Universal Permission Matrix Engine
+  const isSuperAdmin = userRoles.some(
+    (role) =>
+      role.toLowerCase().includes("super") || role.toLowerCase() === "admin",
+  );
+
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // Permissions for Trash Bin (Restore = update, Permanent Delete = delete)
+  const canUpdateCategories =
+    hasPermission("categories:update") || hasPermission("products:update");
+  const canDeleteCategories =
+    hasPermission("categories:delete") || hasPermission("products:delete");
+
+  const canUpdatePosts =
+    hasPermission("posts:update") || hasPermission("products:update");
+  const canDeletePosts =
+    hasPermission("posts:delete") || hasPermission("products:delete");
+
+  const canUpdateCards =
+    hasPermission("cards:update") || hasPermission("products:update");
+  const canDeleteCards =
+    hasPermission("cards:delete") || hasPermission("products:delete");
 
   // --- RESTORE HANDLERS ---
   const handleRestoreCategory = async (id: number) => {
@@ -174,18 +214,24 @@ export default function ProductTrashPage() {
                           : "N/A"}
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleRestoreCategory(cat.id)}
-                          className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
-                        >
-                          Restore
-                        </button>
-                        <button
-                          onClick={() => handlePermanentDeleteCategory(cat.id)}
-                          className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
-                        >
-                          Delete Permanently
-                        </button>
+                        {canUpdateCategories && (
+                          <button
+                            onClick={() => handleRestoreCategory(cat.id)}
+                            className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
+                          >
+                            Restore
+                          </button>
+                        )}
+                        {canDeleteCategories && (
+                          <button
+                            onClick={() =>
+                              handlePermanentDeleteCategory(cat.id)
+                            }
+                            className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
+                          >
+                            Delete Permanently
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -237,18 +283,22 @@ export default function ProductTrashPage() {
                           : "N/A"}
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleRestorePost(post.id)}
-                          className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
-                        >
-                          Restore
-                        </button>
-                        <button
-                          onClick={() => handlePermanentDeletePost(post.id)}
-                          className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
-                        >
-                          Delete Permanently
-                        </button>
+                        {canUpdatePosts && (
+                          <button
+                            onClick={() => handleRestorePost(post.id)}
+                            className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
+                          >
+                            Restore
+                          </button>
+                        )}
+                        {canDeletePosts && (
+                          <button
+                            onClick={() => handlePermanentDeletePost(post.id)}
+                            className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
+                          >
+                            Delete Permanently
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -310,18 +360,22 @@ export default function ProductTrashPage() {
                             : "N/A"}
                         </td>
                         <td className="py-3.5 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => handleRestoreCard(card.id)}
-                            className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
-                          >
-                            Restore
-                          </button>
-                          <button
-                            onClick={() => handlePermanentDeleteCard(card.id)}
-                            className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
-                          >
-                            Delete Permanently
-                          </button>
+                          {canUpdateCards && (
+                            <button
+                              onClick={() => handleRestoreCard(card.id)}
+                              className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold cursor-pointer transition"
+                            >
+                              Restore
+                            </button>
+                          )}
+                          {canDeleteCards && (
+                            <button
+                              onClick={() => handlePermanentDeleteCard(card.id)}
+                              className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold cursor-pointer transition"
+                            >
+                              Delete Permanently
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
