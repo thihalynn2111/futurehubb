@@ -146,8 +146,7 @@ model PageSectionEditable {
   @@map("page_section_editables")
 }
 
-<<<<<<<<< Temporary merge branch 1
-model Project {
+model Projects {
   id          Int       @id @default(autoincrement())
   title       String
   subtitle    String?
@@ -160,19 +159,6 @@ model Project {
   updatedAt   DateTime  @updatedAt
 
   @@map("projects")
-=========
-model Projects {
-   id          Int      @id @default(autoincrement())
-  title        String
-  subtitle    String
-  description String
-  clientLogo  String?
-  status      Int      @default(0)
-  sortOrder   Int      @default(0)
-  deletedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
->>>>>>>>> Temporary merge branch 2
 }
 
 model TeamMember {
@@ -262,19 +248,17 @@ model ProductPost {
   cards       CardItem[]
 
   @@map("product_posts")
-<<<<<<<<< Temporary merge branch 1
-=========
 }
+
 model Gallery {
   id        Int       @id @default(autoincrement())
   imageUrl  String    @db.Text
   title     String?
-  date DateTime? @db.Date
+  date      DateTime? @db.Date
   sortOrder Decimal   @default(0)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@map("images")
->>>>>>>>> Temporary merge branch 2
 }
