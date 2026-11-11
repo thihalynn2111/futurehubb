@@ -147,18 +147,18 @@ model PageSectionEditable {
   @@map("page_section_editables")
 }
 
-
 model Projects {
-   id          Int      @id @default(autoincrement())
-  title        String
-  subtitle    String
-  description String
+  id          Int       @id @default(autoincrement())
+  title       String
+  subtitle    String?
+  description String?   @db.Text
   clientLogo  String?
-  status      Int      @default(0)
-  sortOrder   Int      @default(0)
+  status      Int       @default(1)
+  sortOrder   Decimal   @default(0) @db.Decimal(10, 2)
   deletedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
   @@map("projects")
 }
 
@@ -253,11 +253,12 @@ model ProductPost {
 
   @@map("product_posts")
 }
+
 model Gallery {
   id        Int       @id @default(autoincrement())
   imageUrl  String    @db.Text
   title     String?
-  date DateTime? @db.Date
+  date      DateTime? @db.Date
   sortOrder Decimal   @default(0)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
