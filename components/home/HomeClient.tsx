@@ -387,7 +387,7 @@ export default function HomeClient({
                           key={`${groupIndex}-${repeat}-${p.id}`}
                           src={resolveImage(p.clientLogo, "")}
                           alt={p.title ?? "logo"}
-                          className="h-24 w-48 shrink-0 rounded-2xl bg-white/90 p-3 object-contain shadow-lg sm:h-32 sm:w-64 md:h-40 md:w-80 md:p-4"
+                          className="h-24 w-48 shrink-0 rounded-2xl bg-white/90 p-3 object-contain shadow-lg sm:h-32 sm:w-64 md:h-40 md:w-80 md:p-4 "
                         />
                       )),
                   )}
@@ -416,7 +416,7 @@ export default function HomeClient({
                       <img
                         src={resolveImage(about.cards[0].imageUrl, "")}
                         alt={about.cards[0].title ?? ""}
-                        className="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="h-24 w-24 rounded-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                     </div>
                   )}
@@ -465,7 +465,7 @@ export default function HomeClient({
                         <img
                           src={resolveImage(card.imageUrl, "")}
                           alt={card.title ?? ""}
-                          className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          className="h-24 w-24 rounded-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
                     )}
@@ -583,7 +583,7 @@ export default function HomeClient({
       {/* ===================== PARTNERS SLIDER ===================== */}
       {projects.length > 0 && (
         <section className="overflow-hidden bg-[#0a3f4d] px-4 py-16 sm:px-6 md:py-24">
-          <h2 className="reveal mb-8 text-3xl font-extrabold md:mb-10 md:text-4xl">
+          <h2 className="reveal mb-8 text-3xl font-extrabold md:mb-10 md:text-4xl text-center">
             Our Partners
           </h2>
 
@@ -592,14 +592,14 @@ export default function HomeClient({
               {projects.map((partner) => (
                 <div
                   key={partner.id}
-                  className="group w-full shrink-0 rounded-3xl border border-white/15 bg-white/10 p-4 backdrop-blur-md md:w-[calc((100%-3rem)/3)]"
+                  className="group w-full shrink-0 rounded-3xl border border-white/15 bg-white/10 p-4 backdrop-blur-md md:w-[calc((100%-3rem)/4)]"
                 >
                   {partner.clientLogo && (
                     <div className="overflow-hidden rounded-2xl bg-white/90">
                       <img
                         src={resolveImage(partner.clientLogo, "")}
                         alt={partner.title ?? "partner"}
-                        className="h-48 w-full rounded-md object-cover transition-transform duration-500 group-hover:scale-105 md:h-64"
+                        className="h-48 w-full rounded-md transition-transform duration-500 group-hover:scale-105 md:h-64 object-contain"
                       />
                     </div>
                   )}
