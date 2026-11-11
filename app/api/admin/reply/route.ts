@@ -16,9 +16,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Nodemailer Transporter
+    // 1. Nodemailer Transporter (Explicit Host & Port 587 configuration)
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // false for port 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
