@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const id = Number(params.id);
+    const id = Number((await params).id);
     const body = await req.json();
     const { title, slug, categoryId, description } = body;
 
@@ -20,7 +20,7 @@ export async function PUT(
       },
       include: {
         category: true,
-        cardItems: true,
+        cards: true,
       },
     });
 

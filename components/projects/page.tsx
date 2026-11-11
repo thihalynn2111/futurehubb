@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import ProjectClient from "./ProjectClient";
+import { connection } from "next/server";
 
 export default async function ProjectPage() {
+  await connection();
   try {
     // 1. Get projects from database
     const rows = await prisma.projects.findMany({

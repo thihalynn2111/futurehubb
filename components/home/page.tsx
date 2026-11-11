@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import HomeClient from "./HomeClient";
+import { connection } from "next/server";
 
 export default async function HomePage() {
+  await connection();
   const [rows, projects] = await Promise.all([
     prisma.pageSectionEditable.findMany({
       where: { page: "home", isActive: true, deletedAt: null },

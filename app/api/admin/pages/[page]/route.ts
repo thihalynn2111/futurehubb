@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
-import { RouteContext } from "@/types/routes";
+type RouteContext = { params: Promise<{ page: string }> };
 export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     const { page } = await params;

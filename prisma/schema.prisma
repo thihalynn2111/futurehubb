@@ -30,6 +30,7 @@ model ProductCategory {
   id        Int           @id @default(autoincrement())
   name      String        @unique
   slug      String        @unique
+  status    Int           @default(1)
   deletedAt DateTime?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
@@ -146,21 +147,7 @@ model PageSectionEditable {
   @@map("page_section_editables")
 }
 
-<<<<<<<<< Temporary merge branch 1
-model Project {
-  id          Int       @id @default(autoincrement())
-  title       String
-  subtitle    String?
-  description String?   @db.Text
-  clientLogo  String?
-  status      Int       @default(1)
-  sortOrder   Decimal   @default(0) @db.Decimal(10, 2)
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 
-  @@map("projects")
-=========
 model Projects {
    id          Int      @id @default(autoincrement())
   title        String
@@ -172,7 +159,7 @@ model Projects {
   deletedAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
->>>>>>>>> Temporary merge branch 2
+  @@map("projects")
 }
 
 model TeamMember {
@@ -208,13 +195,16 @@ model Inquiry {
 model SiteSetting {
   id             Int       @id @default(autoincrement())
   logoHeader     String?
+  logoHeaderLink String?
   logoFooter     String?
+  logoFooterLink String?
   favicon        String?
   siteName       String
   siteTagline    String?
   emails         Json?
   phones         Json?
   contactAddress String?
+  officeHours    String?
   socialLinks    Json?
   footerText     String?
   metaTitle      String?
@@ -262,8 +252,6 @@ model ProductPost {
   cards       CardItem[]
 
   @@map("product_posts")
-<<<<<<<<< Temporary merge branch 1
-=========
 }
 model Gallery {
   id        Int       @id @default(autoincrement())
@@ -276,5 +264,4 @@ model Gallery {
   deletedAt DateTime?
 
   @@map("images")
->>>>>>>>> Temporary merge branch 2
 }

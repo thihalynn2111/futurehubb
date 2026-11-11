@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import AboutClient from "./AboutClient";
+import { connection } from "next/server";
 
 export default async function AboutPage() {
+  await connection();
   try {
     const [rows, members] = await Promise.all([
       prisma.pageSectionEditable.findMany({

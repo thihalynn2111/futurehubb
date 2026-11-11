@@ -2,159 +2,97 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link"; // 🔥 Link ကို import လုပ်ပါ
 
-function ProductContent() {
+function ProductsContent() {
+  const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [selectedId, setSelectedId] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   const searchParams = useSearchParams();
-  const urlProductId = searchParams.get("id");
+  const selectedCategoryId = searchParams.get("categoryId");
 
   useEffect(() => {
-    fetch("/api/admin/products")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Products Data:", data);
-        if (Array.isArray(data) && data.length > 0) {
-          setProducts(data);
-          // URL ထဲမှာ id ပါလာရင် အဲ့ဒါကို ရွေးမယ်၊ မပါရင် ပထမဆုံးတစ်ခုကို ရွေးမယ်
-          if (urlProductId) {
-            setSelectedId(urlProductId);
-          } else {
-            setSelectedId(data[0].id.toString());
-          }
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching products:", err);
-        setLoading(false);
-      });
-  }, [urlProductId]);
+    Promise.all([
+      fetch("/api/admin/categories")
+        .then((res) => res.json())
+        .catch(() => []),
+      fetch("/api/admin/products")
+        .then((res) => res.json())
+        .catch(() => []),
+    ]).then(([catData, prodData]) => {
+      if (Array.isArray(catData)) setCategories(catData);
+      if (Array.isArray(prodData)) setProducts(prodData);
+      setLoading(false);
+    });
+  }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-teal-400 font-medium">
-        Loading products...
+        Loading...
       </div>
     );
   }
 
-  const currentProduct =
-    products.find((p) => p.id.toString() === selectedId) || products[0];
+  const filteredProducts = selectedCategoryId
+    ? products.filter((p) => p.categoryId?.toString() === selectedCategoryId)
+    : products;
+
+  const currentCategory = categories.find(
+    (c) => c.id.toString() === selectedCategoryId,
+  );
 
   return (
     <div className="min-h-screen bg-slate-950 text-white px-6 py-12">
-      <div className="max-w-6xl mx-auto space-y-12">
-        {/* Header & Product Switcher Tabs */}
-        <div className="text-center space-y-4">
-          <span className="text-teal-400 font-semibold tracking-widest text-xs uppercase bg-teal-500/10 border border-teal-500/20 px-3.5 py-1.5 rounded-full">
-            PRODUCT SHOWCASE
-          </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
-            {currentProduct ? currentProduct.title : "Explore Products"}
-          </h1>
-          <p className="text-slate-400 max-w-xl mx-auto text-sm">
-            {currentProduct?.description ||
-              "Select a product below to view its specific details and info cards."}
-          </p>
-
-          {/* Product Tabs */}
-          <div className="flex flex-wrap justify-center gap-3 pt-4">
-            {products.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setSelectedId(p.id.toString())}
-                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition border ${
-                  selectedId === p.id.toString()
-                    ? "bg-teal-500 text-slate-950 border-teal-400 shadow-lg shadow-teal-500/20"
-                    : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
-                }`}
-              >
-                📦 {p.title}
-              </button>
-            ))}
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="border-b border-slate-800 pb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+              {currentCategory ? currentCategory.name : "All Products"}
+            </h1>
+            <p className="text-slate-400 text-sm mt-1">
+              Explore items under this category.
+            </p>
           </div>
+          <span className="text-xs font-mono bg-slate-900 border border-slate-800 text-teal-400 px-3.5 py-1.5 rounded-xl">
+            {filteredProducts.length} Items Found
+          </span>
         </div>
 
-        {/* Selected Product Main Bento Card */}
-        {currentProduct ? (
-          <div className="space-y-8">
-            <div className="relative group rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl min-h-[400px] flex flex-col justify-end p-8 md:p-12">
-              {currentProduct.imageUrl ? (
-                <img
-                  src={currentProduct.imageUrl}
-                  alt={currentProduct.title}
-                  className="absolute inset-0 w-full h-full object-cover object-center opacity-60"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950" />
-              )}
+        {/* Bento Grid (Product Cards Area) */}
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map((item) => (
+              /* 🔥 Product Card ကို Link ဖြင့် ခြုံပေးခြင်းအားဖြင့် နှိပ်လို့ရသွားပါမည် */
+              <Link
+                key={item.id}
+                href={`/products/${item.id}`} // နှိပ်လိုက်လျှင် ဤ Product ၏ detail/cards စာမျက်နှာသို့ သွားမည်
+                className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 p-6 shadow-xl space-y-4 hover:border-teal-500/50 transition flex flex-col justify-end min-h-[320px] group cursor-pointer"
+              >
+                {item.imageUrl && (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition duration-500"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
-
-              <div className="absolute top-6 left-6 z-10">
-                <span className="bg-slate-900/90 backdrop-blur-md border border-slate-700 text-teal-300 text-xs font-bold tracking-wider px-3.5 py-2 rounded-xl uppercase">
-                  {currentProduct.category?.name || "PRODUCT"}
-                </span>
-              </div>
-
-              <div className="relative z-10 space-y-3">
-                <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-                  {currentProduct.title}
-                </h2>
-                <p className="text-slate-300 text-sm md:text-base max-w-2xl leading-relaxed">
-                  {currentProduct.description ||
-                    "No description provided for this product."}
-                </p>
-              </div>
-            </div>
-
-            {/* Product Info Cards / Facts Section */}
-            <div className="space-y-6 pt-6">
-              <h3 className="text-xl font-extrabold text-teal-400 flex items-center gap-2">
-                💡 Features & Info Cards ({currentProduct.cards?.length || 0})
-              </h3>
-
-              {currentProduct.cards && currentProduct.cards.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {currentProduct.cards.map((card: any, index: number) => (
-                    <div
-                      key={card.id}
-                      className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 hover:border-teal-500/50 transition"
-                    >
-                      {card.imageUrl && (
-                        <img
-                          src={card.imageUrl}
-                          alt={card.title}
-                          className="w-full h-48 object-cover rounded-xl border border-slate-800"
-                        />
-                      )}
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-white text-lg">
-                          {card.title}
-                        </h4>
-                        <span className="text-slate-500 font-mono text-xs">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                      </div>
-                      <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
-                        {card.description}
-                      </p>
-                    </div>
-                  ))}
+                <div className="relative z-10 space-y-2">
+                  <h3 className="text-2xl font-bold text-white group-hover:text-teal-400 transition">
+                    {item.title}
+                  </h3>
+                  <p className="text-slate-300 text-xs line-clamp-2">
+                    {item.description || "No description provided."}
+                  </p>
                 </div>
-              ) : (
-                <div className="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl text-slate-500 italic text-sm">
-                  No info cards added for this product yet.
-                </div>
-              )}
-            </div>
+              </Link>
+            ))}
           </div>
         ) : (
-          <div className="text-center py-20 text-slate-500">
-            No products found.
+          <div className="text-center py-24 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-slate-500 italic text-sm">
+            No products found in this category.
           </div>
         )}
       </div>
@@ -162,16 +100,14 @@ function ProductContent() {
   );
 }
 
-export default function PublicProductPage() {
+export default function PublicProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-          Loading...
-        </div>
+        <div className="text-center text-teal-400 py-20">Loading page...</div>
       }
     >
-      <ProductContent />
+      <ProductsContent />
     </Suspense>
   );
 }

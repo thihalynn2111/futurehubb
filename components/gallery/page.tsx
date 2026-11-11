@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import GalleryClient from "./GalleryClient";
+import { connection } from "next/server";
 
 export default async function AboutPage() {
+  await connection();
   try {
     const [rows, images] = await Promise.all([
       prisma.pageSectionEditable.findMany({
