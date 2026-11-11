@@ -207,7 +207,7 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
       )} */}
 
       {/*new design */}
-      <div className="grid grid-cols-2 text-black gap-2 mt-12">
+      <div className="grid md:grid-cols-2 text-black gap-2 mt-12 grid-cols-1">
         <div className="rounded shadow-sm m-4 py-16 p-5">
           {info && (
             <section ref={aboutRef} id="about" className=" text-teal-800 py-3">
@@ -216,10 +216,19 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
               <div className="grid grid-cols-2 gap-5 p-3">
                 {info.cards.map((card) => (
                   <div key={card.id}>
-                    <i className="fa-solid fa-location-crosshairs text-4xl"></i>
-                    <br />
-                    <h2 className="text-xl font-bold">{card.title}</h2>
-                    <p>{card.description}</p>
+                    <div className="grid grid-cols-[20%_80%] mt-4 mb-6">
+                      <div className="mr-2">
+                        <img
+                          src={card.imageUrl ?? "/default-image.png"}
+                          alt={card.title || "Card image"}
+                          className="rounded-full"
+                        />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">{card.title}</h2>
+                        <p>{card.description}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
