@@ -34,13 +34,21 @@ export async function middleware(request: NextRequest) {
       const roles = (payload.roles as string[]) || [];
       const permissions = (payload.permissions as string[]) || [];
 
-      // SUPER_ADMIN ဖြစ်ပါက အားလုံးဝင်ခွင့်ရှိသည်
-      if (roles.includes("SUPER_ADMIN") || roles.includes("super_admin")) {
+      // 👇 "system" role သို့မဟုတ် "SUPER_ADMIN" ဖြစ်ပါက အားလုံးဝင်ခွင့်ရှိသည်
+      const isSuper = roles.some(
+        (r) =>
+          r.toLowerCase() === "super_admin" ||
+          r.toLowerCase() === "super-admin" ||
+          r.toLowerCase() === "admin" ||
+          r.toLowerCase() === "system",
+      );
+
+      if (isSuper) {
         return NextResponse.next();
       }
 
       const segments = pathname.split("/").filter(Boolean);
-      let resource = segments[1]; // ဥပမာ - products, posts, inquiries စသည်ဖြင့်
+      let resource = segments[1]; // ဥပမာ - products, posts, site-settings စသည်ဖြင့်
 
       if (!resource) {
         return NextResponse.next();
@@ -48,7 +56,7 @@ export async function middleware(request: NextRequest) {
 
       // 🔗 URL Resource နဲ့ Database Permission Resource နာမည် မတူတာများကို Map လုပ်ပေးခြင်း
       if (resource === "products") {
-        resource = "posts"; // URL က products ဆိုရင် DB ထဲက posts နဲ့ တိုက်စစ်မည်
+        resource = "posts";
       }
 
       let requiredAction = "read";
@@ -68,7 +76,8 @@ export async function middleware(request: NextRequest) {
 
       const hasPermission =
         permissions.includes(requiredPermission) ||
-        permissions.includes(`${resource}:read`);
+        permissions.includes(`${resource}:read`) ||
+        permissions.includes("site_settings:read"); // Site Settings အတွက် ထပ်တိုးစစ်ဆေးပေးခြင်း
 
       if (!hasPermission) {
         return NextResponse.redirect(new URL("/admin", request.url));
