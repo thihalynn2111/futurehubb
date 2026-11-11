@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Loader2, Edit3, Trash2, User, Plus } from "lucide-react";
+import { Users, Loader2, Edit3, Trash2, User, RotateCcw } from "lucide-react";
 import Swal from "sweetalert2";
 import Link from "next/link";
 export default function TrashMember() {
@@ -140,18 +140,11 @@ export default function TrashMember() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href="/admin/products/trash"
-            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
-          >
-            🗑️ View Trash Bin
-          </Link>
-
           <button
-            onClick={() => router.push(`/admin/teamMember`)}
+            onClick={() => router.push(`/admin/viewMember`)}
             className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
           >
-            <span>Add Team</span>
+            <span>View Team member list</span>
           </button>
         </div>
       </div>
@@ -205,9 +198,9 @@ export default function TrashMember() {
               <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
                 <button
                   onClick={() => handleRestore(member.id)}
-                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                  className="flex-1 bg-red-50 hover:bg-green-100 text-green-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
                 >
-                  <Trash2 size={16} />
+                  <RotateCcw size={16} />
                   <span>Restore</span>
                 </button>
                 <button
