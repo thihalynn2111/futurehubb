@@ -30,6 +30,7 @@ model ProductCategory {
   id        Int           @id @default(autoincrement())
   name      String        @unique
   slug      String        @unique
+  status    Int           @default(1)
   deletedAt DateTime?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
@@ -194,13 +195,16 @@ model Inquiry {
 model SiteSetting {
   id             Int       @id @default(autoincrement())
   logoHeader     String?
+  logoHeaderLink String?
   logoFooter     String?
+  logoFooterLink String?
   favicon        String?
   siteName       String
   siteTagline    String?
   emails         Json?
   phones         Json?
   contactAddress String?
+  officeHours    String?
   socialLinks    Json?
   footerText     String?
   metaTitle      String?

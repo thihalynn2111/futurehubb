@@ -27,6 +27,43 @@ export async function GET() {
   }
 }
 
+// POST: Role အသစ် ဖန်တီးရန် 🔥 (အသစ်ထည့်သွင်းပေးထားသည်)
+export async function POST(req: Request) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("admin_token")?.value;
+    if (!token)
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    await jwtVerify(token, JWT_SECRET);
+
+    const body = await req.json();
+    const { name, label, description } = body;
+
+    if (!name || !label) {
+      return NextResponse.json(
+        { message: "Name and label are required" },
+        { status: 400 },
+      );
+    }
+
+    const newRole = await prisma.role.create({
+      data: {
+        name,
+        label,
+        description: description || null,
+      },
+    });
+
+    return NextResponse.json(newRole, { status: 201 });
+  } catch (error: any) {
+    console.error("Create role error:", error);
+    return NextResponse.json(
+      { message: error.message || "Failed to create role" },
+      { status: 500 },
+    );
+  }
+}
+
 // DELETE: Role ကို Soft Delete လုပ်ရန်
 export async function DELETE(req: Request) {
   try {

@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import ContactClient from "./ContactClient";
+import { connection } from "next/server";
 
 export default async function ContactPage() {
+  await connection();
   const [rows] = await Promise.all([
     prisma.pageSectionEditable.findMany({
       where: { page: "contact", isActive: true, deletedAt: null },
