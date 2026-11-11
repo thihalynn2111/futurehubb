@@ -5,11 +5,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    if (!body.name || !body.position) {
+    if (!body.name || !body.position || !body.imageUrl) {
       return NextResponse.json(
         {
           success: false,
-          message: "Name and position are required",
+          message: "Name,image and position are required",
         },
         { status: 400 },
       );

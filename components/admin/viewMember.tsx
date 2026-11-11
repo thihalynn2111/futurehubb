@@ -94,7 +94,7 @@ export default function Member() {
             Team Members
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-            Manage your company team members, roles, and profiles.
+            Manage your company team members and profiles.
           </p>
         </div>
         <button

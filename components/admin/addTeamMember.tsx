@@ -97,7 +97,12 @@ export default function TeamMember() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to add member");
+        await Swal.fire({
+          title: "Error!",
+          text: result.message || "Failed to add member.",
+          icon: "error",
+        });
+        return;
       }
 
       setMessage("Team member added successfully!");

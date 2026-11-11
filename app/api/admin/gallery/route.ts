@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    // if (!body.title?.trim() || !body.date?.trim()) {
-    //   return NextResponse.json(
-    //     { success: false, message: "Title and description are required" },
-    //     { status: 400 },
-    //   );
-    // }
+    if (!body.title?.trim() || !body.date?.trim() || !body.imageUrl?.trim()) {
+      return NextResponse.json(
+        { success: false, message: "Title,image and date are required" },
+        { status: 400 },
+      );
+    }
 
     // Create new project
     const newGallery = await prisma.gallery.create({

@@ -56,11 +56,11 @@ export async function PUT(
     }
 
     const body = await request.json();
-    if (!body.name?.trim() || !body.position?.trim()) {
+    if (!body.name?.trim() || !body.position?.trim() || body.imageUrl?.trim()) {
       return NextResponse.json(
         {
           success: false,
-          message: "Name and position are required",
+          message: "Name,image and position are required",
         },
         { status: 400 },
       );
