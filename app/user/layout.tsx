@@ -117,9 +117,6 @@ export default function PublicLayout({
               >
                 Home
               </Link>
-              <Link href="/products" className="hover:text-teal-400 transition">
-                Products
-              </Link>
 
               <div
                 className="relative group py-2"
@@ -127,7 +124,7 @@ export default function PublicLayout({
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
                 <button className="flex items-center gap-1 hover:text-teal-400 transition cursor-pointer">
-                  Catalog ▾
+                  Product category ▾
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute top-full left-0 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-2 mt-1 space-y-1 z-50">
@@ -135,7 +132,7 @@ export default function PublicLayout({
                       categories.map((cat) => (
                         <Link
                           key={cat.id}
-                          href={`/products?categoryId=${cat.id}`}
+                          href={`/user/products?categoryId=${cat.id}`}
                           className="block px-4 py-2.5 text-sm hover:bg-teal-500/20 hover:text-teal-300 transition truncate"
                         >
                           📂 {cat.name}
