@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Trash, User, Edit3, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Swal from "sweetalert2";
 type gallery = {
   id?: number;
@@ -89,12 +90,21 @@ export default function Gallery() {
           </h1>
           <p className="text-gray-500 text-sm mt-1">Manage your gallery</p>
         </div>
-        <button
-          onClick={() => router.push(`/admin/gallery/new`)}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center  disabled:opacity-50"
-        >
-          <span>Add Gallery </span>
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/gallery/trash"
+            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
+          >
+            🗑️ View Trash Bin
+          </Link>
+
+          <button
+            onClick={() => router.push(`/admin/gallery/new`)}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center  disabled:opacity-50"
+          >
+            <span>Add Gallery </span>
+          </button>
+        </div>
       </div>
       {gallery.length == 0 ? (
         <div>

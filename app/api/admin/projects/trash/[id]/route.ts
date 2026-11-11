@@ -72,7 +72,7 @@ export async function DELETE(
     });
 
     await prisma.projects.delete({
-      where: { id: partnerId, deletedAt: { not: null } },
+      where: { id: partnerId },
     });
 
     return NextResponse.json({

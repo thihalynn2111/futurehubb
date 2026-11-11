@@ -73,7 +73,7 @@ export async function DELETE(
     });
 
     await prisma.teamMember.delete({
-      where: { id: memberId, deletedAt: { not: null } },
+      where: { id: memberId },
     });
 
     return NextResponse.json({
