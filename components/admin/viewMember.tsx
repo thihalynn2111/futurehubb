@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Loader2, Edit3, Trash2, User, Plus } from "lucide-react";
 import Swal from "sweetalert2";
+import Link from "next/link";
 export default function Member() {
   const router = useRouter();
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
@@ -33,7 +34,7 @@ export default function Member() {
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "You want to delete this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -97,12 +98,21 @@ export default function Member() {
             Manage your company team members and profiles.
           </p>
         </div>
-        <button
-          onClick={() => router.push(`/admin/teamMember`)}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center  disabled:opacity-50"
-        >
-          <span>Add Team </span>
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/teamMember/trash"
+            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
+          >
+            🗑️ View Trash Bin
+          </Link>
+
+          <button
+            onClick={() => router.push(`/admin/teamMember`)}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
+          >
+            <span>Add Team</span>
+          </button>
+        </div>
       </div>
 
       {error && (
