@@ -143,47 +143,174 @@ export default function HomeClient({
         });
       }
 
-      // Tech cards
-      gsap.from(".tech-card", {
+      // Tech cards (About card မပါ)
+      gsap.from(".tech-grid:not(.about-sub-grid) .tech-card", {
         y: 60,
         opacity: 0,
-        duration: 0.8,
+        duration: 1.2,
         stagger: 0.15,
-        ease: "power2.out",
+        ease: "power3.out",
+        immediateRender: false,
         scrollTrigger: {
-          trigger: ".tech-grid",
+          trigger: ".tech-grid:not(.about-sub-grid)",
+          start: "top 85%",
+          once: true,
+        },
+      });
+
+      // DESIGN ONLY: section headings + roadmap + partners
+      gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
+        gsap.from(el, {
+          y: 50,
+          opacity: 0,
+          duration: 0.9,
+          ease: "power3.out",
+          immediateRender: false,
+          scrollTrigger: { trigger: el, start: "top 90%", once: true },
+        });
+      });
+
+      gsap.utils.toArray<HTMLElement>(".road-item").forEach((el, i) => {
+        gsap.from(el, {
+          y: i % 2 === 0 ? -60 : 60,
+          opacity: 0,
+          scale: 0.9,
+          duration: 0.8,
+          ease: "back.out(1.4)",
+          immediateRender: false,
+          scrollTrigger: { trigger: el, start: "top 92%", once: true },
+        });
+      });
+
+      // ---------- About CTA: smooth timeline ----------
+      const aboutTl = gsap.timeline({
+        defaults: { ease: "power3.out" },
+        scrollTrigger: {
+          trigger: ".about-main-card",
           start: "top 85%",
           toggleActions: "play none none reverse",
         },
       });
+
+      aboutTl
+        .from(".about-main-card", {
+          x: -100,
+          opacity: 0,
+          duration: 1.3,
+          ease: "expo.out",
+          immediateRender: false,
+        })
+        .from(
+          ".about-text > *",
+          {
+            x: 60,
+            opacity: 0,
+            duration: 1.1,
+            stagger: 0.15,
+            immediateRender: false,
+          },
+          "-=0.9",
+        );
+
+      gsap.from(".about-sub-card", {
+        y: 70,
+        opacity: 0,
+        duration: 1.2,
+        stagger: 0.18,
+        ease: "expo.out",
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: ".about-sub-grid",
+          start: "top 88%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener("load", refresh);
+      return () => window.removeEventListener("load", refresh);
+    },
+    { scope: container, dependencies: [rows, projects] },
+  );
+
+  // ---------- About card cursor tilt (desktop/mouse only) ----------
+  useGSAP(
+    () => {
+      if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches)
+        return;
+
+      const cards = gsap.utils.toArray<HTMLElement>(".about-card");
+
+      const cleanups = cards.map((card) => {
+        gsap.set(card, {
+          transformPerspective: 1000,
+          transformOrigin: "center",
+        });
+
+        const rx = gsap.quickTo(card, "rotationX", {
+          duration: 0.8,
+          ease: "power3.out",
+        });
+        const ry = gsap.quickTo(card, "rotationY", {
+          duration: 0.8,
+          ease: "power3.out",
+        });
+
+        const onMove = (e: MouseEvent) => {
+          const r = card.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5;
+          const y = (e.clientY - r.top) / r.height - 0.5;
+          ry(x * 10);
+          rx(-y * 10);
+        };
+        const onLeave = () => {
+          rx(0);
+          ry(0);
+        };
+
+        card.addEventListener("mousemove", onMove);
+        card.addEventListener("mouseleave", onLeave);
+        return () => {
+          card.removeEventListener("mousemove", onMove);
+          card.removeEventListener("mouseleave", onLeave);
+        };
+      });
+
+      return () => cleanups.forEach((fn) => fn());
     },
     { scope: container, dependencies: [rows, projects] },
   );
 
   return (
-    <main ref={container} className="bg-white text-black">
+    <main ref={container} className="overflow-x-hidden bg-[#04323c] text-white">
       {/* ===================== HERO ===================== */}
       {hero && (
         <section
-          className="relative flex h-screen items-center bg-cover bg-center"
+          className="relative flex min-h-screen items-center bg-cover bg-center py-24"
           style={{
             backgroundImage: `url('${resolveImage(hero.imageUrl, "/bg.png")}')`,
           }}
         >
-          <div className="ml-16 text-black">
-            <h1 className="hero-title text-5xl font-bold">{hero.title}</h1>
-            <p className="hero-description mt-4 text-lg">{hero.subtitle}</p>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#04323c]/90 via-[#04323c]/60 to-[#04323c]/20 md:from-[#04323c]/85 md:via-[#04323c]/45 md:to-transparent" />
+
+          <div className="relative max-w-2xl px-6 text-white md:ml-16 md:px-0">
+            <h1 className="hero-title text-3xl font-extrabold leading-tight sm:text-4xl md:text-6xl">
+              {hero.title}
+            </h1>
+            <p className="hero-description mt-4 text-base text-white/80 sm:text-lg">
+              {hero.subtitle}
+            </p>
             <br />
             {hero.description && (
-              <Link href="/contact">
-                <button className="rounded-xl border bg-gray-400 p-3">
+              <Link href="/user/contact">
+                <button className="rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg transition hover:scale-105 sm:px-7 sm:text-base">
                   {hero.description}
                 </button>
               </Link>
             )}
           </div>
 
-          <div className="explore-btn absolute right-20 top-2/3 -translate-y-1/2">
+          <div className="explore-btn absolute bottom-8 right-6 hidden sm:block md:bottom-auto md:right-10 md:top-2/3 md:-translate-y-1/2 lg:right-20">
             <button
               type="button"
               onClick={() =>
@@ -192,7 +319,7 @@ export default function HomeClient({
                   ?.scrollIntoView({ behavior: "smooth" })
               }
               aria-label="Explore more"
-              className="group relative flex h-[250px] w-[250px] shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/20 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/30"
+              className="group relative flex h-[130px] w-[130px] shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/25 md:h-[200px] md:w-[200px] lg:h-[250px] lg:w-[250px]"
             >
               <svg
                 viewBox="0 0 250 250"
@@ -223,7 +350,7 @@ export default function HomeClient({
 
               <svg
                 viewBox="0 0 64 80"
-                className="h-[75px] w-[60px] transition-transform duration-300 group-hover:translate-y-2"
+                className="h-[40px] w-[32px] transition-transform duration-300 group-hover:translate-y-2 md:h-[60px] md:w-[48px] lg:h-[75px] lg:w-[60px]"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
@@ -239,17 +366,18 @@ export default function HomeClient({
 
       {/* ===================== LOGO LOOP ===================== */}
       {projects.length > 0 && (
-        <section className="overflow-hidden py-8">
-          <h2 className="mb-4 text-center text-4xl text-black">
+        <section className="overflow-hidden bg-[#04323c] py-12 md:py-16">
+          <h2 className="reveal mb-4 px-4 text-center text-2xl font-extrabold sm:text-3xl md:text-4xl">
             Trusted by global companies
           </h2>
+          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
 
-          <div className="mt-10 overflow-hidden">
+          <div className="mt-8 overflow-hidden md:mt-10">
             <div ref={trackRef} className="flex w-max">
               {[0, 1].map((groupIndex) => (
                 <div
                   key={groupIndex}
-                  className="image-group flex shrink-0 gap-4 pr-4"
+                  className="image-group flex shrink-0 gap-3 pr-3 md:gap-4 md:pr-4"
                 >
                   {[0, 1, 2, 3].flatMap((repeat) =>
                     projects
@@ -259,7 +387,7 @@ export default function HomeClient({
                           key={`${groupIndex}-${repeat}-${p.id}`}
                           src={resolveImage(p.clientLogo, "")}
                           alt={p.title ?? "logo"}
-                          className="h-40 w-80 shrink-0 rounded-xl object-contain"
+                          className="h-24 w-48 shrink-0 rounded-2xl bg-white/90 p-3 object-contain shadow-lg sm:h-32 sm:w-64 md:h-40 md:w-80 md:p-4"
                         />
                       )),
                   )}
@@ -272,111 +400,131 @@ export default function HomeClient({
 
       {/* ===================== ABOUT CALL TO ACTION ===================== */}
       {about && (
-        <section className="py-12 px-4 max-w-6xl mx-auto space-y-12 text-black">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            {about.cards && about.cards[0] && (
-              <div
-                key={about.cards[0].id}
-                className="tech-card rounded-2xl p-6 shadow-sm bg-white md:col-span-4 flex flex-col justify-center items-center text-center"
-              >
-                {about.cards[0].imageUrl && (
-                  <img
-                    src={resolveImage(about.cards[0].imageUrl, "")}
-                    alt={about.cards[0].title ?? ""}
-                    className="mb-4 h-32 w-full rounded-xl object-cover"
-                  />
-                )}
-                {about.cards[0].title && (
-                  <h3 className="pb-2 text-center text-1xl font-semibold">
-                    {about.cards[0].title}
-                  </h3>
-                )}
-                {about.cards[0].description && (
-                  <p className="leading-7 text-gray-600 text-center font-bold text-blue-600">
-                    {about.cards[0].description}
-                  </p>
-                )}
-              </div>
-            )}
+        <section className="relative bg-gradient-to-br from-[#04323c] via-[#055b66] to-[#0a3f4d] px-4 py-16 text-white md:py-24">
+          <div className="pointer-events-none absolute -left-32 top-0 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl md:h-96 md:w-96" />
+          <div className="pointer-events-none absolute -right-32 bottom-0 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl md:h-96 md:w-96" />
 
-            <div className="md:col-span-8 text-left space-y-4">
-              {about.subtitle && (
-                <p className="text-sm uppercase tracking-widest text-teal-700 font-semibold">
-                  {about.subtitle}
-                </p>
-              )}
-              <h2 className="text-3xl font-bold">{about.title}</h2>
-              {about.description && (
-                <Link
-                  href="/user/about"
-                  className="mt-4 inline-block rounded-xl bg-teal-700 px-6 py-3 text-white shadow hover:bg-teal-800 transition text-center"
-                >
-                  {about.description}
-                </Link>
-              )}
-            </div>
-          </div>
-
-          <div className="tech-grid grid grid-cols-1 gap-6 md:grid-cols-3">
-            {about.cards &&
-              about.cards.slice(1).map((card) => (
+          <div className="relative mx-auto max-w-6xl space-y-10 md:space-y-12">
+            <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-12">
+              {about.cards && about.cards[0] && (
                 <div
-                  key={card.id}
-                  className="tech-card rounded-2xl p-6 shadow-sm bg-white"
+                  key={about.cards[0].id}
+                  className="tech-card about-card about-main-card will-change-transform group flex flex-col items-center justify-center rounded-3xl border border-white/15 bg-white/10 p-5 text-center shadow-xl backdrop-blur-md transition-colors duration-500 hover:border-cyan-300/50 sm:p-6 md:col-span-4"
                 >
-                  {card.imageUrl && (
-                    <img
-                      src={resolveImage(card.imageUrl, "")}
-                      alt={card.title ?? ""}
-                      className="mb-4 h-40 w-full rounded-xl object-cover"
-                    />
+                  {about.cards[0].imageUrl && (
+                    <div className="mb-4 w-full overflow-hidden rounded-2xl">
+                      <img
+                        src={resolveImage(about.cards[0].imageUrl, "")}
+                        alt={about.cards[0].title ?? ""}
+                        className="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
                   )}
-                  {card.title && (
-                    <h3 className="pb-2 text-center text-1xl font-semibold">
-                      {card.title}
+                  {about.cards[0].title && (
+                    <h3 className="pb-2 text-center text-lg font-semibold">
+                      {about.cards[0].title}
                     </h3>
                   )}
-                  {card.description && (
-                    <p className="leading-7 text-gray-600 text-center">
-                      {card.description}
+                  {about.cards[0].description && (
+                    <p className="text-center font-bold leading-7 text-cyan-300">
+                      {about.cards[0].description}
                     </p>
                   )}
                 </div>
-              ))}
+              )}
+
+              <div className="about-text space-y-4 text-center md:col-span-8 md:text-left">
+                {about.subtitle && (
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
+                    {about.subtitle}
+                  </p>
+                )}
+                <h2 className="text-2xl font-extrabold sm:text-3xl md:text-5xl">
+                  {about.title}
+                </h2>
+                {about.description && (
+                  <Link
+                    href="/user/about"
+                    className="mt-4 inline-block rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 px-6 py-3 text-center text-sm font-semibold text-slate-900 shadow-lg transition hover:scale-105 sm:px-7 sm:text-base"
+                  >
+                    {about.description}
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            <div className="tech-grid about-sub-grid grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+              {about.cards &&
+                about.cards.slice(1).map((card) => (
+                  <div
+                    key={card.id}
+                    className="tech-card about-card about-sub-card will-change-transform group rounded-3xl border border-white/15 bg-white/10 p-5 shadow-xl backdrop-blur-md transition-colors duration-500 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)] sm:p-6"
+                  >
+                    {card.imageUrl && (
+                      <div className="mb-4 overflow-hidden rounded-2xl">
+                        <img
+                          src={resolveImage(card.imageUrl, "")}
+                          alt={card.title ?? ""}
+                          className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
+                    )}
+                    {card.title && (
+                      <h3 className="pb-2 text-center text-lg font-semibold">
+                        {card.title}
+                      </h3>
+                    )}
+                    {card.description && (
+                      <p className="text-center leading-7 text-white/70">
+                        {card.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+            </div>
           </div>
         </section>
       )}
 
       {/* ===================== TECHNOLOGY ===================== */}
       {tech && (
-        <section id="about" className="px-8 py-16">
-          <h1 className="mb-4 text-center text-4xl">{tech.title}</h1>
+        <section
+          id="about"
+          className="bg-[#04323c] px-4 py-16 sm:px-8 md:py-24"
+        >
+          <h1 className="reveal mb-4 text-center text-3xl font-extrabold md:text-5xl">
+            {tech.title}
+          </h1>
 
           <h2
             ref={textRef}
-            className="mb-10 bg-[linear-gradient(90deg,#8b929e_0%,#8b929e_40%,#ffffff_50%,#8b929e_60%,#8b929e_100%)] bg-[length:200%_100%] bg-clip-text text-center text-4xl font-bold text-transparent md:text-5xl"
+            className="mb-10 bg-[linear-gradient(90deg,#67e8f9_0%,#67e8f9_40%,#ffffff_50%,#6ee7b7_60%,#6ee7b7_100%)] bg-[length:200%_100%] bg-clip-text text-center text-2xl font-bold text-transparent sm:text-3xl md:mb-12 md:text-5xl"
           >
             {tech.subtitle}
           </h2>
 
-          <div className="tech-grid grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="tech-grid mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {tech.cards.map((card) => (
               <div
                 key={card.id}
-                className="tech-card rounded-2xl border p-6 shadow"
+                className="tech-card group rounded-3xl border border-white/15 bg-white/10 p-5 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)] sm:p-6"
               >
                 {card.imageUrl && (
-                  <img
-                    src={resolveImage(card.imageUrl, "")}
-                    alt={card.title ?? ""}
-                    className="mb-4 h-40 w-full rounded-xl object-cover"
-                  />
+                  <div className="mb-4 overflow-hidden rounded-2xl">
+                    <img
+                      src={resolveImage(card.imageUrl, "")}
+                      alt={card.title ?? ""}
+                      className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
                 )}
                 {card.title && (
-                  <h3 className="pb-2 text-center text-2xl">{card.title}</h3>
+                  <h3 className="pb-2 text-center text-xl font-semibold sm:text-2xl">
+                    {card.title}
+                  </h3>
                 )}
                 {card.description && (
-                  <p className="leading-7 text-gray-600">{card.description}</p>
+                  <p className="leading-7 text-white/70">{card.description}</p>
                 )}
               </div>
             ))}
@@ -386,29 +534,45 @@ export default function HomeClient({
 
       {/* ===================== ROADMAP ===================== */}
       {roadmap && (
-        <div>
-          <h2 className="text-3xl font-bold text-center">{roadmap.title}</h2>
-          <h1 className="text-center">{roadmap.subtitle}</h1>
-          <div className="flex items-start justify-center overflow-x-auto py-6">
-            {roadmap.cards.map((c, index) => (
-              <div key={c.id} className="flex shrink-0 items-start">
-                {/* Image and Text */}
-                <div className="flex w-24 flex-col items-center text-center">
-                  <img
-                    src={resolveImage(c.imageUrl, "/default-avatar.png")}
-                    alt={c.title ?? "Roadmap"}
-                    className="h-24 w-24 rounded-full border-2 border-gray-300 object-cover"
-                  />
+        <div className="relative bg-gradient-to-b from-[#04323c] to-[#0a3f4d] px-4 py-16 sm:px-6 md:py-24">
+          <h2 className="reveal text-center text-2xl font-extrabold sm:text-3xl md:text-5xl">
+            {roadmap.title}
+          </h2>
+          <h1 className="reveal mt-3 text-center text-white/70">
+            {roadmap.subtitle}
+          </h1>
+          <div className="mx-auto mt-4 h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
 
-                  <h3 className="mt-4 w-36 font-semibold">{c.title}</h3>
-                  <p className="mt-2 w-36 text-sm text-gray-600">
+          <div className="flex flex-col items-center gap-2 py-10 md:flex-row md:items-start md:justify-center md:gap-0 md:overflow-x-auto">
+            {roadmap.cards.map((c, index) => (
+              <div
+                key={c.id}
+                className="road-item flex shrink-0 flex-col items-center md:flex-row md:items-start"
+              >
+                {/* Image and Text */}
+                <div className="flex w-full max-w-[220px] flex-col items-center text-center md:w-24 md:max-w-none">
+                  <div className="rounded-full bg-gradient-to-br from-cyan-300 to-emerald-300 p-[3px]">
+                    <img
+                      src={resolveImage(c.imageUrl, "/default-avatar.png")}
+                      alt={c.title ?? "Roadmap"}
+                      className="h-24 w-24 rounded-full bg-white object-cover"
+                    />
+                  </div>
+
+                  <h3 className="mt-4 w-full font-semibold md:w-36">
+                    {c.title}
+                  </h3>
+                  <p className="mt-2 w-full text-sm text-white/70 md:w-36">
                     {c.description}
                   </p>
                 </div>
 
-                {/* Dotted Line */}
+                {/* Connector line */}
                 {index !== roadmap.cards.length - 1 && (
-                  <div className="mt-12 w-30 border-t-2 border-dotted border-gray-400" />
+                  <>
+                    <div className="my-4 h-10 border-l-2 border-dotted border-cyan-300/60 md:hidden" />
+                    <div className="w-30 mt-12 hidden border-t-2 border-dotted border-cyan-300/60 md:block" />
+                  </>
                 )}
               </div>
             ))}
@@ -418,24 +582,31 @@ export default function HomeClient({
 
       {/* ===================== PARTNERS SLIDER ===================== */}
       {projects.length > 0 && (
-        <section className="overflow-hidden px-6 py-16">
-          <h2 className="mb-10 text-4xl font-bold">Our Partners</h2>
+        <section className="overflow-hidden bg-[#0a3f4d] px-4 py-16 sm:px-6 md:py-24">
+          <h2 className="reveal mb-8 text-3xl font-extrabold md:mb-10 md:text-4xl">
+            Our Partners
+          </h2>
 
           <div className="overflow-hidden">
-            <div ref={sliderRef} className="flex gap-3">
+            <div ref={sliderRef} className="flex gap-6">
               {projects.map((partner) => (
-                <div key={partner.id}>
+                <div
+                  key={partner.id}
+                  className="group w-full shrink-0 rounded-3xl border border-white/15 bg-white/10 p-4 backdrop-blur-md md:w-[calc((100%-3rem)/3)]"
+                >
                   {partner.clientLogo && (
-                    <img
-                      src={resolveImage(partner.clientLogo, "")}
-                      alt={partner.title ?? "partner"}
-                      className=" w-full h-64 object-cover rounded-md"
-                    />
+                    <div className="overflow-hidden rounded-2xl bg-white/90">
+                      <img
+                        src={resolveImage(partner.clientLogo, "")}
+                        alt={partner.title ?? "partner"}
+                        className="h-48 w-full rounded-md object-cover transition-transform duration-500 group-hover:scale-105 md:h-64"
+                      />
+                    </div>
                   )}
-                  <h3 className=" text-center text-xl font-bold text-gray-900">
+                  <h3 className="mt-4 text-center text-lg font-bold text-white md:text-xl">
                     {partner.title}
                   </h3>
-                  <p className="text-center leading-7 text-gray-600">
+                  <p className="text-center leading-7 text-white/70">
                     {partner.subtitle}
                   </p>
                 </div>
@@ -448,7 +619,7 @@ export default function HomeClient({
               type="button"
               onClick={previous}
               aria-label="Previous"
-              className="rounded-lg bg-gray-200 px-5 py-2 hover:bg-gray-300"
+              className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-white backdrop-blur-md transition hover:bg-cyan-300 hover:text-slate-900"
             >
               <i className="fa-solid fa-less-than"></i>
             </button>
@@ -456,7 +627,7 @@ export default function HomeClient({
               type="button"
               onClick={next}
               aria-label="Next"
-              className="rounded-lg bg-gray-200 px-5 py-2 hover:bg-gray-300"
+              className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-white backdrop-blur-md transition hover:bg-cyan-300 hover:text-slate-900"
             >
               <i className="fa-solid fa-greater-than"></i>
             </button>

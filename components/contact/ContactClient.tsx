@@ -26,31 +26,25 @@ type SectionData = {
   cards: CardData[];
 };
 
-type ProjectData = {
-  id: number;
-  title: string | null;
-  subtitle: string | null;
-  description: string | null;
-  clientLogo: string | null;
-};
-
 function resolveImage(url: string | null, fallback: string) {
   if (!url) return fallback;
   if (url.startsWith("http") || url.startsWith("/")) return encodeURI(url);
   return encodeURI(`/${url}`);
 }
 
+const inputClass =
+  "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none transition-all duration-300 focus:-translate-y-0.5 focus:border-cyan-300/60 focus:bg-white/10 focus:shadow-[0_8px_30px_-8px_rgba(34,211,238,0.5)] focus:ring-2 focus:ring-cyan-300/30";
+
 export default function ContactClient({ rows }: { rows: SectionData[] }) {
   const container = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLHeadingElement>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const position = useRef(0);
+  const formCardRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   const hero = rows.find((r) => r.sectionKey === "hero");
   const info = rows.find((r) => r.sectionKey === "info");
   const contact = rows.find((r) => r.sectionKey === "contact-box");
-  const aboutRef = useRef<HTMLElement>(null);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -72,7 +66,7 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
       });
 
       if (res.ok) {
-        setSuccessMsg("Your message has been sent to Admin successfully! ✅");
+        setSuccessMsg("Your message has been sent successfully! ✅");
         setName("");
         setEmail("");
         setPhone("");
@@ -88,52 +82,173 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
       setLoading(false);
     }
   };
+
+  // ---------- Form card: tilt + spotlight ----------
+  const handleCardMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = formCardRef.current;
+    const glow = glowRef.current;
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const rotateY = (x / rect.width - 0.5) * 10;
+    const rotateX = (0.5 - y / rect.height) * 10;
+
+    gsap.to(card, {
+      rotateX,
+      rotateY,
+      transformPerspective: 900,
+      duration: 0.4,
+      ease: "power2.out",
+    });
+
+    if (glow) {
+      gsap.to(glow, {
+        x: x - 150,
+        y: y - 150,
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    }
+  };
+
+  const handleCardLeave = () => {
+    gsap.to(formCardRef.current, {
+      rotateX: 0,
+      rotateY: 0,
+      duration: 0.7,
+      ease: "elastic.out(1, 0.5)",
+    });
+    gsap.to(glowRef.current, { opacity: 0, duration: 0.4 });
+  };
+
+  // ---------- Magnetic button ----------
+  const handleBtnMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const btn = submitRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const dx = e.clientX - (rect.left + rect.width / 2);
+    const dy = e.clientY - (rect.top + rect.height / 2);
+
+    gsap.to(btn, {
+      x: dx * 0.15,
+      y: dy * 0.35,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+  };
+
+  const handleBtnLeave = () => {
+    gsap.to(submitRef.current, {
+      x: 0,
+      y: 0,
+      duration: 0.6,
+      ease: "elastic.out(1, 0.4)",
+    });
+  };
+
   useGSAP(
     () => {
-      gsap.from(".about-label", {
+      // HERO
+      if (hero) {
+        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+        tl.from(".hero-title", { y: -80, opacity: 0, duration: 1 })
+          .from(
+            ".hero-description",
+            { x: -100, opacity: 0, duration: 0.8 },
+            "-=0.5",
+          )
+          .from(".hero-btn", { x: 100, opacity: 0, duration: 0.7 }, "-=0.5")
+          .from(
+            ".explore-btn",
+            { scale: 0.5, opacity: 0, duration: 0.8, ease: "back.out(1.7)" },
+            "-=0.6",
+          );
+
+        gsap.to(".circle-text", {
+          rotate: 360,
+          duration: 20,
+          repeat: -1,
+          ease: "none",
+          transformOrigin: "50% 50%",
+        });
+      }
+
+      // INFO (ဘယ်က ဝင်)
+      gsap.from(".info-panel", {
         x: -100,
         opacity: 0,
-        duration: 1.5,
+        duration: 0.9,
         ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".info-panel",
+          start: "top 85%",
+          toggleActions: "play reverse play reverse",
+        },
       });
+
+      // FORM (ညာက ဝင်)
+      gsap.from(".form-panel", {
+        x: 100,
+        opacity: 0,
+        duration: 0.9,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".form-panel",
+          start: "top 85%",
+          toggleActions: "play reverse play reverse",
+        },
+      });
+
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener("load", refresh);
+      return () => window.removeEventListener("load", refresh);
     },
-    { scope: aboutRef },
+    { scope: container, dependencies: [!!hero, !!info, !!contact] },
   );
+
   return (
-    <main ref={container} className="bg-white">
+    <main ref={container} className="overflow-x-hidden bg-[#04323c]">
       {/* ===================== HERO ===================== */}
       {hero && (
         <section
-          className="relative flex h-screen items-center bg-cover bg-center"
+          className="relative flex min-h-screen items-center bg-cover bg-center"
           style={{
             backgroundImage: `url('${resolveImage(hero.imageUrl, "/bg.png")}')`,
           }}
         >
-          <div className="ml-16 text-white">
-            <h1 className="hero-title text-5xl font-bold text-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#04323c]/80 via-[#04323c]/40 to-transparent" />
+
+          <div className="relative ml-8 max-w-2xl text-white md:ml-16">
+            <h1 className="hero-title text-4xl font-extrabold md:text-6xl">
               {hero.title}
             </h1>
-            <p className="hero-description mt-4 text-lg">{hero.subtitle}</p>
-            <br />
+            <p className="hero-description mt-4 text-lg text-white/80">
+              {hero.subtitle}
+            </p>
+
             {hero.description && (
               <Link href="/contact">
-                <button className="rounded-xl border bg-gray-400 p-3">
+                <span className="hero-btn mt-6 inline-block rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 px-7 py-3 font-semibold text-slate-900 shadow-lg transition hover:scale-105">
                   {hero.description}
-                </button>
+                </span>
               </Link>
             )}
           </div>
 
-          <div className="explore-btn absolute right-20 top-2/3 -translate-y-1/2">
+          <div className="explore-btn absolute bottom-10 right-6 md:bottom-auto md:right-20 md:top-2/3 md:-translate-y-1/2">
             <button
               type="button"
               onClick={() =>
                 document
-                  .getElementById("about")
+                  .getElementById("contact-info")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
               aria-label="Explore more"
-              className="group relative flex h-[250px] w-[250px] shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/20 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/30"
+              className="group relative flex h-[160px] w-[160px] shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/25 md:h-[250px] md:w-[250px]"
             >
               <svg
                 viewBox="0 0 250 250"
@@ -164,7 +279,7 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
 
               <svg
                 viewBox="0 0 64 80"
-                className="h-[75px] w-[60px] transition-transform duration-300 group-hover:translate-y-2"
+                className="h-[50px] w-[40px] transition-transform duration-300 group-hover:translate-y-2 md:h-[75px] md:w-[60px]"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
@@ -178,224 +293,170 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
         </section>
       )}
 
-      {/* ===================== INFO ===================== */}
-      {/* {info && (
-        <section className="py-12 text-center text-black">
-          <div>
-            <h2 className="text-center text-4xl">Contact Info</h2>
-            <div
-              className="grid grid-cols- gap-6 p-4 text-center"
-              style={{
-                gridTemplateColumns: `repeat(${info.cards.length}, minmax(0, 1fr))`,
-              }}
-            >
-              {info.cards.map((card) => (
-                <div
-                  className="rounded-xl bg-white p-6 shadow-md"
-                  key={card.id}
-                >
-                  <i className="fa-solid fa-location-crosshairs text-4xl"></i>
-                  <br />
-                  <h2 className="text-xl font-bold">{card.title}</h2>
-                  <p>{card.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )} */}
+      {/* ===================== INFO + FORM ===================== */}
+      <section className="relative bg-gradient-to-br from-[#04323c] via-[#055b66] to-[#0a3f4d] px-6 py-24 text-white">
+        <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl" />
 
-      {/* ===================== contact box ===================== */}
-      {/* {contact && (
-        <section ref={aboutRef} id="about" className="py-16 text-black">
-          <div className="flex flex-col gap-8 md:flex-row ">
-            <div className="w-full p-4 md:w-1/2">
-              <img src="/public/uploads/05c581ba-6737-409e-82fb-b4d514f97e6a.jpg" />
-            </div>
-
-            <div className="w-full rounded-xl bg-gray-100 p-6 md:w-1/2">
-              <h3 className="mb-4 text-xl font-bold">{contact.title}</h3>
-              <form>
-                <input
-                  placeholder="Enter Name"
-                  className="border mb-3 rounded-sm p-2 w-full"
-                />
-                <br />
-                <input
-                  placeholder="example@gmail.com"
-                  className="border mb-3 p-2 w-full rounded-sm"
-                />
-                <br />
-                <input
-                  placeholder="Subject............."
-                  className="border mb-3 rounded-sm p-2 w-full"
-                />
-                <br />
-                <input
-                  placeholder="Text............"
-                  className="border mb-3 p-2 w-full"
-                />
-                <br />
-                <button className="border rounded-sm p-2">Submit</button>
-              </form>
-            </div>
-          </div>
-        </section>
-      )} */}
-
-      {/*new design */}
-      <div className="grid md:grid-cols-2 text-black gap-2 mt-12 grid-cols-1">
-        <div className="rounded shadow-sm m-4 p-5">
+        <div className="relative mx-auto grid max-w-7xl items-start gap-12 lg:grid-cols-2">
+          {/* ---------- INFO ---------- */}
           {info && (
-            <section ref={aboutRef} id="about" className=" text-teal-800 py-3">
-              <h1 className="text-2xl mb-3 font-bold ">{info.title}</h1>
-              <p>{info.subtitle}</p>
-              <div className="grid grid-cols-2 gap-5 p-3">
+            <div id="contact-info" className="info-panel">
+              <h1 className="mt-3 text-3xl font-extrabold md:text-5xl">
+                {info.title}
+              </h1>
+              <div className="mt-4 h-1 w-20 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
+              {info.subtitle && (
+                <p className="mt-5 leading-8 text-white/70">{info.subtitle}</p>
+              )}
+
+              <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {info.cards.map((card) => (
-                  <div key={card.id}>
-                    <div className="grid grid-cols-[20%_80%] mt-4 mb-6">
-                      <div className="mr-2">
-                        <img
-                          src={card.imageUrl ?? "/default-image.png"}
-                          alt={card.title || "Card image"}
-                          className="rounded-full"
-                        />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold">{card.title}</h2>
-                        <p>{card.description}</p>
-                      </div>
+                  <div
+                    key={card.id}
+                    className="info-item flex items-start gap-4 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-cyan-300/50"
+                  >
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/90">
+                      <img
+                        src={resolveImage(card.imageUrl, "/default-image.png")}
+                        alt={card.title || "Card image"}
+                        onLoad={() => ScrollTrigger.refresh()}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-lg font-bold">{card.title}</h2>
+                      <p className="mt-1 break-words text-sm leading-6 text-white/70">
+                        {card.description}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
-            </section>
+            </div>
           )}
-        </div>
-        <div className=" ml-4 mb-5">
+
+          {/* ---------- FORM ---------- */}
           {contact && (
-            <section ref={aboutRef} id="about" className=" text-black">
-              {/* <div > */}
-              {/* <div className="w-full p-4 md:w-1/2">
-                  <img
-                    src={
-                      contact.imageUrl ??
-                      "/public/uploads/05c581ba-6737-409e-82fb-b4d514f97e6a.jpg"
-                    }
-                  />
-                </div> */}
+            <div id="contact-form" className="form-panel">
+              <div
+                ref={formCardRef}
+                onMouseMove={handleCardMove}
+                onMouseLeave={handleCardLeave}
+                className="relative overflow-hidden rounded-3xl border border-white/15 bg-white/10 p-8 shadow-2xl backdrop-blur-md will-change-transform md:p-10"
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                {/* Spotlight glow */}
+                <div
+                  ref={glowRef}
+                  className="pointer-events-none absolute left-0 top-0 h-[300px] w-[300px] rounded-full bg-cyan-300/25 opacity-0 blur-3xl"
+                />
 
-              <div className="rounded-xl bg-teal-100 mt-3 p-6 md:p-8">
-                <div className="min-h-screen bg-teal-100 text-white flex items-center justify-center p-6">
-                  <main className="w-full max-w-2xl">
-                    <div className="bg-slate-800/30  rounded-2xl p-8 backdrop-blur-sm shadow-xl">
-                      <div>
-                        <h1 className="text-2xl font-extrabold text-white">
-                          {/* 📬 Contact Admin (Inquiry Form) */}
-                          {contact.title}
-                        </h1>
-                        <p className="text-sm text-slate-400 mt-1">
-                          {contact.subtitle}
-                        </p>
-                      </div>
+                <div className="relative">
+                  <h2 className="text-2xl font-extrabold">{contact.title}</h2>
+                  {contact.subtitle && (
+                    <p className="mt-1 text-sm text-white/60">
+                      {contact.subtitle}
+                    </p>
+                  )}
 
-                      {successMsg && (
-                        <div className="bg-teal-500/10 border border-teal-500/30 text-teal-300 px-4 py-3 rounded-xl text-sm font-semibold">
-                          {successMsg}
-                        </div>
-                      )}
-
-                      <form
-                        onSubmit={handleSubmitInquiry}
-                        className="space-y-4"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-1">
-                              Your Name *
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
-                              placeholder="John Doe"
-                              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 text-white placeholder-slate-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-1">
-                              Email Address *
-                            </label>
-                            <input
-                              type="email"
-                              required
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              placeholder="john@example.com"
-                              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 text-white placeholder-slate-500"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-1">
-                              Phone Number
-                            </label>
-                            <input
-                              type="text"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                              placeholder="+959..."
-                              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 text-white placeholder-slate-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-1">
-                              Subject
-                            </label>
-                            <input
-                              type="text"
-                              value={subject}
-                              onChange={(e) => setSubject(e.target.value)}
-                              placeholder="Inquiry about..."
-                              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 text-white placeholder-slate-500"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-semibold text-slate-300 mb-1">
-                            Message *
-                          </label>
-                          <textarea
-                            rows={4}
-                            required
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Write your message here..."
-                            className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 text-white placeholder-slate-500"
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg disabled:opacity-50"
-                        >
-                          {loading ? "Sending..." : "🚀 Send Message to Admin"}
-                        </button>
-                      </form>
+                  {successMsg && (
+                    <div className="mt-6 rounded-xl border border-emerald-300/40 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-200">
+                      {successMsg}
                     </div>
-                  </main>
+                  )}
+
+                  <form
+                    onSubmit={handleSubmitInquiry}
+                    className="mt-6 space-y-4"
+                  >
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-semibold text-white/80">
+                          Your Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="John Doe"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-semibold text-white/80">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="john@example.com"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-semibold text-white/80">
+                          Phone Number
+                        </label>
+                        <input
+                          type="text"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="+959..."
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-semibold text-white/80">
+                          Subject
+                        </label>
+                        <input
+                          type="text"
+                          value={subject}
+                          onChange={(e) => setSubject(e.target.value)}
+                          placeholder="Inquiry about..."
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-semibold text-white/80">
+                        Message *
+                      </label>
+                      <textarea
+                        rows={5}
+                        required
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Write your message here..."
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <button
+                      ref={submitRef}
+                      type="submit"
+                      disabled={loading}
+                      onMouseMove={handleBtnMove}
+                      onMouseLeave={handleBtnLeave}
+                      className="w-full rounded-xl bg-gradient-to-r from-cyan-300 to-emerald-300 py-3 font-bold text-slate-900 shadow-lg transition-shadow hover:shadow-cyan-300/40 disabled:opacity-50"
+                    >
+                      {loading ? "Sending..." : "🚀 Send Message"}
+                    </button>
+                  </form>
                 </div>
               </div>
-              {/* </div> */}
-            </section>
+            </div>
           )}
         </div>
-      </div>
+      </section>
     </main>
   );
 }
