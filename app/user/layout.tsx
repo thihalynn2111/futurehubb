@@ -111,6 +111,12 @@ export default function PublicLayout({
             </Link>
 
             <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-300">
+              <Link
+                href="/user/home"
+                className="hover:text-teal-400 transition"
+              >
+                Home
+              </Link>
               <Link href="/products" className="hover:text-teal-400 transition">
                 Products
               </Link>
@@ -143,8 +149,29 @@ export default function PublicLayout({
                   </div>
                 )}
               </div>
-              <Link href="/contact" className="hover:text-teal-400 transition">
+              <Link
+                href="/user/project"
+                className="hover:text-teal-400 transition"
+              >
+                Project
+              </Link>
+              <Link
+                href="/user/about"
+                className="hover:text-teal-400 transition"
+              >
+                About us
+              </Link>
+              <Link
+                href="/user/contact"
+                className="hover:text-teal-400 transition"
+              >
                 Contact
+              </Link>
+              <Link
+                href="/user/gallery"
+                className="hover:text-teal-400 transition"
+              >
+                Gallery
               </Link>
             </div>
 

@@ -245,7 +245,7 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
 
       {/*new design */}
       <div className="grid md:grid-cols-2 text-black gap-2 mt-12 grid-cols-1">
-        <div className="rounded shadow-sm m-4 p-5 text-center">
+        <div className="rounded shadow-sm m-4 p-5">
           {info && (
             <section ref={aboutRef} id="about" className=" text-teal-800 py-3">
               <h1 className="text-2xl mb-3 font-bold ">{info.title}</h1>
