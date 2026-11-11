@@ -176,7 +176,7 @@ export default function PublicLayout({
             </div>
 
             <Link
-              href="/contact"
+              href="/user/contact"
               className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-5 py-2.5 rounded-full transition shadow-lg text-sm"
             >
               Let's Talk ↗
