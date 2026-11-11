@@ -60,6 +60,18 @@ export default function AboutClient({
 
   useGSAP(
     () => {
+      // HERO (design only)
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.from(".hero-title", { y: -80, opacity: 0, duration: 1 })
+        .from(".hero-sub", { x: -100, opacity: 0, duration: 0.8 }, "-=0.5")
+        .from(".hero-btn", { x: 100, opacity: 0, duration: 0.7 }, "-=0.5")
+        .from(
+          ".explore-btn",
+          { scale: 0.6, opacity: 0, duration: 0.7, ease: "back.out(1.7)" },
+          "-=0.5",
+        );
+
+      // Original label animation (kept)
       gsap.from(".about-label", {
         x: -100,
         opacity: 0,
@@ -67,22 +79,58 @@ export default function AboutClient({
         ease: "power3.out",
       });
 
-      gsap.from(".about-card", {
-        y: 40,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.2,
-        scrollTrigger: {
-          trigger: ".about-card",
-          start: "top 85%",
-        },
+      // Mission / Vision / Why cards: top, left, right entrance
+      const enter = [
+        { x: 0, y: -80 },
+        { x: -80, y: 0 },
+        { x: 80, y: 0 },
+      ];
+      gsap.utils.toArray<HTMLElement>(".about-card").forEach((el, i) => {
+        const s = enter[i % enter.length];
+        gsap.from(el, {
+          x: s.x,
+          y: s.y,
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.9,
+          ease: "power3.out",
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 90%",
+            once: true,
+          },
+        });
       });
+
+      // Team cards: drop in with stagger
+      ScrollTrigger.batch(".team-card", {
+        start: "top 92%",
+        once: true,
+        onEnter: (batch) =>
+          gsap.fromTo(
+            batch,
+            { y: 60, opacity: 0, scale: 0.92 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              stagger: 0.12,
+              duration: 0.8,
+              ease: "back.out(1.4)",
+            },
+          ),
+      });
+
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener("load", refresh);
+      return () => window.removeEventListener("load", refresh);
     },
     { scope: container },
   );
 
   return (
-    <main ref={container} className="bg-white">
+    <main ref={container} className="overflow-x-hidden bg-[#04323c]">
       {/* HERO SECTION */}
       {hero && (
         <section
@@ -91,14 +139,21 @@ export default function AboutClient({
             backgroundImage: `url('${resolveImage(hero.imageUrl, "/bg.png")}')`,
           }}
         >
-          <div className="ml-8 md:ml-16 text-white">
-            <h1 className="text-4xl font-bold md:text-5xl">{hero.title}</h1>
+          {/* design: overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#04323c]/85 via-[#04323c]/45 to-transparent" />
 
-            <p className="mt-4 text-lg">{hero.subtitle}</p>
+          <div className="relative ml-8 text-white md:ml-16">
+            <h1 className="hero-title text-4xl font-extrabold md:text-6xl">
+              {hero.title}
+            </h1>
+
+            <p className="hero-sub mt-4 text-lg text-white/80">
+              {hero.subtitle}
+            </p>
 
             {hero.description && (
               <Link href="/contact">
-                <span className="mt-4 inline-block rounded-xl border bg-gray-400 p-3">
+                <span className="hero-btn mt-6 inline-block rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 px-7 py-3 font-semibold text-slate-900 shadow-lg transition hover:scale-105">
                   {hero.description}
                 </span>
               </Link>
@@ -113,7 +168,7 @@ export default function AboutClient({
                 ?.scrollIntoView({ behavior: "smooth" })
             }
             aria-label="Explore more"
-            className="absolute bottom-10 right-10 rounded-full border border-white/40 bg-white/20 p-8 text-white backdrop-blur-md transition hover:bg-white/30"
+            className="explore-btn absolute bottom-10 right-6 rounded-full border border-white/30 bg-white/10 px-8 py-6 text-white shadow-xl backdrop-blur-md transition hover:bg-white/25 md:right-10"
           >
             Explore More ↓
           </button>
@@ -121,35 +176,49 @@ export default function AboutClient({
       )}
 
       {/* MISSION / VISION / WHY CHOOSE US */}
-      <section id="about" ref={aboutRef} className="px-6 py-16 text-black">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+      <section
+        id="about"
+        ref={aboutRef}
+        className="relative bg-gradient-to-br from-[#04323c] via-[#055b66] to-[#0a3f4d] px-6 py-24 text-white"
+      >
+        {/* design: glows */}
+        <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl" />
+
+        <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-3">
           {/* MISSION */}
           {mission && (
-            <div className="about-card rounded-2xl bg-gray-50 p-8 shadow-md">
+            <div className="about-card group rounded-3xl border border-white/15 bg-white/10 p-8 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]">
               <h2 className="about-label mb-4 text-2xl font-bold">
                 {mission.title}
               </h2>
+              <div className="mb-5 h-1 w-14 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 transition-all duration-500 group-hover:w-full" />
 
               {mission.subtitle && (
-                <h3 className="mb-3 text-lg font-semibold">
+                <h3 className="mb-3 text-lg font-semibold text-emerald-300">
                   {mission.subtitle}
                 </h3>
               )}
 
               {mission.imageUrl && (
-                <img
-                  src={resolveImage(mission.imageUrl, "")}
-                  alt="Mission"
-                  className="mb-4 h-48 w-full rounded-xl object-cover"
-                />
+                <div className="mb-4 overflow-hidden rounded-2xl">
+                  <img
+                    src={resolveImage(mission.imageUrl, "")}
+                    alt="Mission"
+                    className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
               )}
 
-              <p className="text-gray-600">{mission.description}</p>
+              <p className="text-white/70">{mission.description}</p>
 
               {mission.cards.map((card) => (
-                <div key={card.id} className="mt-4 border-t pt-4">
+                <div
+                  key={card.id}
+                  className="mt-4 border-t border-white/15 pt-4"
+                >
                   <h3 className="font-bold">{card.title}</h3>
-                  <p className="text-gray-600">{card.description}</p>
+                  <p className="text-white/70">{card.description}</p>
                 </div>
               ))}
             </div>
@@ -157,31 +226,37 @@ export default function AboutClient({
 
           {/* VISION */}
           {vision && (
-            <div className="about-card rounded-2xl bg-gray-50 p-8 shadow-md">
+            <div className="about-card group rounded-3xl border border-white/15 bg-white/10 p-8 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]">
               <h2 className="about-label mb-4 text-2xl font-bold">
                 {vision.title}
               </h2>
+              <div className="mb-5 h-1 w-14 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 transition-all duration-500 group-hover:w-full" />
 
               {vision.subtitle && (
-                <h3 className="mb-3 text-lg font-semibold">
+                <h3 className="mb-3 text-lg font-semibold text-emerald-300">
                   {vision.subtitle}
                 </h3>
               )}
 
               {vision.imageUrl && (
-                <img
-                  src={resolveImage(vision.imageUrl, "")}
-                  alt="Vision"
-                  className="mb-4 h-48 w-full rounded-xl object-cover"
-                />
+                <div className="mb-4 overflow-hidden rounded-2xl">
+                  <img
+                    src={resolveImage(vision.imageUrl, "")}
+                    alt="Vision"
+                    className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
               )}
 
-              <p className="text-gray-600">{vision.description}</p>
+              <p className="text-white/70">{vision.description}</p>
 
               {vision.cards.map((card) => (
-                <div key={card.id} className="mt-4 border-t pt-4">
+                <div
+                  key={card.id}
+                  className="mt-4 border-t border-white/15 pt-4"
+                >
                   <h3 className="font-bold">{card.title}</h3>
-                  <p className="text-gray-600">{card.description}</p>
+                  <p className="text-white/70">{card.description}</p>
                 </div>
               ))}
             </div>
@@ -189,29 +264,37 @@ export default function AboutClient({
 
           {/* WHY CHOOSE US */}
           {why && (
-            <div className="about-card rounded-2xl bg-gray-50 p-8 shadow-md">
+            <div className="about-card group rounded-3xl border border-white/15 bg-white/10 p-8 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]">
               <h2 className="about-label mb-4 text-2xl font-bold">
                 {why.title}
               </h2>
+              <div className="mb-5 h-1 w-14 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 transition-all duration-500 group-hover:w-full" />
 
               {why.subtitle && (
-                <h3 className="mb-3 text-lg font-semibold">{why.subtitle}</h3>
+                <h3 className="mb-3 text-lg font-semibold text-emerald-300">
+                  {why.subtitle}
+                </h3>
               )}
 
               {why.imageUrl && (
-                <img
-                  src={resolveImage(why.imageUrl, "")}
-                  alt="Why choose us"
-                  className="mb-4 h-48 w-full rounded-xl object-cover"
-                />
+                <div className="mb-4 overflow-hidden rounded-2xl">
+                  <img
+                    src={resolveImage(why.imageUrl, "")}
+                    alt="Why choose us"
+                    className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
               )}
 
-              <p className="text-gray-600">{why.description}</p>
+              <p className="text-white/70">{why.description}</p>
 
               {why.cards.map((card) => (
-                <div key={card.id} className="mt-4 border-t pt-4">
+                <div
+                  key={card.id}
+                  className="mt-4 border-t border-white/15 pt-4"
+                >
                   <h3 className="font-bold">{card.title}</h3>
-                  <p className="text-gray-600">{card.description}</p>
+                  <p className="text-white/70">{card.description}</p>
                 </div>
               ))}
             </div>
@@ -220,31 +303,38 @@ export default function AboutClient({
       </section>
 
       {/* TEAM MEMBER SECTION */}
-      <section className="px-6 py-16 text-center text-black">
-        <h2 className="mb-8 text-4xl font-bold">Our Team</h2>
+      <section className="relative bg-gradient-to-b from-[#0a3f4d] to-[#04323c] px-6 py-24 text-center text-white">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="mb-4 mt-3 text-4xl font-extrabold md:text-5xl">
+            Our Team
+          </h2>
+          <div className="mx-auto mb-12 h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
 
-        {teamMembers.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {teamMembers.map((person) => (
-              <div
-                key={person.id}
-                className="overflow-hidden rounded-xl bg-white p-5 shadow-md"
-              >
-                <img
-                  src={resolveImage(person.imageUrl, "/default-avatar.png")}
-                  alt={person.title}
-                  className="mx-auto mb-4 h-48 w-48 rounded-full object-cover"
-                />
+          {teamMembers.length > 0 ? (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {teamMembers.map((person) => (
+                <div
+                  key={person.id}
+                  className="team-card group overflow-hidden rounded-3xl border border-white/15 bg-white/10 p-6 backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]"
+                >
+                  <div className="mx-auto mb-5 h-48 w-48 rounded-full bg-gradient-to-br from-cyan-300 to-emerald-300 p-1">
+                    <img
+                      src={resolveImage(person.imageUrl, "/default-avatar.png")}
+                      alt={person.title}
+                      className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
 
-                <h3 className="text-xl font-bold">{person.title}</h3>
+                  <h3 className="text-xl font-bold">{person.title}</h3>
 
-                <p className="mt-2 text-gray-500">{person.subtitle}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">No team members available.</p>
-        )}
+                  <p className="mt-2 text-emerald-300">{person.subtitle}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-white/60">No team members available.</p>
+          )}
+        </div>
       </section>
     </main>
   );
