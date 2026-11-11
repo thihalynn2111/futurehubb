@@ -6,9 +6,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    if (!body.title?.trim() || !body.description?.trim()) {
+    if (
+      !body.title?.trim() ||
+      !body.description?.trim() ||
+      !body.clientLogo?.trim()
+    ) {
       return NextResponse.json(
-        { success: false, message: "Title and description are required" },
+        { success: false, message: "Title,logo and description are required" },
         { status: 400 },
       );
     }

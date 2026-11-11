@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Users,
   Loader2,
@@ -42,7 +43,7 @@ export default function ViewProjects() {
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "You want to delete this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -103,12 +104,21 @@ export default function ViewProjects() {
             Projects
           </h1>
         </div>
-        <button
-          onClick={() => router.push(`/admin/addProject`)}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center  disabled:opacity-50"
-        >
-          <span>Add Partner </span>
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/projects/trash"
+            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
+          >
+            🗑️ View Trash Bin
+          </Link>
+
+          <button
+            onClick={() => router.push(`/admin/addProject`)}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
+          >
+            <span>Add Team</span>
+          </button>
+        </div>
       </div>
 
       {error && (

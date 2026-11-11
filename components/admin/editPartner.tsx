@@ -150,7 +150,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             }
             Swal.fire({
               title: "Success!",
-              text: "Partner added successfully!",
+              text: "Partner updated successfully!",
               icon: "success",
               confirmButtonText: "OK",
             });
