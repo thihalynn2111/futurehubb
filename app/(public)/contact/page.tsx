@@ -17,7 +17,6 @@ export default function PublicContactPage() {
     setSuccessMsg("");
 
     try {
-      // ⚠️ /api/admin/inquiries သို့ တိုက်ရိုက်ချိတ်ဆက်ခြင်း (သင်၏ folder တည်နေရာနှင့် ကိုက်ညီစေရန်)
       const res = await fetch("/api/admin/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,8 +31,7 @@ export default function PublicContactPage() {
         setSubject("");
         setMessage("");
       } else {
-        const data = await res.json();
-        alert(data.message || "Failed to send message. Please try again.");
+        alert("Failed to send message. Please try again.");
       }
     } catch (err) {
       console.error("Error submitting inquiry:", err);
