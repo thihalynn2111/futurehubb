@@ -7,73 +7,98 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "your-fallback-secret-key-change-it",
 );
 
-// DELETE: Soft Delete သို့မဟုတ် Permanent Delete (?permanent=true)
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } },
-) {
+// Auth & Role check helper
+async function verifyAuth() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("admin_token")?.value;
+  if (!token) return false;
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("admin_token")?.value;
-    if (!token)
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     await jwtVerify(token, JWT_SECRET);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-    const resolvedParams = await Promise.resolve(params);
-    const settingId = Number(resolvedParams.id);
-
-    const { searchParams } = new URL(req.url);
-    const permanent = searchParams.get("permanent") === "true";
-
-    if (permanent) {
-      await prisma.siteSetting.delete({ where: { id: settingId } });
-      return NextResponse.json({ message: "Site setting permanently deleted" });
-    } else {
-      const updated = await prisma.siteSetting.update({
-        where: { id: settingId },
-        data: { deletedAt: new Date() },
-      });
-      return NextResponse.json({
-        message: "Site setting moved to trash",
-        updated,
-      });
-    }
-  } catch (error: any) {
+// GET: Site Setting ရယူရန်
+export async function GET() {
+  try {
+    const setting = await prisma.siteSetting.findFirst();
+    return NextResponse.json(setting || {});
+  } catch (err: any) {
     return NextResponse.json(
-      { message: error.message || "Failed to delete" },
+      { error: "Failed to fetch settings" },
       { status: 500 },
     );
   }
 }
 
-// PUT: Trash မှ ပြန်ဖော်ရန် (Restore)
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } },
-) {
+// POST: Site Setting အသစ်ဆောက်ရန် သို့မဟုတ် Update လုပ်ရန်
+export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("admin_token")?.value;
-    if (!token)
+    const isAuth = await verifyAuth();
+    if (!isAuth) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    await jwtVerify(token, JWT_SECRET);
+    }
 
-    const resolvedParams = await Promise.resolve(params);
-    const settingId = Number(resolvedParams.id);
+    const body = await req.json();
+    const { id, ...data } = body;
 
-    const restored = await prisma.siteSetting.update({
-      where: { id: settingId },
-      data: { deletedAt: null },
-    });
+    let result;
+    if (id) {
+      // Update existing setting
+      result = await prisma.siteSetting.update({
+        where: { id: Number(id) },
+        data: {
+          siteName: data.siteName,
+          siteTagline: data.siteTagline,
+          contactAddress: data.contactAddress,
+          officeHours: data.officeHours,
+          footerText: data.footerText,
+          metaTitle: data.metaTitle,
+          metaDescription: data.metaDescription,
+          logoHeader: data.logoHeader,
+          logoHeaderLink: data.logoHeaderLink,
+          logoFooter: data.logoFooter,
+          logoFooterLink: data.logoFooterLink,
+          emails: data.emails || [],
+          phones: data.phones || [],
+          socialLinks: data.socialLinks || [],
+        },
+      });
+    } else {
+      // Create new setting if not exists
+      result = await prisma.siteSetting.create({
+        data: {
+          siteName: data.siteName || "FutureHub",
+          siteTagline: data.siteTagline || "",
+          contactAddress: data.contactAddress || "",
+          officeHours: data.officeHours || "",
+          footerText: data.footerText || "",
+          metaTitle: data.metaTitle || "",
+          metaDescription: data.metaDescription || "",
+          logoHeader: data.logoHeader || "",
+          logoHeaderLink: data.logoHeaderLink || "",
+          logoFooter: data.logoFooter || "",
+          logoFooterLink: data.logoFooterLink || "",
+          emails: data.emails || [],
+          phones: data.phones || [],
+          socialLinks: data.socialLinks || [],
+        },
+      });
+    }
 
-    return NextResponse.json({
-      message: "Site setting restored successfully",
-      restored,
-    });
-  } catch (error: any) {
+    return NextResponse.json(result);
+  } catch (err: any) {
+    console.error("Save site settings error:", err);
     return NextResponse.json(
-      { message: error.message || "Failed to restore" },
+      { error: err.message || "Failed to save" },
       { status: 500 },
     );
   }
+}
+
+// PUT: POST နှင့်အတူ တူညီစွာ အလုပ်လုပ်စေရန်
+export async function PUT(req: Request) {
+  return POST(req);
 }

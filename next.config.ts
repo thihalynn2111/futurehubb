@@ -15,6 +15,20 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // 🚀 Website တစ်ခုလုံးရှိ API Route များကို Cache လုံးဝမတင်စေရန် (Global Cache Disabled)
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, max-age=0, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -133,10 +133,10 @@ export default function AdminLayout({
           {sidebarOpen && (
             <div className="overflow-hidden">
               <p className="text-sm font-semibold text-white truncate">
-                Super Admin
+                System Admin
               </p>
               <p className="text-xs text-gray-400 truncate">
-                admin@futurehub.com
+                system@futurehub.com
               </p>
             </div>
           )}
