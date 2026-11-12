@@ -533,7 +533,7 @@ export default function HomeClient({
                   // အပြင် wrapper = GSAP အတွက်ပဲ (grid မပါရ)
                   <div
                     key={card.id}
-                    className="contact-card m-3 will-change-transform"
+                    className="contact-card m-3 will-change-transform mt-6"
                   >
                     {/* အတွင်း card = style + grid အားလုံး ဒီမှာ */}
                     <div

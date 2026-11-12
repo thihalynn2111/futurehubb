@@ -153,29 +153,6 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
   useGSAP(
     () => {
       // HERO
-      if (hero) {
-        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-        tl.from(".hero-title", { y: -80, opacity: 0, duration: 1 })
-          .from(
-            ".hero-description",
-            { x: -100, opacity: 0, duration: 0.8 },
-            "-=0.5",
-          )
-          .from(".hero-btn", { x: 100, opacity: 0, duration: 0.7 }, "-=0.5")
-          .from(
-            ".explore-btn",
-            { scale: 0.5, opacity: 0, duration: 0.8, ease: "back.out(1.7)" },
-            "-=0.6",
-          );
-
-        gsap.to(".circle-text", {
-          rotate: 360,
-          duration: 20,
-          repeat: -1,
-          ease: "none",
-          transformOrigin: "50% 50%",
-        });
-      }
 
       // INFO (ဘယ်က ဝင်)
       gsap.from(".info-panel", {
@@ -237,58 +214,6 @@ export default function ContactClient({ rows }: { rows: SectionData[] }) {
                 </span>
               </Link>
             )}
-          </div>
-
-          <div className="explore-btn absolute bottom-10 right-6 md:bottom-auto md:right-20 md:top-2/3 md:-translate-y-1/2">
-            <button
-              type="button"
-              onClick={() =>
-                document
-                  .getElementById("contact-info")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-              aria-label="Explore more"
-              className="group relative flex h-[160px] w-[160px] shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/25 md:h-[250px] md:w-[250px]"
-            >
-              <svg
-                viewBox="0 0 250 250"
-                className="circle-text absolute inset-0 h-full w-full overflow-visible"
-                aria-hidden="true"
-              >
-                <defs>
-                  <path
-                    id="circlePath"
-                    d="M 125,125 m -87,0 a 87,87 0 1,1 174,0 a 87,87 0 1,1 -174,0"
-                  />
-                </defs>
-                <text
-                  fill="currentColor"
-                  fontSize="19"
-                  fontWeight="600"
-                  letterSpacing="1"
-                >
-                  <textPath
-                    href="#circlePath"
-                    textLength="546"
-                    lengthAdjust="spacing"
-                  >
-                    Explore More ✳ Explore More ✳ Explore More ✳
-                  </textPath>
-                </text>
-              </svg>
-
-              <svg
-                viewBox="0 0 64 80"
-                className="h-[50px] w-[40px] transition-transform duration-300 group-hover:translate-y-2 md:h-[75px] md:w-[60px]"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                aria-hidden="true"
-              >
-                <path d="M32 3 V65" />
-                <path d="M8 47 L32 71 L56 47" />
-              </svg>
-            </button>
           </div>
         </section>
       )}
