@@ -43,12 +43,11 @@ function resolveImage(url: string | null, fallback: string) {
   return encodeURI(`/${url}`);
 }
 
-// ပုံတစ်ခုချင်းစီအတွက် ဝင်လာမယ့် ပုံစံကို အစီအစဉ်အတိုင်း လည်ပတ်ပေးမယ်
 const ENTER_STYLES = [
-  { y: -120, x: 0, rotate: -3 }, // အပေါ်က ကျ (drop down)
-  { y: 0, x: -120, rotate: 0 }, // ဘယ်ဘက်က ဝင်
-  { y: 0, x: 120, rotate: 0 }, // ညာဘက်က ဝင်
-  { y: 120, x: 0, rotate: 3 }, // အောက်က တက်
+  { y: -120, x: 0, rotate: -3 },
+  { y: 0, x: -120, rotate: 0 },
+  { y: 0, x: 120, rotate: 0 },
+  { y: 120, x: 0, rotate: 3 },
 ];
 
 export default function GalleryClient({
@@ -65,18 +64,16 @@ export default function GalleryClient({
 
   useGSAP(
     () => {
-      // ---------- HERO (refresh လုပ်တိုင်း ကစား) ----------
       if (hero) {
         const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-        tl.from(".hero-title", { y: -80, opacity: 0, duration: 1 }) // အပေါ်က ကျ
+        tl.from(".hero-title", { y: -80, opacity: 0, duration: 1 })
           .from(
             ".hero-subtitle",
             { x: -100, opacity: 0, duration: 0.8 },
             "-=0.5",
-          ) // ဘယ်က ဝင်
-          .from(".hero-btn", { x: 100, opacity: 0, duration: 0.7 }, "-=0.5"); // ညာက ဝင်
+          )
+          .from(".hero-btn", { x: 100, opacity: 0, duration: 0.7 }, "-=0.5");
 
-        // Hero background parallax
         gsap.to(".hero-section", {
           backgroundPositionY: "30%",
           ease: "none",
@@ -89,7 +86,6 @@ export default function GalleryClient({
         });
       }
 
-      // ---------- HEADER TEXT (အတက်/အဆင်း ပြန်ကစား) ----------
       if (header) {
         gsap.from(".header-title, .header-desc", {
           y: -50,
@@ -105,7 +101,6 @@ export default function GalleryClient({
         });
       }
 
-      // ---------- GALLERY ITEMS ----------
       const items = gsap.utils.toArray<HTMLElement>(".gallery-item");
 
       items.forEach((el, i) => {
@@ -123,13 +118,11 @@ export default function GalleryClient({
             trigger: el,
             start: "top 90%",
             end: "bottom 10%",
-            // enter, leave, enterBack, leaveBack
             toggleActions: "play reverse play reverse",
           },
         });
       });
 
-      // ပုံတွေ အားလုံး load ပြီးမှ trigger နေရာ ပြန်တွက်
       const refresh = () => ScrollTrigger.refresh();
       window.addEventListener("load", refresh);
       return () => window.removeEventListener("load", refresh);
@@ -139,7 +132,6 @@ export default function GalleryClient({
 
   return (
     <main ref={container} className="overflow-x-hidden bg-[#04323c] text-white">
-      {/* HERO SECTION */}
       {hero && (
         <section
           className="hero-section relative flex min-h-screen items-center bg-cover bg-center"
@@ -147,16 +139,21 @@ export default function GalleryClient({
             backgroundImage: `url('${resolveImage(hero.imageUrl, "/bg.png")}')`,
           }}
         >
-          <div className="ml-8 md:ml-16 text-white">
-            <h1 className="hero-title text-4xl font-bold md:text-5xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#04323c]/90 via-[#04323c]/55 to-[#04323c]/10" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#04323c] to-transparent" />
+
+          <div className="relative ml-6 max-w-2xl text-white md:ml-16">
+            <h1 className="hero-title text-4xl font-extrabold leading-tight md:text-6xl">
               {hero.title}
             </h1>
 
-            <p className="hero-subtitle mt-4 text-lg">{hero.subtitle}</p>
+            <p className="hero-subtitle mt-4 text-lg text-white/80">
+              {hero.subtitle}
+            </p>
 
             {hero.description && (
               <Link href="/contact">
-                <span className="hero-btn mt-4 inline-block rounded-xl border bg-gray-400 p-3 transition hover:bg-gray-500">
+                <span className="hero-btn mt-6 inline-block rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 px-7 py-3 font-semibold text-slate-900 shadow-lg transition-[box-shadow,filter] duration-300 hover:brightness-110 hover:shadow-cyan-300/40">
                   {hero.description}
                 </span>
               </Link>
@@ -165,45 +162,57 @@ export default function GalleryClient({
         </section>
       )}
 
-      {/* HEADER + GALLERY */}
       {header && (
-        <section className="px-6 py-16 text-center ">
-          <h2 className="header-title mb-3 text-4xl font-bold">
-            {header.title}
-          </h2>
-          <h3 className="header-title mb-3 text-4xl font-bold">
-            {header.subtitle}
-          </h3>
-          <p className="header-desc">{header.description}</p>
+        <section className="relative bg-gradient-to-b from-[#04323c] via-[#055b66] to-[#0a3f4d] px-6 py-24 text-center">
+          <div className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-32 bottom-20 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl" />
 
-          {Gallery.length > 0 ? (
-            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 mt-5">
-              {Gallery.map((img) => (
-                <div key={img.id} className="mb-4 break-inside-avoid">
-                  <div className="gallery-item">
-                    <div className="overflow-hidden rounded-xl">
-                      <img
-                        src={resolveImage(img.imageUrl, "/default-avatar.png")}
-                        alt={img.title ?? "Gallery image"}
-                        onLoad={() => ScrollTrigger.refresh()}
-                        className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
-                      />
+          <div className="relative mx-auto max-w-7xl">
+            <h2 className="header-title mb-3 text-4xl font-extrabold md:text-5xl">
+              {header.title}
+            </h2>
+            <h3 className="header-title mb-3 bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-3xl font-bold text-transparent md:text-4xl">
+              {header.subtitle}
+            </h3>
+            <div className="mx-auto mb-5 h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
+            <p className="header-desc mx-auto max-w-2xl leading-8 text-white/70">
+              {header.description}
+            </p>
+
+            {Gallery.length > 0 ? (
+              <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 mt-12">
+                {Gallery.map((img) => (
+                  <div key={img.id} className="mb-4 break-inside-avoid">
+                    <div className="gallery-item group text-left">
+                      <div className="overflow-hidden rounded-xl shadow-lg shadow-black/30 transition-shadow duration-500 group-hover:shadow-2xl group-hover:shadow-cyan-400/40">
+                        <img
+                          src={resolveImage(
+                            img.imageUrl,
+                            "/default-avatar.png",
+                          )}
+                          alt={img.title ?? "Gallery image"}
+                          onLoad={() => ScrollTrigger.refresh()}
+                          className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
+                        />
+                      </div>
+
+                      <h3 className="mt-2 text-lg font-semibold transition-colors duration-300 group-hover:text-cyan-300">
+                        {img.title}
+                      </h3>
+
+                      <h4 className="text-sm text-cyan-300/80 transition-colors duration-300 group-hover:text-cyan-200">
+                        {img.date
+                          ? new Date(img.date).toLocaleDateString("en-CA")
+                          : ""}
+                      </h4>
                     </div>
-
-                    <h3 className="mt-2 text-lg font-semibold">{img.title}</h3>
-
-                    <h4 className="text-sm text-gray-500">
-                      {img.date
-                        ? new Date(img.date).toLocaleDateString("en-CA")
-                        : ""}
-                    </h4>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No images available.</p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <p className="mt-12 text-white/60">No images available.</p>
+            )}
+          </div>
         </section>
       )}
     </main>

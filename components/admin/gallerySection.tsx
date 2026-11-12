@@ -126,6 +126,20 @@ export default function GallerySection() {
   // 4. Upload image and save section data
   const handleSave = async () => {
     try {
+      const heroSection = sections.find((s) => s.sectionKey === "hero");
+      const heroHasImage =
+        !!selectedImages["hero"] || !!heroSection?.imageUrl?.trim();
+
+      if (!heroHasImage) {
+        Swal.fire({
+          title: "Hero image required!",
+          text: "Please upload a hero image before saving.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
       setSaving(true);
 
       const updatedSections = await Promise.all(

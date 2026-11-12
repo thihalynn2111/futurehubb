@@ -57,6 +57,7 @@ export default function HomeClient({
   const tech = rows.find((r) => r.sectionKey === "Technology");
   const roadmap = rows.find((r) => r.sectionKey === "roadmap");
   const about = rows.find((r) => r.sectionKey === "about call to action");
+  const contact = rows.find((r) => r.sectionKey === "contact call to action");
 
   // ---------- Partner slider ----------
   const slideTo = (direction: 1 | -1) => {
@@ -136,7 +137,7 @@ export default function HomeClient({
       if (track && group) {
         gsap.to(track, {
           x: () => -group.offsetWidth,
-          duration: 15,
+          duration: 30,
           ease: "none",
           repeat: -1,
           invalidateOnRefresh: true,
@@ -225,7 +226,24 @@ export default function HomeClient({
           toggleActions: "play none none reverse",
         },
       });
-
+      // ---------- Contact cards: right -> left, one by one ----------
+      gsap.utils.toArray<HTMLElement>(".contact-card").forEach((el) => {
+        gsap.fromTo(
+          el,
+          { x: 150, opacity: 0 },
+          {
+            x: 0,
+            opacity: 1,
+            duration: 0.9,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 88%",
+              toggleActions: "play reverse play reverse",
+            },
+          },
+        );
+      });
       const refresh = () => ScrollTrigger.refresh();
       window.addEventListener("load", refresh);
       return () => window.removeEventListener("load", refresh);
@@ -310,7 +328,8 @@ export default function HomeClient({
             )}
           </div>
 
-          <div className="explore-btn absolute bottom-8 right-6 hidden sm:block md:bottom-auto md:right-10 md:top-2/3 md:-translate-y-1/2 lg:right-20">
+          <div className="explore-btn absolute bottom-6 right-4 sm:bottom-8 sm:right-6 md:bottom-auto md:right-10 md:top-2/3 md:-translate-y-1/2 lg:right-20">
+            {" "}
             <button
               type="button"
               onClick={() =>
@@ -319,7 +338,7 @@ export default function HomeClient({
                   ?.scrollIntoView({ behavior: "smooth" })
               }
               aria-label="Explore more"
-              className="group relative flex h-[130px] w-[130px] shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/25 md:h-[200px] md:w-[200px] lg:h-[250px] lg:w-[250px]"
+              className="group relative flex h-[90px] w-[90px] shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/25 sm:h-[130px] sm:w-[130px] md:h-[200px] md:w-[200px] lg:h-[250px] lg:w-[250px]"
             >
               <svg
                 viewBox="0 0 250 250"
@@ -485,7 +504,75 @@ export default function HomeClient({
           </div>
         </section>
       )}
+      {contact && (
+        <section className="relative bg-gradient-to-br from-[#04323c] via-[#055b66] to-[#0a3f4d] px-4 py-16 text-white md:py-24">
+          <div className="pointer-events-none absolute -left-32 top-0 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl md:h-96 md:w-96" />
+          <div className="pointer-events-none absolute -right-32 bottom-0 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl md:h-96 md:w-96" />
 
+          <div className="relative mx-auto max-w-6xl space-y-10 md:space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div>
+                {contact.subtitle && (
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
+                    {contact.subtitle}
+                  </p>
+                )}
+                <h2 className="text-2xl font-extrabold sm:text-3xl md:text-5xl">
+                  {contact.title}
+                </h2>
+                {contact.description && (
+                  <Link
+                    href="/user/contact"
+                    className="mt-4 inline-block rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 px-6 py-3 text-center text-sm font-semibold text-slate-900 shadow-lg transition hover:scale-105 sm:px-7 sm:text-base"
+                  >
+                    {contact.description}
+                  </Link>
+                )}
+              </div>
+              <div>
+                {contact.cards.map((card) => (
+                  // အပြင် wrapper = GSAP အတွက်ပဲ (grid မပါရ)
+                  <div
+                    key={card.id}
+                    className="contact-card m-3 will-change-transform mt-6"
+                  >
+                    {/* အတွင်း card = style + grid အားလုံး ဒီမှာ */}
+                    <div
+                      className={`group grid w-full grid-cols-1 rounded-l-3xl border border-white/15 bg-white/10 p-5 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)] sm:p-6 ${
+                        card.imageUrl ? "md:grid-cols-[30%_70%]" : ""
+                      }`}
+                    >
+                      <div>
+                        {card.imageUrl && (
+                          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full">
+                            <img
+                              src={resolveImage(card.imageUrl, "")}
+                              alt={card.title ?? ""}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="md:mt-2">
+                        {card.title && (
+                          <h3 className="pb-2 text-xl font-semibold sm:text-2xl">
+                            {card.title}
+                          </h3>
+                        )}
+                        {card.description && (
+                          <p className="leading-7 text-white/70">
+                            {card.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {/* ===================== TECHNOLOGY ===================== */}
       {tech && (
         <section

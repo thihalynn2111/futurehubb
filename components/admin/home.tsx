@@ -209,12 +209,24 @@ export default function Home() {
 
   const handleSave = async () => {
     try {
+      const heroSection = sections.find((s) => s.sectionKey === "hero");
+      const heroHasImage =
+        !!selectedImages["hero"] || !!heroSection?.imageUrl?.trim();
+
+      if (!heroHasImage) {
+        Swal.fire({
+          title: "Hero image required!",
+          text: "Please upload a hero image before saving.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
       setSaving(true);
 
       const updatedSections = await Promise.all(
         sections.map(async (section) => {
-          if (!section.id) return section;
-
           let updatedSection = { ...section };
 
           // 1. Upload Section Image
@@ -285,7 +297,7 @@ export default function Home() {
         body: JSON.stringify({ sections: updatedSections }),
       });
       const result = await response.json();
-      if (!result.success) {
+      if (!response.ok || !result.success) {
         throw new Error(result.message || "Error saving sections");
       }
       Swal.fire({
@@ -296,8 +308,8 @@ export default function Home() {
       });
     } catch (error) {
       Swal.fire({
-        title: "Error!",
-        text: "Update Fail",
+        title: "Validation Error!",
+        text: error instanceof Error ? error.message : "Something went wrong",
         icon: "error",
         confirmButtonText: "OK",
       });

@@ -34,7 +34,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<Record<number, File>>(
+  const [selectedImages, setSelectedImages] = useState<Record<string, File>>(
     {},
   );
   const [previewImages, setPreviewImages] = useState<Record<number, string>>(
@@ -163,6 +163,20 @@ export default function Home() {
 
   const handleSave = async () => {
     try {
+      const heroSection = sections.find((s) => s.sectionKey === "hero");
+      const heroHasImage =
+        !!selectedImages["hero"] || !!heroSection?.imageUrl?.trim();
+
+      if (!heroHasImage) {
+        Swal.fire({
+          title: "Hero image required!",
+          text: "Please upload a hero image before saving.",
+          icon: "warning",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
       setSaving(true);
 
       const updatedSections = await Promise.all(

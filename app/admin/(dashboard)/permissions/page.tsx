@@ -186,6 +186,7 @@ export default function PermissionsPage() {
     { key: "users", label: "User Management" },
     { key: "roles", label: "Roles Management" },
     { key: "site_settings", label: "Site Settings" },
+    { key: "home", label: "Home" },
   ];
 
   const uniqueResourcesFromDb = Array.from(
