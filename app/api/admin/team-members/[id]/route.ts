@@ -56,7 +56,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    if (!body.name?.trim() || !body.position?.trim() || body.imageUrl?.trim()) {
+    if (!body.name?.trim() || !body.position?.trim()) {
       return NextResponse.json(
         {
           success: false,

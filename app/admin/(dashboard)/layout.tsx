@@ -21,7 +21,11 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
         { name: "User Management", href: "/admin/users", icon: "👤" },
         { name: "Inquiries", href: "/admin/inquiries", icon: "📩" },
         { name: "Gallery", href: "/admin/gallery", icon: "📷" },
-        { name: "Partner", href: "/admin/projectSection", icon: "🤝" },
+        {
+          name: "Partner & Project",
+          href: "/admin/projectSection",
+          icon: "🤝",
+        },
         { name: "Team member", href: "/admin/viewMember", icon: "👥" },
       ],
     },
