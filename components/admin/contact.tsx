@@ -181,6 +181,8 @@ export default function Home() {
 
       const updatedSections = await Promise.all(
         sections.map(async (section) => {
+          if (!section.id) return section;
+
           let updatedSection = { ...section };
 
           // 1. Upload Section Image
