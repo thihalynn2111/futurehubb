@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SiteSettingsAdminPage() {
+  const router = useRouter();
   const [setting, setSetting] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
+  const [canRead, setCanRead] = useState(false);
   const [canUpdate, setCanUpdate] = useState(false); // 👈 Default အနေဖြင့် ပိတ်ထားမည် (Permission ရှိမှ True ဖြစ်မည်)
 
   const [siteName, setSiteName] = useState("");
@@ -29,7 +32,7 @@ export default function SiteSettingsAdminPage() {
     setTimeout(() => setToast(""), 3000);
   };
 
-  // 🔍 User တွင် Update Permission ရှိမရှိ စစ်ဆေးခြင်း
+  // 🔍 User တွင် Read နှင့် Update Permission ရှိမရှိ စစ်ဆေးခြင်း
   const checkPermissions = async () => {
     try {
       const res = await fetch("/api/auth/me");
@@ -48,25 +51,41 @@ export default function SiteSettingsAdminPage() {
             r.toLowerCase() === "system",
         );
 
-        if (isSuper) {
-          setCanUpdate(true);
+        const lowerPerms = permissions.map((p: string) => p.toLowerCase());
+
+        const hasRead =
+          isSuper ||
+          lowerPerms.includes("site_settings:read") ||
+          lowerPerms.includes("site-settings:read") ||
+          lowerPerms.includes("site_settings:*") ||
+          lowerPerms.includes("read") ||
+          lowerPerms.includes("*");
+
+        const hasUpdate =
+          isSuper ||
+          lowerPerms.includes("site_settings:update") ||
+          lowerPerms.includes("site-settings:update") ||
+          lowerPerms.includes("site_settings:*") ||
+          lowerPerms.includes("update") ||
+          lowerPerms.includes("*");
+
+        if (!hasRead) {
+          alert(
+            "Access Denied: You do not have permission to view site settings.",
+          );
+          router.replace("/admin");
           return;
         }
 
-        // ၂။ သာမန် User/Author များအတွက် Update Permission ရှိမရှိ စစ်ဆေးမည်
-        const hasUpdatePerm =
-          permissions.includes("site_settings:update") ||
-          permissions.includes("site-settings:update") ||
-          permissions.includes("update") ||
-          permissions.includes("site_settings:*");
-
-        setCanUpdate(hasUpdatePerm); // Permission ရှိမှသာ true ဖြစ်မည်၊ မရှိရင် false ဖြစ်ပြီး ခလုတ်ပျောက်မည်
+        setCanRead(true);
+        setCanUpdate(hasUpdate);
+        fetchSettings();
       } else {
-        setCanUpdate(false);
+        router.replace("/admin/login");
       }
     } catch (err) {
       console.error("Permission check error:", err);
-      setCanUpdate(false);
+      setLoading(false);
     }
   };
 
@@ -105,15 +124,16 @@ export default function SiteSettingsAdminPage() {
 
   useEffect(() => {
     checkPermissions();
-    fetchSettings();
   }, []);
 
   const handleAddField = (type: "email" | "phone") => {
+    if (!canUpdate) return;
     if (type === "email") setEmails([...emails, ""]);
     if (type === "phone") setPhones([...phones, ""]);
   };
 
   const handleRemoveField = (type: "email" | "phone", index: number) => {
+    if (!canUpdate) return;
     if (type === "email") {
       const updated = emails.filter((_, i) => i !== index);
       setEmails(updated.length ? updated : [""]);
@@ -128,6 +148,7 @@ export default function SiteSettingsAdminPage() {
     index: number,
     value: string,
   ) => {
+    if (!canUpdate) return;
     if (type === "email") {
       const updated = [...emails];
       updated[index] = value;
@@ -140,10 +161,12 @@ export default function SiteSettingsAdminPage() {
   };
 
   const handleAddSocial = () => {
+    if (!canUpdate) return;
     setSocialLinks([...socialLinks, { platform: "", url: "", icon: "" }]);
   };
 
   const handleRemoveSocial = (index: number) => {
+    if (!canUpdate) return;
     const updated = socialLinks.filter((_, i) => i !== index);
     setSocialLinks(
       updated.length ? updated : [{ platform: "", url: "", icon: "" }],
@@ -155,6 +178,7 @@ export default function SiteSettingsAdminPage() {
     field: "platform" | "url" | "icon",
     value: string,
   ) => {
+    if (!canUpdate) return;
     const updated = [...socialLinks];
     updated[index][field] = value;
     setSocialLinks(updated);
@@ -162,6 +186,11 @@ export default function SiteSettingsAdminPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canUpdate) {
+      alert("You do not have permission to update settings.");
+      return;
+    }
+
     try {
       const method = setting?.id ? "PUT" : "POST";
       const res = await fetch("/api/admin/site-settings", {
@@ -206,6 +235,8 @@ export default function SiteSettingsAdminPage() {
       </div>
     );
 
+  if (!canRead) return null;
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12 font-sans">
       {toast && (
@@ -216,8 +247,13 @@ export default function SiteSettingsAdminPage() {
 
       <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-lg font-bold text-slate-900">
+          <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             Site Settings & Branding Configuration
+            {!canUpdate && (
+              <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full flex items-center gap-1 font-medium">
+                🔒 Read-Only (Update Locked)
+              </span>
+            )}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Manage branding, SEO, contacts, and social links.
@@ -241,7 +277,7 @@ export default function SiteSettingsAdminPage() {
               disabled={!canUpdate}
               value={siteName}
               onChange={(e) => setSiteName(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
           <div>
@@ -254,7 +290,7 @@ export default function SiteSettingsAdminPage() {
               value={siteTagline}
               onChange={(e) => setSiteTagline(e.target.value)}
               placeholder="Your Tech Partner"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -271,7 +307,7 @@ export default function SiteSettingsAdminPage() {
               value={logoHeader}
               onChange={(e) => setLogoHeader(e.target.value)}
               placeholder="/images/logo.png"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
           <div>
@@ -284,7 +320,7 @@ export default function SiteSettingsAdminPage() {
               value={logoFooter}
               onChange={(e) => setLogoFooter(e.target.value)}
               placeholder="/images/logo-footer.png"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -300,7 +336,7 @@ export default function SiteSettingsAdminPage() {
               disabled={!canUpdate}
               value={contactAddress}
               onChange={(e) => setContactAddress(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
           <div>
@@ -313,7 +349,7 @@ export default function SiteSettingsAdminPage() {
               value={officeHours}
               onChange={(e) => setOfficeHours(e.target.value)}
               placeholder="9:00 AM - 5:30 PM (Mon to Fri)"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -343,7 +379,7 @@ export default function SiteSettingsAdminPage() {
                 onChange={(e) =>
                   handleFieldChange("email", idx, e.target.value)
                 }
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
               />
               {canUpdate && (
                 <button
@@ -383,7 +419,7 @@ export default function SiteSettingsAdminPage() {
                 onChange={(e) =>
                   handleFieldChange("phone", idx, e.target.value)
                 }
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
               />
               {canUpdate && (
                 <button
@@ -427,7 +463,7 @@ export default function SiteSettingsAdminPage() {
                   handleSocialChange(idx, "platform", e.target.value)
                 }
                 placeholder="Platform (Facebook)"
-                className="w-1/4 px-3 py-1.5 border rounded-md text-xs text-slate-900 disabled:bg-slate-100"
+                className="w-1/4 px-3 py-1.5 border rounded-md text-xs text-slate-900 disabled:bg-slate-100 disabled:cursor-not-allowed"
               />
               <input
                 type="text"
@@ -435,7 +471,7 @@ export default function SiteSettingsAdminPage() {
                 value={social.url}
                 onChange={(e) => handleSocialChange(idx, "url", e.target.value)}
                 placeholder="Profile URL (https://...)"
-                className="flex-1 px-3 py-1.5 border rounded-md text-xs text-slate-900 disabled:bg-slate-100"
+                className="flex-1 px-3 py-1.5 border rounded-md text-xs text-slate-900 disabled:bg-slate-100 disabled:cursor-not-allowed"
               />
               <input
                 type="text"
@@ -445,7 +481,7 @@ export default function SiteSettingsAdminPage() {
                   handleSocialChange(idx, "icon", e.target.value)
                 }
                 placeholder="Logo/Icon Image URL"
-                className="w-1/3 px-3 py-1.5 border rounded-md text-xs text-slate-900 disabled:bg-slate-100"
+                className="w-1/3 px-3 py-1.5 border rounded-md text-xs text-slate-900 disabled:bg-slate-100 disabled:cursor-not-allowed"
               />
               {canUpdate && (
                 <button
@@ -472,7 +508,7 @@ export default function SiteSettingsAdminPage() {
               value={metaTitle}
               onChange={(e) => setMetaTitle(e.target.value)}
               placeholder="FutureHub Myanmar"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
           <div>
@@ -485,7 +521,7 @@ export default function SiteSettingsAdminPage() {
               value={metaDescription}
               onChange={(e) => setMetaDescription(e.target.value)}
               placeholder="Leading web development services..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -500,11 +536,11 @@ export default function SiteSettingsAdminPage() {
             disabled={!canUpdate}
             value={footerText}
             onChange={(e) => setFooterText(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
           />
         </div>
 
-        {/* 💾 Save Button - (Update Permission ရှိသော Super Admin / User များအတွက်သာ ပေါ်မည်) */}
+        {/* 💾 Save Button - (Update Permission ရှိမှသာ ပေါ်မည်) */}
         {canUpdate && (
           <div className="pt-4 text-right">
             <button

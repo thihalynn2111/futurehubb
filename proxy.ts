@@ -34,30 +34,31 @@ export async function proxy(request: NextRequest) {
       const roles = (payload.roles as string[]) || [];
       const permissions = (payload.permissions as string[]) || [];
 
-      // 👇 "system" role သို့မဟုတ် "SUPER_ADMIN" ဖြစ်ပါက အားလုံးဝင်ခွင့်ရှိသည်
-      const isSuper = roles.some(
+      // Role များကို lowercase ဖြင့် စစ်ဆေးခြင်း
+      const lowerRoles = roles.map((r) => r.toLowerCase());
+
+      const isSuperOrAdmin = lowerRoles.some(
         (r) =>
-          r.toLowerCase() === "super_admin" ||
-          r.toLowerCase() === "super-admin" ||
-          r.toLowerCase() === "admin" ||
-          r.toLowerCase() === "system",
+          r === "super_admin" ||
+          r === "super-admin" ||
+          r === "admin" ||
+          r === "system",
       );
 
-      if (isSuper) {
+      if (isSuperOrAdmin || permissions.includes("*")) {
         return NextResponse.next();
       }
 
       const segments = pathname.split("/").filter(Boolean);
-      let resource = segments[1]; // ဥပမာ - products, posts, site-settings စသည်ဖြင့်
+      let rawResource = segments[1]; // ဥပမာ - site-settings, products စသည်ဖြင့်
 
-      if (!resource) {
+      // အကယ်၍ /admin သို့မဟုတ် resource မပါသော sub-routes များဖြစ်ပါက အလွယ်တကူ ခွင့်ပြုမည်
+      if (!rawResource) {
         return NextResponse.next();
       }
 
-      // 🔗 URL Resource နဲ့ Database Permission Resource နာမည် မတူတာများကို Map လုပ်ပေးခြင်း
-      if (resource === "products") {
-        resource = "posts";
-      }
+      const resource = rawResource.replace(/-/g, "_").toLowerCase();
+      const lowerPerms = permissions.map((p) => p.toLowerCase());
 
       let requiredAction = "read";
       const subActionOrId = segments[2];
@@ -66,18 +67,29 @@ export async function proxy(request: NextRequest) {
         requiredAction = "create";
       } else if (
         subActionOrId === "edit" ||
+        subActionOrId === "update" ||
         pathname.includes("/edit") ||
         pathname.includes("/update")
       ) {
         requiredAction = "update";
       }
 
-      const requiredPermission = `${resource}:${requiredAction}`;
+      // လိုအပ်သော Permission ပုံစံများ
+      const p1 = `${resource}:${requiredAction}`;
+      const p2 = `${rawResource}:${requiredAction}`;
+      const p3 = `${resource}:read`;
+      const p4 = `${rawResource}:read`;
+      const p5 = `${resource}:*`;
+      const p6 = `${rawResource}:*`;
 
       const hasPermission =
-        permissions.includes(requiredPermission) ||
-        permissions.includes(`${resource}:read`) ||
-        permissions.includes("site_settings:read"); // Site Settings အတွက် ထပ်တိုးစစ်ဆေးပေးခြင်း
+        lowerPerms.includes(p1) ||
+        lowerPerms.includes(p2) ||
+        lowerPerms.includes(p3) ||
+        lowerPerms.includes(p4) ||
+        lowerPerms.includes(p5) ||
+        lowerPerms.includes(p6) ||
+        lowerPerms.includes("*");
 
       if (!hasPermission) {
         return NextResponse.redirect(new URL("/admin", request.url));

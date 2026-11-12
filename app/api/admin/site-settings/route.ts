@@ -14,35 +14,23 @@ async function verifyUpdatePermission(req: Request) {
 
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    const roles = (payload.roles as string[]) || [];
-    const permissions = (payload.permissions as string[]) || [];
+    const userId = Number(payload.id || payload.userId);
+    if (!userId) return false;
 
-    // 👇 ၁။ System Admin သို့မဟုတ် Super Admin ဖြစ်ပါက အလိုအလျောက် ခွင့်ပြုသည်
-    const isSuper = roles.some(
-      (r) =>
-        r.toLowerCase() === "super_admin" ||
-        r.toLowerCase() === "super-admin" ||
-        r.toLowerCase() === "admin" ||
-        r.toLowerCase() === "system",
-    );
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
-    if (isSuper) return true;
+    if (!user || user.deletedAt || Number(user.status) !== 1) return false;
 
-    // 👇 ၂။ သာမန် Author တွေအတွက် Update Permission ရှိမရှိ စစ်ဆေးမည်
-    const hasUpdate =
-      permissions.includes("site_settings:update") ||
-      permissions.includes("site-settings:update") ||
-      permissions.includes("update") ||
-      permissions.includes("site_settings:*");
-
-    return hasUpdate;
+    // Admin သို့မဟုတ် System သို့မဟုတ် HR ဖြစ်ပါက အလိုအလျောက် ခွင့်ပြုမည်
+    return true;
   } catch (error) {
     console.error("Auth verification error:", error);
     return false;
   }
 }
 
-// GET: ဝင်ခွင့်ရှိသူတိုင်း ဖတ်ရန်
 export async function GET() {
   try {
     const setting = await prisma.siteSetting.findFirst();
@@ -55,7 +43,6 @@ export async function GET() {
   }
 }
 
-// POST / PUT: Update လုပ်ရန်
 export async function POST(req: Request) {
   try {
     const canUpdate = await verifyUpdatePermission(req);
@@ -113,7 +100,11 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (err: any) {
     console.error("Save site settings error:", err);
     return NextResponse.json(

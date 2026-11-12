@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function UsersManagementPage() {
   const router = useRouter();
@@ -26,7 +27,9 @@ export default function UsersManagementPage() {
       const res = await fetch("/api/admin/roles");
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
+        // 🔥 Active roles များကိုသာ စစ်ထုတ်ယူခြင်း (deletedAt မပါသည်များ နှင့် SUPER_ADMIN များကို ဖယ်ထုတ်ရန်)
         const filteredRoles = data.filter((r) => {
+          if (r.deletedAt) return false; // Soft delete လုပ်ထားပါက ဖြုတ်မည်
           const rName = r.name || r;
           return rName !== "SUPER_ADMIN" && rName !== "SUPER ADMIN";
         });
@@ -127,7 +130,25 @@ export default function UsersManagementPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-12">
+    <div className="max-w-7xl mx-auto space-y-8 pb-12 p-8">
+      {/* Header with View Trash Bin Link */}
+      <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">
+            👥 User Management Portal
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Create, manage, and assign roles to system users and authors.
+          </p>
+        </div>
+        <Link
+          href="/admin/users/trash"
+          className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center gap-2 cursor-pointer"
+        >
+          🗑️ View Trash Bin
+        </Link>
+      </div>
+
       {/* 1. CREATE USER FORM */}
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm max-w-2xl mx-auto">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -136,7 +157,11 @@ export default function UsersManagementPage() {
 
         {message && (
           <div
-            className={`p-3 rounded-lg mb-4 text-sm font-semibold ${message.includes("success") ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+            className={`p-3 rounded-lg mb-4 text-sm font-semibold ${
+              message.includes("success")
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-red-100 text-red-700"
+            }`}
           >
             {message}
           </div>
@@ -192,7 +217,7 @@ export default function UsersManagementPage() {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md text-gray-900"
+              className="w-full px-3 py-2 border rounded-md text-gray-900 bg-white cursor-pointer"
             >
               {roles.map((r, idx) => {
                 const roleName = r.name || r;
@@ -208,7 +233,7 @@ export default function UsersManagementPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50 cursor-pointer"
           >
             {loading ? "Creating..." : "Save User"}
           </button>
@@ -278,7 +303,7 @@ export default function UsersManagementPage() {
                             onChange={(e) =>
                               handleStatusChange(u.id, Number(e.target.value))
                             }
-                            className="px-2 py-1 border rounded text-xs bg-gray-50 font-medium"
+                            className="px-2 py-1 border rounded text-xs bg-gray-50 font-medium cursor-pointer"
                           >
                             <option value={1}>Active</option>
                             <option value={0}>Archive / Banned</option>
@@ -288,7 +313,7 @@ export default function UsersManagementPage() {
                             onClick={() =>
                               handleDeleteUser(u.id, u.role, u.email)
                             }
-                            className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold transition"
+                            className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold transition cursor-pointer"
                           >
                             Delete
                           </button>

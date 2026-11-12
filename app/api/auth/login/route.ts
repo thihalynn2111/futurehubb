@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // 👈 သင့်ပရောဂျက်၏ Global Prisma Client ကို သုံးခြင်း
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 
@@ -18,7 +18,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. User ကို Database တွင် ရှာဖွေခြင်း (Roles & Permissions များပါ ဆွဲထုတ်မည်)
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
@@ -26,6 +25,7 @@ export async function POST(request: Request) {
           include: {
             role: {
               include: {
+                // ⚠️ အကယ်၍ Prisma schema တွင် 'permissions' အစား 'rolePermissions' ဖြစ်နေပါက ပြင်ရန်လိုပါသည်
                 permissions: {
                   include: {
                     permission: true,
@@ -45,7 +45,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Password စစ်ဆေးခြင်း
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -54,17 +53,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. User ၏ Roles နှင့် Permissions များကို စုစည်းခြင်း
     const roles = user.userRoles.map((ur) => ur.role.name);
+
+    // 👇 ဤနေရာတွင် permissions များကို ဆွဲထုတ်သည်
     const permissions = Array.from(
       new Set(
-        user.userRoles.flatMap((ur) =>
-          ur.role.permissions.map((rp) => rp.permission.name),
+        user.userRoles.flatMap(
+          (ur) => ur.role.permissions?.map((rp) => rp.permission.name) || [],
         ),
       ),
     );
 
-    // 4. JWT Token ထုတ်ယူခြင်း (Roles နှင့် Permissions များပါ ထည့်သွင်းချုပ်ဆိုမည်)
+    // 🔥 အရေးကြီးသည်: Terminal တွင် HR ၏ permissions များ ပါလာမလာ စစ်ဆေးရန်
+    console.log("LOGIN DEBUG - User Roles:", roles);
+    console.log("LOGIN DEBUG - Loaded Permissions:", permissions);
+
     const token = await new SignJWT({
       userId: user.id,
       email: user.email,
@@ -76,7 +79,6 @@ export async function POST(request: Request) {
       .setExpirationTime("1d")
       .sign(JWT_SECRET);
 
-    // 5. Response တွင် HTTP-Only Cookie အဖြစ် သိမ်းဆည်းခြင်း
     const response = NextResponse.json({
       message: "Login အောင်မြင်ပါသည်။",
       user: {
@@ -92,7 +94,7 @@ export async function POST(request: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 86400, // 1 day
+      maxAge: 86400,
       path: "/",
     });
 

@@ -69,7 +69,7 @@ export default function AdminProductsPage() {
     fetchData();
   }, []);
 
-  // 🔑 Clean Permission Matrix Engine (Universal Super Admin Bypass + Dynamic Permissions)
+  // 🔑 Super Admin Bypass & Permission Checker
   const isSuperAdmin = userRoles.some((role) => {
     const r = role.toLowerCase().replace(/[\s_-]/g, "");
     return (
@@ -81,27 +81,19 @@ export default function AdminProductsPage() {
     return isSuperAdmin || userPermissions.includes(permissionKey);
   };
 
-  // Categories Permissions
-  const canReadCategories = hasPermission("categories:read");
-  const canCreateCategories = hasPermission("categories:create");
-  const canUpdateCategories = hasPermission("categories:update");
-  const canDeleteCategories = hasPermission("categories:delete");
+  // 🌟 Unified Products Permissions Matrix
+  const canReadProducts = hasPermission("products:read");
+  const canCreateProducts = hasPermission("products:create");
+  const canUpdateProducts = hasPermission("products:update");
+  const canDeleteProducts = hasPermission("products:delete");
 
-  // Products / Posts Permissions (Database တွင် 'posts' ဖြစ်သောကြောင့် နှစ်ခုစလုံးကို တွဲစစ်ပေးထားပါသည်)
-  const canReadProducts =
-    hasPermission("posts:read") || hasPermission("products:read");
-  const canCreateProducts =
-    hasPermission("posts:create") || hasPermission("products:create");
-  const canUpdateProducts =
-    hasPermission("posts:update") || hasPermission("products:update");
-  const canDeleteProducts =
-    hasPermission("posts:delete") || hasPermission("products:delete");
+  // Sub-sections mapped directly to unified permissions
+  const canReadCategories = canReadProducts;
+  const canCreateCategories = canCreateProducts;
+  const canUpdateCategories = canUpdateProducts;
+  const canDeleteCategories = canDeleteProducts;
 
-  // Cards Permissions
-  const canCreateCards =
-    hasPermission("posts:update") ||
-    hasPermission("products:update") ||
-    hasPermission("cards:create");
+  const canCreateCards = canCreateProducts; // 👈 Create ဖြုတ်လိုက်လျှင် Card Form ပါ ပိတ်သွားမည်
 
   // --- CATEGORY ACTIONS ---
   const handleCreateCategory = async (e: React.FormEvent) => {
@@ -457,7 +449,7 @@ export default function AdminProductsPage() {
           </div>
         )}
 
-        {/* 🚀 3 CREATION FORMS SECTION (Gated with Permissions) */}
+        {/* 🚀 3 CREATION FORMS SECTION (Gated with Products Create Permission) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Form 1: Category */}
           {canCreateCategories && (
@@ -731,8 +723,7 @@ export default function AdminProductsPage() {
               </div>
             ) : (
               <div className="text-center py-6 text-rose-500 text-xs font-medium">
-                You do not have permission (`categories:read`) to view
-                categories.
+                You do not have permission (`products:read`) to view categories.
               </div>
             )}
           </div>
@@ -836,8 +827,8 @@ export default function AdminProductsPage() {
               </div>
             ) : (
               <div className="text-center py-6 text-rose-500 text-xs font-medium">
-                You do not have permission (`posts:read` / `products:read`) to
-                view product posts.
+                You do not have permission (`products:read`) to view product
+                posts.
               </div>
             )}
           </div>
