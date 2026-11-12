@@ -137,7 +137,7 @@ export default function HomeClient({
       if (track && group) {
         gsap.to(track, {
           x: () => -group.offsetWidth,
-          duration: 15,
+          duration: 30,
           ease: "none",
           repeat: -1,
           invalidateOnRefresh: true,
@@ -328,7 +328,8 @@ export default function HomeClient({
             )}
           </div>
 
-          <div className="explore-btn absolute bottom-8 right-6 hidden sm:block md:bottom-auto md:right-10 md:top-2/3 md:-translate-y-1/2 lg:right-20">
+          <div className="explore-btn absolute bottom-6 right-4 sm:bottom-8 sm:right-6 md:bottom-auto md:right-10 md:top-2/3 md:-translate-y-1/2 lg:right-20">
+            {" "}
             <button
               type="button"
               onClick={() =>
@@ -337,7 +338,7 @@ export default function HomeClient({
                   ?.scrollIntoView({ behavior: "smooth" })
               }
               aria-label="Explore more"
-              className="group relative flex h-[130px] w-[130px] shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/25 md:h-[200px] md:w-[200px] lg:h-[250px] lg:w-[250px]"
+              className="group relative flex h-[90px] w-[90px] shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl backdrop-blur-md transition-colors duration-300 hover:bg-white/25 sm:h-[130px] sm:w-[130px] md:h-[200px] md:w-[200px] lg:h-[250px] lg:w-[250px]"
             >
               <svg
                 viewBox="0 0 250 250"
