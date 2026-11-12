@@ -41,6 +41,8 @@ export default function Home() {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Record<string, File>>(
     {},
@@ -113,6 +115,14 @@ export default function Home() {
   useEffect(() => {
     async function fetchSections() {
       try {
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserRoles(meData.user.roles || []);
+            setUserPermissions(meData.user.permissions || []);
+          }
+        }
         const response = await fetch("/api/admin/pages/home");
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -144,6 +154,21 @@ export default function Home() {
     }
     fetchSections();
   }, []);
+  const isSuperAdmin = userRoles.some((role) => {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    return (
+      r.includes("superadmin") || r === "admin" || r === "superadministrator"
+    );
+  });
+
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // 🌟 Unified HOme Permissions Matrix
+  const canRead = hasPermission("home:read");
+  const canUpdate = hasPermission("home:update");
+
   async function handleDelete(id: number) {
     setLoading(true);
     const confirmed = await Swal.fire({
@@ -396,19 +421,21 @@ export default function Home() {
             Update your home page sections, titles, descriptions, and media.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
-        >
-          {saving ? (
-            <Loader2 className="animate-spin" size={18} />
-          ) : (
-            <Save size={18} />
-          )}
-          <span>{saving ? "Saving..." : "Save Changes"}</span>
-        </button>
+        {canUpdate ?? (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Save size={18} />
+            )}
+            <span>{saving ? "Saving..." : "Save Changes"}</span>
+          </button>
+        )}
       </div>
 
       {error && (
