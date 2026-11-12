@@ -30,6 +30,8 @@ type HomeSection = {
 };
 
 export default function Home() {
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +82,14 @@ export default function Home() {
   useEffect(() => {
     async function fetchSections() {
       try {
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserRoles(meData.user.roles || []);
+            setUserPermissions(meData.user.permissions || []);
+          }
+        }
         const response = await fetch("/api/admin/pages/contact");
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -104,6 +114,21 @@ export default function Home() {
     }
     fetchSections();
   }, []);
+  const isSuperAdmin = userRoles.some((role) => {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    return (
+      r.includes("superadmin") || r === "admin" || r === "superadministrator"
+    );
+  });
+
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // 🌟 Unified HOme Permissions Matrix
+  const canRead = hasPermission("contactsection:read");
+  const canUpdate = hasPermission("contactsection:update");
+
   async function handleDelete(id: number) {
     setLoading(true);
     const confirmed = await Swal.fire({
@@ -350,19 +375,21 @@ export default function Home() {
           </h1>
           <p className="text-gray-500 text-sm mt-1">Update your Contact</p>
         </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
-        >
-          {saving ? (
-            <Loader2 className="animate-spin" size={18} />
-          ) : (
-            <Save size={18} />
-          )}
-          <span>{saving ? "Saving..." : "Save Changes"}</span>
-        </button>
+        {canUpdate && (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Save size={18} />
+            )}
+            <span>{saving ? "Saving..." : "Save Changes"}</span>
+          </button>
+        )}
       </div>
 
       {error && (
@@ -461,14 +488,15 @@ export default function Home() {
                         <h3 className="text-lg font-bold text-gray-800">
                           Manage Cards
                         </h3>
-
-                        <button
-                          type="button"
-                          onClick={() => handleAddCard(section.id!)}
-                          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
-                        >
-                          + Add Card
-                        </button>
+                        {canUpdate && (
+                          <button
+                            type="button"
+                            onClick={() => handleAddCard(section.id!)}
+                            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+                          >
+                            + Add Card
+                          </button>
+                        )}
                       </div>
 
                       {section.cards.map((card, cardIndex) => (
@@ -482,20 +510,22 @@ export default function Home() {
                             </h4>
 
                             <span className="text-xs text-gray-400">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (card.id) {
-                                    handleDelete(card.id);
-                                  } else {
-                                    handleRemoveCard(section.id!, cardIndex);
-                                  }
-                                }}
-                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                              >
-                                <Trash2 size={16} />
-                                <span>Delete</span>
-                              </button>
+                              {canUpdate && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (card.id) {
+                                      handleDelete(card.id);
+                                    } else {
+                                      handleRemoveCard(section.id!, cardIndex);
+                                    }
+                                  }}
+                                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                                >
+                                  <Trash2 size={16} />
+                                  <span>Delete</span>
+                                </button>
+                              )}
                             </span>
                           </div>
 
