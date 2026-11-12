@@ -15,6 +15,8 @@ type GallerySection = {
 };
 
 export default function GallerySection() {
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [sections, setSections] = useState<GallerySection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,6 +52,14 @@ export default function GallerySection() {
   useEffect(() => {
     async function fetchSections() {
       try {
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserRoles(meData.user.roles || []);
+            setUserPermissions(meData.user.permissions || []);
+          }
+        }
         const response = await fetch("/api/admin/pages/gallerySection");
 
         const result = await response.json();
@@ -81,6 +91,20 @@ export default function GallerySection() {
 
     fetchSections();
   }, []);
+  const isSuperAdmin = userRoles.some((role) => {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    return (
+      r.includes("superadmin") || r === "admin" || r === "superadministrator"
+    );
+  });
+
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // 🌟 Unified HOme Permissions Matrix
+  const canRead = hasPermission("gallerysection:read");
+  const canUpdate = hasPermission("gallerysection:update");
 
   // 2. Update section input values
   const handleInputChange = (
@@ -250,21 +274,22 @@ export default function GallerySection() {
             Update your gallery page sections, titles, descriptions, and images.
           </p>
         </div>
+        {canUpdate ?? (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Save size={18} />
+            )}
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
-        >
-          {saving ? (
-            <Loader2 className="animate-spin" size={18} />
-          ) : (
-            <Save size={18} />
-          )}
-
-          <span>{saving ? "Saving..." : "Save Changes"}</span>
-        </button>
+            <span>{saving ? "Saving..." : "Save Changes"}</span>
+          </button>
+        )}
       </div>
 
       {/* Error */}

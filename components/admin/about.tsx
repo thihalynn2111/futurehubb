@@ -23,6 +23,8 @@ type AboutSection = {
 };
 
 export default function AboutSection() {
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [sections, setSections] = useState<AboutSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +86,14 @@ export default function AboutSection() {
   useEffect(() => {
     async function fetchSections() {
       try {
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserRoles(meData.user.roles || []);
+            setUserPermissions(meData.user.permissions || []);
+          }
+        }
         const response = await fetch("/api/admin/pages/about");
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -108,6 +118,20 @@ export default function AboutSection() {
     }
     fetchSections();
   }, []);
+  const isSuperAdmin = userRoles.some((role) => {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    return (
+      r.includes("superadmin") || r === "admin" || r === "superadministrator"
+    );
+  });
+
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // 🌟 Unified HOme Permissions Matrix
+  const canRead = hasPermission("aboutsection:read");
+  const canUpdate = hasPermission("aboutsection:update");
 
   const handleInputChange = (id: number, field: string, value: string) => {
     setSections((previousSections) =>
@@ -211,19 +235,21 @@ export default function AboutSection() {
             Manage your about page content, sections, and details.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
-        >
-          {saving ? (
-            <Loader2 className="animate-spin" size={18} />
-          ) : (
-            <Save size={18} />
-          )}
-          <span>{saving ? "Saving..." : "Save Changes"}</span>
-        </button>
+        {canUpdate && (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Save size={18} />
+            )}
+            <span>{saving ? "Saving..." : "Save Changes"}</span>
+          </button>
+        )}
       </div>
 
       {error && (

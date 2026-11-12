@@ -186,7 +186,11 @@ export default function PermissionsPage() {
     { key: "users", label: "User Management" },
     { key: "roles", label: "Roles Management" },
     { key: "site_settings", label: "Site Settings" },
-    { key: "home", label: "Home" },
+    { key: "homesection", label: "Home" },
+    { key: "aboutsection", label: "About" },
+    { key: "contactsection", label: "Contact" },
+    { key: "gallerysection", label: "Gallery" },
+    { key: "viewmember", label: "member" },
   ];
 
   const uniqueResourcesFromDb = Array.from(

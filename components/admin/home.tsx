@@ -166,8 +166,8 @@ export default function Home() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("home:read");
-  const canUpdate = hasPermission("home:update");
+  const canRead = hasPermission("homesection:read");
+  const canUpdate = hasPermission("homesection:update");
 
   async function handleDelete(id: number) {
     setLoading(true);
@@ -421,7 +421,7 @@ export default function Home() {
             Update your home page sections, titles, descriptions, and media.
           </p>
         </div>
-        {canUpdate ?? (
+        {canUpdate && (
           <button
             type="button"
             onClick={handleSave}
@@ -632,14 +632,15 @@ export default function Home() {
                         <h3 className="text-lg font-bold text-gray-800">
                           Manage Cards
                         </h3>
-
-                        <button
-                          type="button"
-                          onClick={() => handleAddCard(section.id!)}
-                          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
-                        >
-                          + Add Card
-                        </button>
+                        {canUpdate ?? (
+                          <button
+                            type="button"
+                            onClick={() => handleAddCard(section.id!)}
+                            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+                          >
+                            + Add Card
+                          </button>
+                        )}
                       </div>
 
                       {section.cards.map((card, cardIndex) => (
@@ -653,20 +654,22 @@ export default function Home() {
                             </h4>
 
                             <span className="text-xs text-gray-400">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (card.id) {
-                                    handleDelete(card.id);
-                                  } else {
-                                    handleRemoveCard(section.id!, cardIndex);
-                                  }
-                                }}
-                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                              >
-                                <Trash2 size={16} />
-                                <span>Delete</span>
-                              </button>
+                              {canUpdate ?? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (card.id) {
+                                      handleDelete(card.id);
+                                    } else {
+                                      handleRemoveCard(section.id!, cardIndex);
+                                    }
+                                  }}
+                                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                                >
+                                  <Trash2 size={16} />
+                                  <span>Delete</span>
+                                </button>
+                              )}
                             </span>
                           </div>
 
@@ -813,14 +816,15 @@ export default function Home() {
                         <h3 className="text-lg font-bold text-gray-800">
                           Manage Cards
                         </h3>
-
-                        <button
-                          type="button"
-                          onClick={() => handleAddCard(section.id!)}
-                          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
-                        >
-                          + Add Card
-                        </button>
+                        {canUpdate ?? (
+                          <button
+                            type="button"
+                            onClick={() => handleAddCard(section.id!)}
+                            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+                          >
+                            + Add Card
+                          </button>
+                        )}
                       </div>
 
                       {section.cards.map((card, cardIndex) => (
@@ -834,20 +838,22 @@ export default function Home() {
                             </h4>
 
                             <span className="text-xs text-gray-400">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (card.id) {
-                                    handleDelete(card.id);
-                                  } else {
-                                    handleRemoveCard(section.id!, cardIndex);
-                                  }
-                                }}
-                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                              >
-                                <Trash2 size={16} />
-                                <span>Delete</span>
-                              </button>
+                              {canUpdate ?? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (card.id) {
+                                      handleDelete(card.id);
+                                    } else {
+                                      handleRemoveCard(section.id!, cardIndex);
+                                    }
+                                  }}
+                                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                                >
+                                  <Trash2 size={16} />
+                                  <span>Delete</span>
+                                </button>
+                              )}
                             </span>
                           </div>
 
@@ -965,14 +971,15 @@ export default function Home() {
                       <h3 className="text-lg font-bold text-gray-800">
                         Manage Cards
                       </h3>
-
-                      <button
-                        type="button"
-                        onClick={() => handleAddCard(section.id!)}
-                        className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
-                      >
-                        + Add Card
-                      </button>
+                      {canUpdate ?? (
+                        <button
+                          type="button"
+                          onClick={() => handleAddCard(section.id!)}
+                          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                          + Add Card
+                        </button>
+                      )}
                     </div>
 
                     {section.cards.map((card, cardIndex) => (
@@ -986,20 +993,22 @@ export default function Home() {
                           </h4>
 
                           <span className="text-xs text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (card.id) {
-                                  handleDelete(card.id);
-                                } else {
-                                  handleRemoveCard(section.id!, cardIndex);
-                                }
-                              }}
-                              className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                            >
-                              <Trash2 size={16} />
-                              <span>Delete</span>
-                            </button>
+                            {canUpdate ?? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (card.id) {
+                                    handleDelete(card.id);
+                                  } else {
+                                    handleRemoveCard(section.id!, cardIndex);
+                                  }
+                                }}
+                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                              >
+                                <Trash2 size={16} />
+                                <span>Delete</span>
+                              </button>
+                            )}
                           </span>
                         </div>
 
