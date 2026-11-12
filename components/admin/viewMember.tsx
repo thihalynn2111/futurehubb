@@ -6,6 +6,8 @@ import Swal from "sweetalert2";
 import Link from "next/link";
 export default function Member() {
   const router = useRouter();
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,6 +15,14 @@ export default function Member() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserRoles(meData.user.roles || []);
+            setUserPermissions(meData.user.permissions || []);
+          }
+        }
         const response = await fetch("/api/admin/team-members");
         const result = await response.json();
         if (result.success) {
@@ -30,7 +40,22 @@ export default function Member() {
 
     fetchData();
   }, []);
+  const isSuperAdmin = userRoles.some((role) => {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    return (
+      r.includes("superadmin") || r === "admin" || r === "superadministrator"
+    );
+  });
 
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // 🌟 Unified HOme Permissions Matrix
+  const canRead = hasPermission("viewmember:read");
+  const canUpdate = hasPermission("viewmember:update");
+  const canDelete = hasPermission("viewmember:delete");
+  const canCreate = hasPermission("viewmember:create");
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
@@ -99,19 +124,23 @@ export default function Member() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href="/admin/teamMember/trash"
-            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
-          >
-            🗑️ View Trash Bin
-          </Link>
-
-          <button
-            onClick={() => router.push(`/admin/teamMember`)}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
-          >
-            <span>Add Team</span>
-          </button>
+          {canCreate && (
+            <div>
+              {" "}
+              <Link
+                href="/admin/teamMember/trash"
+                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
+              >
+                🗑️ View Trash Bin
+              </Link>
+              <button
+                onClick={() => router.push(`/admin/teamMember`)}
+                className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
+              >
+                <span>Add Team</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -162,22 +191,26 @@ export default function Member() {
 
               {/* Action Buttons */}
               <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
-                <button
-                  onClick={() =>
-                    router.push(`/admin/teamMember/${member.id}/edit`)
-                  }
-                  className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-xl border border-gray-200 transition flex items-center justify-center space-x-1.5 text-sm shadow-sm"
-                >
-                  <Edit3 size={16} className="text-orange-600" />
-                  <span>Edit</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(member.id)}
-                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                >
-                  <Trash2 size={16} />
-                  <span>Delete</span>
-                </button>
+                {canUpdate && (
+                  <button
+                    onClick={() =>
+                      router.push(`/admin/teamMember/${member.id}/edit`)
+                    }
+                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-xl border border-gray-200 transition flex items-center justify-center space-x-1.5 text-sm shadow-sm"
+                  >
+                    <Edit3 size={16} className="text-orange-600" />
+                    <span>Edit</span>
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    onClick={() => handleDelete(member.id)}
+                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                  >
+                    <Trash2 size={16} />
+                    <span>Delete</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}
