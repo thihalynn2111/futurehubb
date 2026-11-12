@@ -191,6 +191,7 @@ export default function PermissionsPage() {
     { key: "contactsection", label: "Contact" },
     { key: "gallerysection", label: "Gallery" },
     { key: "viewmember", label: "member" },
+    { key: "projectsection", label: "project" },
   ];
 
   const uniqueResourcesFromDb = Array.from(

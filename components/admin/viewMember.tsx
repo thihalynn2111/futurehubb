@@ -124,22 +124,21 @@ export default function Member() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {canUpdate && (
+            <Link
+              href="/admin/teamMember/trash"
+              className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
+            >
+              🗑️ View Trash Bin
+            </Link>
+          )}
           {canCreate && (
-            <div>
-              {" "}
-              <Link
-                href="/admin/teamMember/trash"
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
-              >
-                🗑️ View Trash Bin
-              </Link>
-              <button
-                onClick={() => router.push(`/admin/teamMember`)}
-                className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
-              >
-                <span>Add Team</span>
-              </button>
-            </div>
+            <button
+              onClick={() => router.push(`/admin/teamMember`)}
+              className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
+            >
+              <span>Add Team</span>
+            </button>
           )}
         </div>
       </div>
