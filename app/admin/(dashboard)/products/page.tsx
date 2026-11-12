@@ -38,7 +38,7 @@ export default function AdminProductsPage() {
 
   const fetchData = async () => {
     try {
-      const meRes = await fetch("/api/auth/me");
+      const meRes = await fetch("/api/auth/me", { cache: "no-store" });
       if (meRes.ok) {
         const meData = await meRes.json();
         if (meData?.user) {
@@ -47,13 +47,15 @@ export default function AdminProductsPage() {
         }
       }
 
-      const resCat = await fetch("/api/admin/categories");
+      const resCat = await fetch("/api/admin/categories", {
+        cache: "no-store",
+      });
       if (resCat.ok) {
         const dataCat = await resCat.json();
         setCategories(dataCat.filter((c: any) => !c.deletedAt));
       }
 
-      const resPost = await fetch("/api/admin/products");
+      const resPost = await fetch("/api/admin/products", { cache: "no-store" });
       if (resPost.ok) {
         const dataPost = await resPost.json();
         setPosts(dataPost.filter((p: any) => !p.deletedAt));
@@ -87,13 +89,12 @@ export default function AdminProductsPage() {
   const canUpdateProducts = hasPermission("products:update");
   const canDeleteProducts = hasPermission("products:delete");
 
-  // Sub-sections mapped directly to unified permissions
   const canReadCategories = canReadProducts;
   const canCreateCategories = canCreateProducts;
   const canUpdateCategories = canUpdateProducts;
   const canDeleteCategories = canDeleteProducts;
 
-  const canCreateCards = canCreateProducts; // 👈 Create ဖြုတ်လိုက်လျှင် Card Form ပါ ပိတ်သွားမည်
+  const canCreateCards = canCreateProducts;
 
   // --- CATEGORY ACTIONS ---
   const handleCreateCategory = async (e: React.FormEvent) => {
@@ -195,6 +196,7 @@ export default function AdminProductsPage() {
     }
   };
 
+  // 🚀 FIXED: handleUpdatePost ကို ဇယားထဲမှာ ဒေတာချက်ချင်းပြောင်းလဲစေရန် အပြည့်အစုံပြင်ဆင်ထားသည်
   const handleUpdatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPost) return;
@@ -212,9 +214,16 @@ export default function AdminProductsPage() {
     });
 
     if (res.ok) {
+      const updatedProduct = await res.json();
       alert("Product Post updated successfully!");
+
+      // 🔄 React State ထဲရှိ posts array ကို Updated Product အသစ်ဖြင့် ချက်ချင်း အစားထိုးမည်
+      setPosts((prevPosts) =>
+        prevPosts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)),
+      );
+
       setEditingPost(null);
-      fetchData();
+      fetchData(); // Sync with server background
     } else {
       alert("Failed to update product post");
     }
@@ -449,7 +458,7 @@ export default function AdminProductsPage() {
           </div>
         )}
 
-        {/* 🚀 3 CREATION FORMS SECTION (Gated with Products Create Permission) */}
+        {/* 🚀 3 CREATION FORMS SECTION */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Form 1: Category */}
           {canCreateCategories && (
