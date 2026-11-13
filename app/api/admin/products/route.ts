@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// 1. GET Method
+// 1. GET Method (Product List အားလုံးကို ဆွဲထုတ်ရန်)
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
@@ -24,11 +24,12 @@ export async function GET(req: Request) {
   }
 }
 
-// 2. POST Method
+// 2. POST Method (Product အသစ် ဖန်တီးရန်)
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // 👇 type, content နဲ့ slug ကို လက်ခံအောင် ထည့်ထားပါတယ်
+
+    // 👇 Frontend ကနေ ပါလာတဲ့ Data တွေကို လက်ခံမယ်
     const {
       title,
       description,
@@ -48,25 +49,28 @@ export async function POST(req: Request) {
 
     // Custom Slug မပါလာရင် Title ကနေ အလိုအလျောက် ဖန်တီးမယ်
     const slug = customSlug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+    // Category ID ကို Number ပြောင်းမယ် (လိုအပ်ရင်)
     const parsedCategoryId = isNaN(Number(categoryId))
       ? categoryId
       : Number(categoryId);
 
+    // Database ထဲ သိမ်းဆည်းမယ်
     const newProduct = await prisma.productPost.create({
       data: {
         title,
         slug,
         description: description || "",
         imageUrl: imageUrl || "",
-        type: type || "standard", // 👈 Frontend ကနေ ပါလာတဲ့ type ကို သုံးမယ်
-        content: content || "", // 👈 Frontend ကနေ ပါလာတဲ့ content ကို သုံးမယ်
+        type: type || "standard", // 👈 Type ကို သိမ်းမယ်
+        content: content || "", // 👈 Content ကို သိမ်းမယ်
         authorType: "ADMIN",
         category: {
           connect: { id: parsedCategoryId },
         },
         author: {
           connect: {
-            id: 1, // သင့် Admin User ID ကို ထည့်ပါ
+            id: 1, // ⚠️ သင့် Admin User ID ကို သေချာ ထည့်ပါ (Database ထဲမှာ ရှိတဲ့ ID ဖြစ်ရပါမယ်)
           },
         },
       } as any,

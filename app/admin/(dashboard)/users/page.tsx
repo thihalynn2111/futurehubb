@@ -27,9 +27,8 @@ export default function UsersManagementPage() {
       const res = await fetch("/api/admin/roles");
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
-        // 🔥 Active roles များကိုသာ စစ်ထုတ်ယူခြင်း (deletedAt မပါသည်များ နှင့် SUPER_ADMIN များကို ဖယ်ထုတ်ရန်)
         const filteredRoles = data.filter((r) => {
-          if (r.deletedAt) return false; // Soft delete လုပ်ထားပါက ဖြုတ်မည်
+          if (r.deletedAt) return false;
           const rName = r.name || r;
           return rName !== "SUPER_ADMIN" && rName !== "SUPER ADMIN";
         });
@@ -87,6 +86,14 @@ export default function UsersManagementPage() {
     userId: number | string,
     newStatus: number,
   ) => {
+    // 🚀 Banned လုပ်ရင် သေချာမေးမယ်
+    const confirmMsg =
+      newStatus === 0
+        ? "Are you sure you want to BAN this user? They will not be able to log in."
+        : "Are you sure you want to ACTIVE this user?";
+
+    if (!confirm(confirmMsg)) return;
+
     try {
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
@@ -95,6 +102,7 @@ export default function UsersManagementPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to update status");
+
       fetchUsers();
     } catch (err: any) {
       alert(err.message);
@@ -107,7 +115,7 @@ export default function UsersManagementPage() {
     userEmail: string,
   ) => {
     if (
-      userRole.includes("SUPER_ADMIN") ||
+      userRole?.includes("SUPER_ADMIN") ||
       userEmail === "admin@futurehub.com"
     ) {
       alert("❌ Super Admin account cannot be deleted!");
@@ -245,87 +253,87 @@ export default function UsersManagementPage() {
         <h3 className="text-xl font-bold text-gray-900 mb-4">
           👥 Existing Authors & Users
         </h3>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b bg-gray-50 text-gray-700 text-sm">
-              <th className="p-3">Name</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Role</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-sm divide-y text-gray-800">
-            {users.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
-                  No users or authors found. Create one above!
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b bg-gray-50 text-gray-700 text-sm">
+                <th className="p-3">Name</th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Role</th>
+                <th className="p-3">Status</th>
+                <th className="p-3">Actions</th>
               </tr>
-            ) : (
-              users.map((u) => {
-                const isSuper =
-                  u.role.includes("SUPER_ADMIN") ||
-                  u.email === "admin@futurehub.com";
-                return (
-                  <tr key={u.id}>
-                    <td className="p-3 font-medium">{u.name}</td>
-                    <td className="p-3">{u.email}</td>
-                    <td className="p-3">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold">
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      {isSuper ? (
-                        <span className="text-gray-400 font-semibold text-xs">
-                          -
+            </thead>
+            <tbody className="text-sm divide-y text-gray-800">
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    No users or authors found. Create one above!
+                  </td>
+                </tr>
+              ) : (
+                users.map((u) => {
+                  const isSuper =
+                    u.role?.includes("SUPER_ADMIN") ||
+                    u.email === "admin@futurehub.com";
+                  return (
+                    <tr key={u.id} className="hover:bg-slate-50 transition">
+                      <td className="p-3 font-medium">{u.name}</td>
+                      <td className="p-3">{u.email}</td>
+                      <td className="p-3">
+                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold">
+                          {u.role || "N/A"}
                         </span>
-                      ) : (
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            Number(u.status) === 1
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}
-                        >
-                          {Number(u.status) === 1
-                            ? "ACTIVE"
-                            : "ARCHIVED / BANNED"}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-3 flex items-center space-x-2">
-                      {!isSuper && (
-                        <>
-                          <select
-                            value={u.status ?? 1}
-                            onChange={(e) =>
-                              handleStatusChange(u.id, Number(e.target.value))
-                            }
-                            className="px-2 py-1 border rounded text-xs bg-gray-50 font-medium cursor-pointer"
+                      </td>
+                      <td className="p-3">
+                        {isSuper ? (
+                          <span className="text-gray-400 font-semibold text-xs">
+                            -
+                          </span>
+                        ) : (
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                              Number(u.status) === 1
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
                           >
-                            <option value={1}>Active</option>
-                            <option value={0}>Archive / Banned</option>
-                          </select>
+                            {Number(u.status) === 1 ? "ACTIVE" : "BANNED"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 flex items-center space-x-2">
+                        {!isSuper && (
+                          <>
+                            <select
+                              value={u.status ?? 1}
+                              onChange={(e) =>
+                                handleStatusChange(u.id, Number(e.target.value))
+                              }
+                              className="px-2 py-1 border rounded text-xs bg-gray-50 font-medium cursor-pointer"
+                            >
+                              <option value={1}>Active</option>
+                              <option value={0}>Banned</option>
+                            </select>
 
-                          <button
-                            onClick={() =>
-                              handleDeleteUser(u.id, u.role, u.email)
-                            }
-                            className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold transition cursor-pointer"
-                          >
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                            <button
+                              onClick={() =>
+                                handleDeleteUser(u.id, u.role, u.email)
+                              }
+                              className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold transition cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

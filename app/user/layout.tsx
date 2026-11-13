@@ -130,9 +130,10 @@ export default function PublicLayout({
                   <div className="absolute top-full left-0 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-2 mt-1 space-y-1 z-50">
                     {categories.length > 0 ? (
                       categories.map((cat) => (
+                        // 👇 ဒီနေရာမှာ cat.id အစား cat.slug ကို ပြောင်းထားပါတယ် 👇
                         <Link
                           key={cat.id}
-                          href={`/user/products?categoryId=${cat.id}`}
+                          href={`/user/products/category/${cat.slug}`}
                           className="block px-4 py-2.5 text-sm hover:bg-teal-500/20 hover:text-teal-300 transition truncate"
                         >
                           📂 {cat.name}

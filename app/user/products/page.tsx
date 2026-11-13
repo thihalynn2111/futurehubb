@@ -47,7 +47,7 @@ function ProductSection({ product, cards }: { product: any; cards: any[] }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/30" />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-20 space-y-5">
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-10 md:py-14 space-y-5">
           <span className="inline-block px-3 py-1 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-mono rounded-full">
             {product.category?.name || "Category"}
           </span>
@@ -61,7 +61,7 @@ function ProductSection({ product, cards }: { product: any; cards: any[] }) {
       </div>
 
       {/* Features (phone center layout) */}
-      <div className="max-w-6xl mx-auto px-6 py-14 space-y-10">
+      <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
         {cards.length > 0 ? (
           <>
             <div className="text-center space-y-2">
@@ -141,13 +141,8 @@ function ProductsContent() {
     ? products.filter((p) => p.categoryId?.toString() === selectedCategoryId)
     : products;
 
-  const currentCategory = categories.find(
-    (c) => c.id.toString() === selectedCategoryId,
-  );
-
   const filteredIds = filteredProducts.map((p) => p.id).join(",");
 
-  // Category ရွေးထားရင် ထုတ်ကုန်တစ်ခုချင်းရဲ့ card တွေကို ယူမည်
   useEffect(() => {
     if (loading || !selectedCategoryId || filteredProducts.length === 0) {
       return;
@@ -193,64 +188,19 @@ function ProductsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      {/* ================= HEADER ================= */}
-      <section className="border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-6 py-12 md:py-16 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div className="space-y-3 max-w-2xl">
-              <p className="text-teal-400 text-xs font-mono uppercase tracking-widest">
-                Our Products
-              </p>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                {currentCategory ? currentCategory.name : "All Products"}
-              </h1>
-            </div>
-            <span className="text-xs font-mono bg-slate-900 border border-slate-800 text-teal-400 px-3.5 py-1.5 rounded-xl w-fit">
-              {filteredProducts.length} Items Found
-            </span>
-          </div>
-
-          {/* Category chips */}
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/user/products"
-              className={`px-4 py-2 rounded-full border text-xs font-semibold transition ${
-                !selectedCategoryId
-                  ? "bg-teal-500 border-teal-500 text-slate-950"
-                  : "bg-slate-900 border-slate-800 text-slate-300 hover:border-teal-500/50 hover:text-teal-300"
-              }`}
-            >
-              All
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/user/products?categoryId=${cat.id}`}
-                className={`px-4 py-2 rounded-full border text-xs font-semibold transition ${
-                  selectedCategoryId === cat.id.toString()
-                    ? "bg-teal-500 border-teal-500 text-slate-950"
-                    : "bg-slate-900 border-slate-800 text-slate-300 hover:border-teal-500/50 hover:text-teal-300"
-                }`}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
+    // Header အပိုင်း အကုန်ဖျက်ထားတဲ့အတွက် Navbar အောက်ကနေ ချက်ချင်း Content စပါမယ်
+    <div className="bg-slate-950 text-white min-h-screen">
       {/* ================= CATEGORY SELECTED: FULL PRODUCT PAGES ================= */}
       {selectedCategoryId ? (
         <>
           {filteredProducts.length === 0 ? (
-            <div className="max-w-7xl mx-auto px-6 py-12">
-              <div className="text-center py-24 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-slate-500 italic text-sm">
+            <div className="max-w-7xl mx-auto px-6 py-20">
+              <div className="text-center py-16 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-slate-500 italic text-sm">
                 No products found in this category.
               </div>
             </div>
           ) : cardsLoading ? (
-            <div className="py-24 text-center text-teal-400 font-medium">
+            <div className="py-20 text-center text-teal-400 font-medium">
               Loading...
             </div>
           ) : (
@@ -264,7 +214,7 @@ function ProductsContent() {
               ))}
 
               <section className="max-w-6xl mx-auto px-6 py-16">
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 text-center space-y-5">
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-12 text-center space-y-4">
                   <h2 className="text-2xl md:text-3xl font-extrabold text-white">
                     Let's talk about your new project
                   </h2>
@@ -284,7 +234,7 @@ function ProductsContent() {
         </>
       ) : (
         /* ================= ALL: PRODUCT LIST ================= */
-        <section className="max-w-7xl mx-auto px-6 py-12">
+        <section className="max-w-7xl mx-auto px-6 py-16">
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredProducts.map((item) => (
@@ -328,7 +278,7 @@ function ProductsContent() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-24 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-slate-500 italic text-sm">
+            <div className="text-center py-20 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-slate-500 italic text-sm">
               No products found.
             </div>
           )}

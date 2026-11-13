@@ -32,7 +32,8 @@ export default function AdminProductsPage() {
   const [postCategoryId, setPostCategoryId] = useState("");
   const [postImage, setPostImage] = useState("");
   const [postDesc, setPostDesc] = useState("");
-  // 👇 ProductPost အသစ်ထည့်ရန်
+
+  // ProductPost အသစ်ထည့်ရန်
   const [postType, setPostType] = useState("standard");
   const [postContent, setPostContent] = useState("");
 
@@ -40,7 +41,8 @@ export default function AdminProductsPage() {
   const [cardTitle, setCardTitle] = useState("");
   const [cardDesc, setCardDesc] = useState("");
   const [cardImage, setCardImage] = useState("");
-  // 👇 CardItem အသစ်ထည့်ရန်
+
+  // CardItem အသစ်ထည့်ရန်
   const [cardNumber, setCardNumber] = useState("");
   const [cardIcon, setCardIcon] = useState("");
   const [cardSortOrder, setCardSortOrder] = useState("0");
@@ -56,7 +58,8 @@ export default function AdminProductsPage() {
   const [editPostCatId, setEditPostCatId] = useState("");
   const [editPostImage, setEditPostImage] = useState("");
   const [editPostDesc, setEditPostDesc] = useState("");
-  // 👇 Edit ProductPost အသစ်ထည့်ရန်
+
+  // Edit ProductPost အသစ်ထည့်ရန်
   const [editPostType, setEditPostType] = useState("");
   const [editPostContent, setEditPostContent] = useState("");
 
@@ -269,8 +272,8 @@ export default function AdminProductsPage() {
         categoryId: Number(postCategoryId),
         imageUrl: postImage,
         description: postDesc,
-        type: postType, // 👈 အသစ်ထည့်ထားသည်
-        content: postContent, // 👈 အသစ်ထည့်ထားသည်
+        type: postType,
+        content: postContent,
       }),
     });
 
@@ -302,8 +305,8 @@ export default function AdminProductsPage() {
         categoryId: Number(editPostCatId),
         imageUrl: editPostImage,
         description: editPostDesc,
-        type: editPostType, // 👈 အသစ်ထည့်ထားသည်
-        content: editPostContent, // 👈 အသစ်ထည့်ထားသည်
+        type: editPostType,
+        content: editPostContent,
       }),
     });
 
@@ -363,9 +366,9 @@ export default function AdminProductsPage() {
         title: cardTitle,
         description: cardDesc,
         imageUrl: cardImage,
-        number: cardNumber, // 👈 အသစ်ထည့်ထားသည်
-        icon: cardIcon, // 👈 အသစ်ထည့်ထားသည်
-        sortOrder: Number(cardSortOrder), // 👈 အသစ်ထည့်ထားသည်
+        number: cardNumber,
+        icon: cardIcon,
+        sortOrder: Number(cardSortOrder),
       }),
     });
 
@@ -531,13 +534,27 @@ export default function AdminProductsPage() {
                   <label className="text-[11px] font-semibold text-emerald-800 uppercase">
                     Product Type
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={editPostType}
                     onChange={(e) => setEditPostType(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none"
-                    placeholder="e.g. standard, custom-hr"
-                  />
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none cursor-pointer"
+                  >
+                    <option value="custom-hr">
+                      HRMS Layout (Phone Mockup)
+                    </option>
+                    <option value="grid-gallery">
+                      Grid Gallery (E-commerce ပုံစံ)
+                    </option>
+                    <option value="z-pattern">
+                      Z-Pattern (SaaS ဘယ်ညာပုံစံ)
+                    </option>
+                    <option value="split-focus">
+                      Split Focus (ဘယ်ညာခွဲပြပုံစံ)
+                    </option>
+                    <option value="glass-hero">
+                      Glass Hero (ပုံပေါ်မှာ စာသားအကွက်)
+                    </option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-[11px] font-semibold text-emerald-800 uppercase">
@@ -848,18 +865,31 @@ export default function AdminProductsPage() {
                             className={inputClass}
                           />
                         </div>
-                        {/* 👇 အသစ်ထည့်ထားသော Product Type နှင့် Content */}
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-500 uppercase">
                             Product Type
                           </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. standard, custom-hr"
+                          <select
                             value={postType}
                             onChange={(e) => setPostType(e.target.value)}
-                            className={inputClass}
-                          />
+                            className={`${inputClass} cursor-pointer`}
+                          >
+                            <option value="custom-hr">
+                              HRMS Layout (Phone Mockup)
+                            </option>
+                            <option value="grid-gallery">
+                              Grid Gallery (E-commerce ပုံစံ)
+                            </option>
+                            <option value="z-pattern">
+                              Z-Pattern (SaaS ဘယ်ညာပုံစံ)
+                            </option>
+                            <option value="split-focus">
+                              Split Focus (ဘယ်ညာခွဲပြပုံစံ)
+                            </option>
+                            <option value="glass-hero">
+                              Glass Hero (ပုံပေါ်မှာ စာသားအကွက်)
+                            </option>
+                          </select>
                         </div>
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-500 uppercase">
@@ -928,7 +958,6 @@ export default function AdminProductsPage() {
                             <p className="text-xs text-slate-500 line-clamp-2">
                               {post.description || "No description."}
                             </p>
-                            {/* 👇 List မှာ Type ပြရန် */}
                             {post.type && (
                               <p className="text-[10px] bg-emerald-50 text-emerald-600 inline-block px-2 py-0.5 rounded">
                                 Type: {post.type}
@@ -946,7 +975,7 @@ export default function AdminProductsPage() {
                                   setEditPostCatId(post.categoryId);
                                   setEditPostImage(post.imageUrl || "");
                                   setEditPostDesc(post.description || "");
-                                  setEditPostType(post.type || "");
+                                  setEditPostType(post.type || "standard");
                                   setEditPostContent(post.content || "");
                                   window.scrollTo({
                                     top: 0,
@@ -1078,7 +1107,6 @@ export default function AdminProductsPage() {
                             className={inputClass}
                           />
                         </div>
-                        {/* 👇 အသစ်ထည့်ထားသော Card Number, Icon, SortOrder */}
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-500 uppercase">
                             Number
@@ -1163,7 +1191,6 @@ export default function AdminProductsPage() {
                         )}
                         <div className="p-5 space-y-2">
                           <div className="flex items-center gap-2">
-                            {/* 👇 List မှာ Number နဲ့ Icon ပြရန် */}
                             {card.number && (
                               <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md">
                                 {card.number}

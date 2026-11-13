@@ -21,10 +21,10 @@ export async function GET(req: Request) {
     await jwtVerify(token, JWT_SECRET);
 
     const { searchParams } = new URL(req.url);
-    const isTrash = searchParams.get("trash") === "true"; // 🗑️ Trash bin query စစ်ဆေးခြင်း
+    const isTrash = searchParams.get("trash") === "true";
 
     const users = await prisma.user.findMany({
-      where: isTrash ? { deletedAt: { not: null } } : { deletedAt: null }, // 👈 Trash လိုချင်လျှင် deletedAt ရှိသည်များကို ယူမည်
+      where: isTrash ? { deletedAt: { not: null } } : { deletedAt: null },
       include: {
         userRoles: {
           include: {
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
         email: u.email,
         role: roleName,
         status: u.status !== undefined ? u.status : 1,
-        deletedAt: u.deletedAt, // Trash page တွင် ပြရန် ပါဝင်သည်
+        deletedAt: u.deletedAt,
       };
     });
 
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH: Status ပြောင်းရန်
+// PATCH: Status ပြောင်းရန် (Active <-> Banned)
 export async function PATCH(req: Request) {
   try {
     const cookieStore = await cookies();
@@ -158,7 +158,7 @@ export async function PATCH(req: Request) {
   }
 }
 
-// DELETE: Soft Delete (သို့) Permanent Delete (Trash Bin မှ အပြီးတိုင်ဖျက်ရန် ?permanent=true သုံးနိုင်သည်)
+// DELETE: Soft Delete (သို့) Permanent Delete
 export async function DELETE(req: Request) {
   try {
     const cookieStore = await cookies();
@@ -169,7 +169,7 @@ export async function DELETE(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const rawId = searchParams.get("id");
-    const permanent = searchParams.get("permanent") === "true"; // ⚠️ Permanent delete flag
+    const permanent = searchParams.get("permanent") === "true";
 
     if (!rawId)
       return NextResponse.json(
@@ -198,19 +198,17 @@ export async function DELETE(req: Request) {
     }
 
     if (permanent) {
-      // ⚠️ Database မှ အပြီးတိုင် ဖျက်မည် (Permanent Delete)
       await prisma.user.delete({ where: { id: userId } });
       return NextResponse.json(
         { message: "User permanently deleted successfully" },
         { status: 200 },
       );
     } else {
-      // 🗑️ Soft Delete (Trash သို့ ပို့မည်)
       await prisma.user.update({
         where: { id: userId },
         data: {
           deletedAt: new Date(),
-          status: 0, // Archived / Banned
+          status: 0,
         } as any,
       });
 

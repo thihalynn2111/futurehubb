@@ -254,7 +254,7 @@ export default function ProductTrashPage() {
               <thead>
                 <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">Title</th>
-                  <th className="py-3 px-4">Type</th> {/* 👇 Type ထည့်ထားသည် */}
+                  <th className="py-3 px-4">Type</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Deleted At</th>
                   <th className="py-3 px-4 text-right">Actions</th>
@@ -332,7 +332,6 @@ export default function ProductTrashPage() {
                 <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">Card Title</th>
                   <th className="py-3 px-4">Number / Icon</th>{" "}
-                  {/* 👇 Number/Icon ထည့်ထားသည် */}
                   <th className="py-3 px-4">Parent Product</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Deleted At</th>

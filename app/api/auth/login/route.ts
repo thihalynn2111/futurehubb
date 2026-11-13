@@ -25,7 +25,6 @@ export async function POST(request: Request) {
           include: {
             role: {
               include: {
-                // ⚠️ အကယ်၍ Prisma schema တွင် 'permissions' အစား 'rolePermissions' ဖြစ်နေပါက ပြင်ရန်လိုပါသည်
                 permissions: {
                   include: {
                     permission: true,
@@ -45,6 +44,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // 🚀 BANNED / DELETED စစ်ဆေးခြင်း
+    if (user.status !== 1 || user.deletedAt !== null) {
+      return NextResponse.json(
+        { message: "သင့်အကောင့်ကို ပိတ်ထားပါသည်။ Admin ထံ ဆက်သွယ်ပါ။" },
+        { status: 403 },
+      );
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -55,7 +62,6 @@ export async function POST(request: Request) {
 
     const roles = user.userRoles.map((ur) => ur.role.name);
 
-    // 👇 ဤနေရာတွင် permissions များကို ဆွဲထုတ်သည်
     const permissions = Array.from(
       new Set(
         user.userRoles.flatMap(
@@ -63,10 +69,6 @@ export async function POST(request: Request) {
         ),
       ),
     );
-
-    // 🔥 အရေးကြီးသည်: Terminal တွင် HR ၏ permissions များ ပါလာမလာ စစ်ဆေးရန်
-    console.log("LOGIN DEBUG - User Roles:", roles);
-    console.log("LOGIN DEBUG - Loaded Permissions:", permissions);
 
     const token = await new SignJWT({
       userId: user.id,
