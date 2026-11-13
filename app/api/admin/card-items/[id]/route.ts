@@ -1,7 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// DELETE: Soft Delete or Permanent Delete Card Item
+// 1️⃣ PUT: Update Card Item (Edit Title, Description, Image)
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+    const { title, description, imageUrl, productId } = body;
+
+    const updatedCard = await prisma.cardItem.update({
+      where: { id: Number(id) },
+      data: {
+        ...(title ? { title } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(imageUrl !== undefined ? { imageUrl } : {}),
+        ...(productId ? { productId: Number(productId) } : {}),
+      },
+    });
+
+    return NextResponse.json(updatedCard, { status: 200 });
+  } catch (error: any) {
+    console.error("Error updating card item:", error);
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
+
+// 2️⃣ DELETE: Soft Delete (Trash) or Permanent Delete Card Item
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -28,24 +55,6 @@ export async function DELETE(
     }
   } catch (error: any) {
     console.error("Error deleting card item:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
-  }
-}
-
-// PUT: Restore Card Item from Trash
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await params;
-    const restored = await prisma.cardItem.update({
-      where: { id: Number(id) },
-      data: { deletedAt: null },
-    });
-    return NextResponse.json(restored, { status: 200 });
-  } catch (error: any) {
-    console.error("Error restoring card item:", error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

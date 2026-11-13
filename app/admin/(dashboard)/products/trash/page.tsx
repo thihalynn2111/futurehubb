@@ -89,6 +89,7 @@ export default function ProductTrashPage() {
       const res = await fetch(`/api/admin/categories/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restore: true }), // 🚀 ဤနေရာတွင် restore: true ထည့်သွင်းပေးထားပါသည်
       });
       if (res.ok) {
         alert("Category restored successfully! ✅");

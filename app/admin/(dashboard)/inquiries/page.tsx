@@ -57,7 +57,7 @@ export default function AdminInquiriesPage() {
     return isSuperAdmin || userPermissions.includes(permissionKey);
   };
 
-  // Inquiries CRUD Permission mapping (Creation is excluded for admins here)
+  // Inquiries CRUD Permission mapping
   const canReadInquiries = hasPermission("inquiries:read");
   const canUpdateInquiries = hasPermission("inquiries:update");
   const canDeleteInquiries = hasPermission("inquiries:delete");
@@ -87,7 +87,7 @@ export default function AdminInquiriesPage() {
       if (res.ok) {
         alert("Reply sent successfully and marked as resolved! ✅");
         setReplyMessage("");
-        setSelectedInquiry(null);
+        setSelectedInquiry(null); // ✅ ပို့ပြီးတာနဲ့ Detail/Form မျက်နှာပြင်မှ ထွက်ပြီး List ဆီ ပြန်သွားမည် (Draft ခလုတ်ပါ ဆက်မပေါ်တော့ပါ)
         fetchData();
       } else {
         const errorData = await res.json();
@@ -113,7 +113,8 @@ export default function AdminInquiriesPage() {
 
       if (res.ok) {
         alert("Saved as Draft successfully! 📝");
-        setSelectedInquiry(null);
+        setReplyMessage("");
+        setSelectedInquiry(null); // ✅ Draft လုပ်လိုက်တာနဲ့ Form ကြီး ပျောက်သွားစေရန် ဤနေရာတွင် reset လုပ်ပေးသည်
         fetchData();
       } else {
         alert("Failed to save draft.");
@@ -262,7 +263,8 @@ export default function AdminInquiriesPage() {
               {/* ACTION BUTTONS WITH DRAFT BUTTON */}
               <div className="flex justify-between items-center pt-2">
                 <div className="flex space-x-3">
-                  {canUpdateInquiries && (
+                  {/* 🚀 အကယ်၍ Inquiry က Draft ဖြစ်ပြီးသား (status === 2) ဆိုလျှင် Draft ခလုတ် ထပ်မပြတော့ပါ */}
+                  {canUpdateInquiries && selectedInquiry.status !== 2 && (
                     <button
                       type="button"
                       onClick={handleSaveAsDraft}

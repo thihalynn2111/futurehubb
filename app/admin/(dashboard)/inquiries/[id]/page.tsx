@@ -15,7 +15,10 @@ export default function AdminInquiriesPage({
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  // 🔑 Roles နဲ့ Permissions အတွက် State များကို ဤနေရာတွင် ထည့်ပေးရန် လိုအပ်ပါသည်
+  // 🚀 Reply သို့မဟုတ် Draft ပို့ပြီးပါက Form ကို ဖျောက်ရန် State တစ်ခု ထည့်သွင်းထားသည်
+  const [isSent, setIsSent] = useState(false);
+
+  // 🔑 Roles နဲ့ Permissions အတွက် State များ
   const [permissions, setPermissions] = useState<string[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
 
@@ -26,6 +29,10 @@ export default function AdminInquiriesPage({
       if (res.ok) {
         const data = await res.json();
         setInquiry(data);
+        // အကယ်၍ Database ထဲမှာ Reply ပြီးသား status ရှိနေရင် Form ကို အလိုအလျောက် ပိတ်ထားမည်
+        if (data.status === "REPLIED" || data.isReplied) {
+          setIsSent(true);
+        }
       }
     } catch (err) {
       console.error("Error fetching inquiry detail:", err);
@@ -61,6 +68,7 @@ export default function AdminInquiriesPage({
   const handleSaveAsDraft = async () => {
     try {
       alert("Draft saved successfully! 💾");
+      setIsSent(true); // ✅ Draft လုပ်လိုက်တာနဲ့ Form နဲ့ ခလုတ်တွေ ပျောက်သွားစေရန်
     } catch (err) {
       console.error("Error saving draft:", err);
     }
@@ -78,7 +86,7 @@ export default function AdminInquiriesPage({
       });
       if (res.ok) {
         alert("Reply sent successfully! 🚀");
-        router.push("/admin/inquiries");
+        setIsSent(true); // ✅ ပို့ပြီးတာနဲ့ Form ကြီးကို ဖျောက်ပြီး Success State သို့ ပြောင်းမည်
       } else {
         alert("Failed to send reply.");
       }
@@ -151,51 +159,66 @@ export default function AdminInquiriesPage({
             </div>
           </div>
 
-          <form onSubmit={handleSendReply} className="space-y-4 pt-4 border-t">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-500 uppercase font-bold">
-                REPLY / DRAFT MESSAGE:
-              </label>
-              <textarea
-                rows={4}
-                value={replyMessage}
-                onChange={(e) => setReplyMessage(e.target.value)}
-                placeholder="Type your reply message here..."
-                className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          {/* 🚀 Conditional Rendering: ပို့ပြီးသွားပါက Form အစား Success Message ပြမည်၊ မပို့ရသေးပါက Form ဆက်ပြမည် */}
+          {isSent || inquiry.status === "REPLIED" ? (
+            <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-medium flex items-center space-x-2 pt-4 border-t">
+              <span>
+                ✅ ဤ Inquiry သို့ အောင်မြင်စွာ Reply ပို့ပြီး ဖြစ်ပါသည်။ (Draft
+                နှင့် Send လုပ်စရာ မရှိတော့ပါ)[cite: 2]
+              </span>
             </div>
-
-            {/* ACTION BUTTONS WITH DRAFT BUTTON */}
-            <div className="flex justify-between items-center pt-2">
-              <div className="flex space-x-3">
-                {/* 🔑 Roles နဲ့ Permissions ကို မှန်ကန်စွာ စစ်ဆေးခြင်း */}
-                {(roles.some(
-                  (r) =>
-                    typeof r === "string" &&
-                    r.toUpperCase().includes("SUPER_ADMIN"),
-                ) ||
-                  permissions.includes("inquiries:update")) && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleSaveAsDraft}
-                      className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer"
-                    >
-                      💾 Save as Draft
-                    </button>
-
-                    <button
-                      type="submit"
-                      disabled={sending}
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer disabled:opacity-50"
-                    >
-                      {sending ? "Sending..." : "🚀 Send Reply & Mark Resolved"}
-                    </button>
-                  </>
-                )}
+          ) : (
+            <form
+              onSubmit={handleSendReply}
+              className="space-y-4 pt-4 border-t"
+            >
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold">
+                  REPLY / DRAFT MESSAGE:
+                </label>
+                <textarea
+                  rows={4}
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                  placeholder="Type your reply message here..."
+                  className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
-            </div>
-          </form>
+
+              {/* ACTION BUTTONS WITH DRAFT BUTTON */}
+              <div className="flex justify-between items-center pt-2">
+                <div className="flex space-x-3">
+                  {/* 🔑 Roles နဲ့ Permissions ကို မှန်ကန်စွာ စစ်ဆေးခြင်း */}
+                  {(roles.some(
+                    (r) =>
+                      typeof r === "string" &&
+                      r.toUpperCase().includes("SUPER_ADMIN"),
+                  ) ||
+                    permissions.includes("inquiries:update")) && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleSaveAsDraft}
+                        className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer"
+                      >
+                        💾 Save as Draft
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={sending}
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition cursor-pointer disabled:opacity-50"
+                      >
+                        {sending
+                          ? "Sending..."
+                          : "🚀 Send Reply & Mark Resolved"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>
