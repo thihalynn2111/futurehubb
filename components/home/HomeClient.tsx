@@ -33,7 +33,27 @@ type ProjectData = {
   description: string | null;
   clientLogo: string | null;
 };
+type ProductCard = {
+  id: number;
+  icon: string | null;
+  title: string | null;
+  description: string | null;
+  imageUrl: string | null;
+};
 
+type LatestProduct = {
+  id: number;
+  title: string;
+  slug: string;
+  description: string | null;
+  content: string | null;
+  imageUrl: string | null;
+  category: {
+    id: number;
+    name: string;
+  };
+  cards: ProductCard[];
+};
 function resolveImage(url: string | null, fallback: string) {
   if (!url) return fallback;
   if (url.startsWith("http") || url.startsWith("/")) return encodeURI(url);
@@ -43,9 +63,11 @@ function resolveImage(url: string | null, fallback: string) {
 export default function HomeClient({
   rows,
   projects,
+  latestProduct,
 }: {
   rows: SectionData[];
   projects: ProjectData[];
+  latestProduct: LatestProduct | null;
 }) {
   const container = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -298,7 +320,37 @@ export default function HomeClient({
     },
     { scope: container, dependencies: [rows, projects] },
   );
+  // ---------- Latest Product Cards ----------
+  const productCards = latestProduct?.cards ?? [];
 
+  const half = Math.ceil(productCards.length / 2);
+  const leftCards = productCards.slice(0, half);
+  const rightCards = productCards.slice(half);
+
+  const renderFeatureCard = (card: ProductCard) => (
+    <div
+      key={card.id}
+      className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-3 hover:border-teal-500/40 transition"
+    >
+      {card.imageUrl && (
+        <img
+          src={resolveImage(card.imageUrl, "")}
+          alt={card.title ?? ""}
+          className="w-12 h-12 object-cover rounded-lg border border-slate-800"
+        />
+      )}
+
+      {card.title && (
+        <h3 className="text-lg font-bold text-teal-400 underline underline-offset-4 decoration-teal-500/40">
+          {card.title}
+        </h3>
+      )}
+
+      <p className="text-slate-400 text-sm leading-relaxed">
+        {card.description || "No additional description."}
+      </p>
+    </div>
+  );
   return (
     <main ref={container} className="overflow-x-hidden bg-[#04323c] text-white">
       {/* ===================== HERO ===================== */}
@@ -573,6 +625,59 @@ export default function HomeClient({
           </div>
         </section>
       )}
+
+      {/* ================= LATEST PRODUCT FEATURES ================= */}
+      {latestProduct && latestProduct.cards.length > 0 && (
+        <section
+          id="latest-product-features"
+          className="bg-[#04323c] text-white mx-auto max-w-6xl space-y-12 scroll-mt-24 px-6 py-16"
+        >
+          <div className="mx-auto max-w-3xl space-y-3 text-center">
+            <p className="text-xs font-mono uppercase tracking-widest text-teal-400">
+              What's inside
+            </p>
+
+            <h2 className="text-3xl font-extrabold text-white md:text-4xl">
+              Features of {latestProduct.title}
+            </h2>
+
+            <p className="text-sm leading-relaxed text-slate-400 md:text-base">
+              {latestProduct.description ||
+                "No description provided for this product."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-3">
+            {/* Left Cards */}
+            <div className="order-2 space-y-6 lg:order-1">
+              {leftCards.map(renderFeatureCard)}
+            </div>
+
+            {/* Center Product Image */}
+            <div className="order-1 flex justify-center lg:order-2">
+              <div className="relative aspect-[9/19] w-60 overflow-hidden rounded-[2.5rem] border-[10px] border-slate-700 bg-slate-900 shadow-2xl md:w-64">
+                {latestProduct.imageUrl ? (
+                  <img
+                    src={resolveImage(latestProduct.imageUrl, "")}
+                    alt={latestProduct.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center px-4 text-center font-bold text-teal-400">
+                    {latestProduct.title}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Cards */}
+            <div className="order-3 space-y-6">
+              {rightCards.map(renderFeatureCard)}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ===================== TECHNOLOGY ===================== */}
       {tech && (
         <section

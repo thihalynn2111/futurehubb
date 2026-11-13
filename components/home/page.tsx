@@ -4,7 +4,7 @@ import { connection } from "next/server";
 
 export default async function HomePage() {
   await connection();
-  const [rows, projects] = await Promise.all([
+  const [rows, projects, latestProduct] = await Promise.all([
     prisma.pageSectionEditable.findMany({
       where: { page: "home", isActive: true, deletedAt: null },
       include: {
@@ -18,6 +18,27 @@ export default async function HomePage() {
     prisma.projects.findMany({
       where: { deletedAt: null },
       orderBy: { sortOrder: "asc" },
+    }),
+    prisma.productPost.findFirst({
+      where: {
+        deletedAt: null,
+        status: 1,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        category: true,
+        cards: {
+          where: {
+            isActive: true,
+            deletedAt: null,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+      },
     }),
   ]);
 
@@ -45,6 +66,32 @@ export default async function HomePage() {
     description: p.description,
     clientLogo: p.clientLogo,
   }));
-
-  return <HomeClient rows={data} projects={projectData} />;
+  const latestProductData = latestProduct
+    ? {
+        id: latestProduct.id,
+        title: latestProduct.title,
+        slug: latestProduct.slug,
+        description: latestProduct.description,
+        content: latestProduct.content,
+        imageUrl: latestProduct.imageUrl,
+        category: {
+          id: latestProduct.category.id,
+          name: latestProduct.category.name,
+        },
+        cards: latestProduct.cards.map((c) => ({
+          id: c.id,
+          icon: c.icon,
+          title: c.title,
+          description: c.description,
+          imageUrl: c.imageUrl,
+        })),
+      }
+    : null;
+  return (
+    <HomeClient
+      rows={data}
+      projects={projectData}
+      latestProduct={latestProductData}
+    />
+  );
 }
