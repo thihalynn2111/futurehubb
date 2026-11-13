@@ -13,6 +13,8 @@ type gallery = {
 
 export default function TrashGallery() {
   const router = useRouter();
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [gallery, setGallery] = useState<gallery[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +22,14 @@ export default function TrashGallery() {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserRoles(meData.user.roles || []);
+            setUserPermissions(meData.user.permissions || []);
+          }
+        }
         const response = await fetch("/api/admin/gallery");
         const result = await response.json();
         if (result.success) {
@@ -36,6 +46,22 @@ export default function TrashGallery() {
     };
     fetchData();
   }, []);
+  const isSuperAdmin = userRoles.some((role) => {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    return (
+      r.includes("superadmin") || r === "admin" || r === "superadministrator"
+    );
+  });
+
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // 🌟 Unified HOme Permissions Matrix
+  const canRead = hasPermission("gallery:read");
+  const canUpdate = hasPermission("gallery:update");
+  const canDelete = hasPermission("gallery:delete");
+  const canCreate = hasPermission("gallery:create");
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
@@ -177,20 +203,24 @@ export default function TrashGallery() {
                 </div>
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => handleRestore(gallery.id)}
-                    className="flex-1 bg-red-50 hover:bg-green-100 text-green-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                  >
-                    <RotateCcw size={16} />
-                    <span>Restore</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(gallery.id)}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                  >
-                    <Trash2 size={16} />
-                    <span>Delete</span>
-                  </button>
+                  {canUpdate && (
+                    <button
+                      onClick={() => handleRestore(gallery.id)}
+                      className="flex-1 bg-red-50 hover:bg-green-100 text-green-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                    >
+                      <RotateCcw size={16} />
+                      <span>Restore</span>
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => handleDelete(gallery.id)}
+                      className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                    >
+                      <Trash2 size={16} />
+                      <span>Delete</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

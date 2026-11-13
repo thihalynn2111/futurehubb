@@ -23,10 +23,10 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
         { name: "Gallery", href: "/admin/gallery", icon: "📷" },
         {
           name: "Partner & Project",
-          href: "/admin/projectSection",
+          href: "/admin/projects",
           icon: "🤝",
         },
-        { name: "Team member", href: "/admin/viewMember", icon: "👥" },
+        { name: "Team member", href: "/admin/teamMember", icon: "👥" },
       ],
     },
     {

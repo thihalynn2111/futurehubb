@@ -6,6 +6,8 @@ import Swal from "sweetalert2";
 import Link from "next/link";
 export default function TrashMember() {
   const router = useRouter();
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,6 +15,15 @@ export default function TrashMember() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.user) {
+            setUserRoles(meData.user.roles || []);
+            setUserPermissions(meData.user.permissions || []);
+          }
+        }
+
         const response = await fetch("/api/admin/team-members/trash");
         const result = await response.json();
         if (result.success) {
@@ -30,7 +41,22 @@ export default function TrashMember() {
 
     fetchData();
   }, []);
+  const isSuperAdmin = userRoles.some((role) => {
+    const r = role.toLowerCase().replace(/[\s_-]/g, "");
+    return (
+      r.includes("superadmin") || r === "admin" || r === "superadministrator"
+    );
+  });
 
+  const hasPermission = (permissionKey: string) => {
+    return isSuperAdmin || userPermissions.includes(permissionKey);
+  };
+
+  // 🌟 Unified HOme Permissions Matrix
+  const canRead = hasPermission("teammember:read");
+  const canUpdate = hasPermission("teammember:update");
+  const canDelete = hasPermission("teammember:delete");
+  const canCreate = hasPermission("teammember:create");
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
@@ -141,7 +167,7 @@ export default function TrashMember() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push(`/admin/viewMember`)}
+            onClick={() => router.push(`/admin/teamMember`)}
             className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
           >
             <span>View Team member list</span>
@@ -196,20 +222,24 @@ export default function TrashMember() {
 
               {/* Action Buttons */}
               <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
-                <button
-                  onClick={() => handleRestore(member.id)}
-                  className="flex-1 bg-red-50 hover:bg-green-100 text-green-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                >
-                  <RotateCcw size={16} />
-                  <span>Restore</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(member.id)}
-                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
-                >
-                  <Trash2 size={16} />
-                  <span>Delete</span>
-                </button>
+                {canUpdate && (
+                  <button
+                    onClick={() => handleRestore(member.id)}
+                    className="flex-1 bg-red-50 hover:bg-green-100 text-green-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                  >
+                    <RotateCcw size={16} />
+                    <span>Restore</span>
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    onClick={() => handleDelete(member.id)}
+                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
+                  >
+                    <Trash2 size={16} />
+                    <span>Delete</span>
+                  </button>
+                )}
               </div>
             </div>
           ))}

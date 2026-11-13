@@ -52,10 +52,10 @@ export default function Member() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("viewmember:read");
-  const canUpdate = hasPermission("viewmember:update");
-  const canDelete = hasPermission("viewmember:delete");
-  const canCreate = hasPermission("viewmember:create");
+  const canRead = hasPermission("teammember:read");
+  const canUpdate = hasPermission("teammember:update");
+  const canDelete = hasPermission("teammember:delete");
+  const canCreate = hasPermission("teammember:create");
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
@@ -124,17 +124,15 @@ export default function Member() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {canUpdate && (
-            <Link
-              href="/admin/teamMember/trash"
-              className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
-            >
-              🗑️ View Trash Bin
-            </Link>
-          )}
+          <Link
+            href="/admin/teamMember/trash"
+            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center cursor-pointer"
+          >
+            🗑️ View Trash Bin
+          </Link>
           {canCreate && (
             <button
-              onClick={() => router.push(`/admin/teamMember`)}
+              onClick={() => router.push(`/admin/teamMember/new`)}
               className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
             >
               <span>Add Team</span>

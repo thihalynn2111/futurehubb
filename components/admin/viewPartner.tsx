@@ -62,10 +62,10 @@ export default function ViewProjects() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("projectsection:read");
-  const canUpdate = hasPermission("projectsection:update");
-  const canDelete = hasPermission("projectsection:delete");
-  const canCreate = hasPermission("projectsection:create");
+  const canRead = hasPermission("project:read");
+  const canUpdate = hasPermission("project:update");
+  const canDelete = hasPermission("project:delete");
+  const canCreate = hasPermission("project:create");
   async function handleDelete(id: number) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
@@ -141,10 +141,10 @@ export default function ViewProjects() {
           )}
           {canCreate && (
             <button
-              onClick={() => router.push(`/admin/addProject`)}
+              onClick={() => router.push(`/admin/projects/new`)}
               className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
             >
-              <span>Add Team</span>
+              <span>Add Project</span>
             </button>
           )}
         </div>
@@ -200,7 +200,7 @@ export default function ViewProjects() {
                 {canUpdate && (
                   <button
                     onClick={() =>
-                      router.push(`/admin/partner/${project.id}/edit`)
+                      router.push(`/admin/projects/${project.id}/edit`)
                     }
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-xl border border-gray-200 transition flex items-center justify-center space-x-1.5 text-sm shadow-sm"
                   >
