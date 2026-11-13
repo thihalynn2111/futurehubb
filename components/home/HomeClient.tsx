@@ -441,14 +441,14 @@ export default function HomeClient({
           <h2 className="reveal mb-4 px-4 text-center text-2xl font-extrabold sm:text-3xl md:text-4xl">
             Trusted by global companies
           </h2>
-          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
+          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 " />
 
           <div className="mt-8 overflow-hidden md:mt-10">
             <div ref={trackRef} className="flex w-max">
               {[0, 1].map((groupIndex) => (
                 <div
                   key={groupIndex}
-                  className="image-group flex shrink-0 gap-3 pr-3 md:gap-4 md:pr-4"
+                  className="image-group flex shrink-0 gap-3 pr-3 md:gap-4 md:pr-4  "
                 >
                   {[0, 1, 2, 3].flatMap((repeat) =>
                     projects
@@ -458,7 +458,7 @@ export default function HomeClient({
                           key={`${groupIndex}-${repeat}-${p.id}`}
                           src={resolveImage(p.clientLogo, "")}
                           alt={p.title ?? "logo"}
-                          className="h-24 w-48 shrink-0 rounded-2xl bg-white/90 p-3 object-contain shadow-lg sm:h-32 sm:w-64 md:h-40 md:w-80 md:p-4 "
+                          className="h-24 w-48 shrink-0 rounded-2xl  border border-white/15 bg-white/10  text-center shadow-xl backdrop-blur-md p-3 object-contain  sm:h-32 sm:w-64 md:h-40 md:w-80 md:p-4 "
                         />
                       )),
                   )}
@@ -480,7 +480,7 @@ export default function HomeClient({
               {about.cards && about.cards[0] && (
                 <div
                   key={about.cards[0].id}
-                  className="tech-card about-card about-main-card will-change-transform group flex flex-col items-center justify-center rounded-3xl border border-white/15 bg-white/10 p-5 text-center shadow-xl backdrop-blur-md transition-colors duration-500 hover:border-cyan-300/50 sm:p-6 md:col-span-4"
+                  className="tech-card about-card about-main-card will-change-transform group flex flex-col items-center justify-center rounded-3xl border  bg-white/10 p-5 text-center shadow-xl backdrop-blur-md transition-colors duration-500  sm:p-6 md:col-span-4 border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]"
                 >
                   {about.cards[0].imageUrl && (
                     <div className="mb-4 w-full overflow-hidden rounded-2xl">
@@ -563,7 +563,7 @@ export default function HomeClient({
 
           <div className="relative mx-auto max-w-6xl space-y-10 md:space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2">
-              <div>
+              <div className="my-auto">
                 {contact.subtitle && (
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
                     {contact.subtitle}
