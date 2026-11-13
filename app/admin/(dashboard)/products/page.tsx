@@ -10,11 +10,25 @@ export default function AdminProductsPage() {
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Drill-down navigation (Category -> Product -> Cards)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null,
+  );
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [cards, setCards] = useState<any[]>([]);
+  const [cardsLoading, setCardsLoading] = useState(false);
+
+  // Which creating form is open
+  const [showCatForm, setShowCatForm] = useState(false);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
+
   // Form Creation States
   const [catName, setCatName] = useState("");
   const [catSlug, setCatSlug] = useState("");
 
   const [postTitle, setPostTitle] = useState("");
+  const [postSlug, setPostSlug] = useState("");
   const [postCategoryId, setPostCategoryId] = useState("");
   const [postImage, setPostImage] = useState("");
   const [postDesc, setPostDesc] = useState("");
@@ -67,6 +81,29 @@ export default function AdminProductsPage() {
     }
   };
 
+  // Product တစ်ခုရဲ့ Card တွေကို ယူခြင်း
+  const fetchCards = async (productId: number) => {
+    setCardsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/card-items?productId=${productId}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCards(
+          Array.isArray(data) ? data.filter((c: any) => !c.deletedAt) : [],
+        );
+      } else {
+        setCards([]);
+      }
+    } catch (err) {
+      console.error("Error fetching cards:", err);
+      setCards([]);
+    } finally {
+      setCardsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -96,6 +133,50 @@ export default function AdminProductsPage() {
 
   const canCreateCards = canCreateProducts;
 
+  // --- NAVIGATION ---
+  const goToCategories = () => {
+    setSelectedCategoryId(null);
+    setSelectedPostId(null);
+    setCards([]);
+    setShowPostForm(false);
+    setShowCardForm(false);
+  };
+
+  const goToProducts = () => {
+    setSelectedPostId(null);
+    setCards([]);
+    setShowCardForm(false);
+  };
+
+  const openCategory = (cat: any) => {
+    setSelectedCategoryId(cat.id);
+    setSelectedPostId(null);
+    setCards([]);
+    setPostCategoryId(String(cat.id));
+    setShowPostForm(false);
+    setShowCardForm(false);
+  };
+
+  const openPost = (post: any) => {
+    setSelectedPostId(post.id);
+    setCardPostId(String(post.id));
+    setShowCardForm(false);
+    fetchCards(post.id);
+  };
+
+  // Derived data
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+  const selectedPost = posts.find((p) => p.id === selectedPostId);
+  const categoryPosts = posts.filter(
+    (p) => p.categoryId === selectedCategoryId,
+  );
+  const level =
+    selectedCategory && selectedPost
+      ? "cards"
+      : selectedCategory
+        ? "products"
+        : "categories";
+
   // --- CATEGORY ACTIONS ---
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +195,7 @@ export default function AdminProductsPage() {
       alert("Category created successfully!");
       setCatName("");
       setCatSlug("");
+      setShowCatForm(false);
       fetchData();
     } else {
       alert("Failed to create category");
@@ -177,7 +259,7 @@ export default function AdminProductsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: postTitle,
-        slug: postTitle.toLowerCase().replace(/\s+/g, "-"),
+        slug: postSlug || postTitle.toLowerCase().replace(/\s+/g, "-"),
         categoryId: Number(postCategoryId),
         imageUrl: postImage,
         description: postDesc,
@@ -187,16 +269,16 @@ export default function AdminProductsPage() {
     if (res.ok) {
       alert("Product Post created successfully!");
       setPostTitle("");
-      setPostCategoryId("");
+      setPostSlug("");
       setPostImage("");
       setPostDesc("");
+      setShowPostForm(false);
       fetchData();
     } else {
       alert("Failed to create product post");
     }
   };
 
-  // 🚀 FIXED: handleUpdatePost ကို ဇယားထဲမှာ ဒေတာချက်ချင်းပြောင်းလဲစေရန် အပြည့်အစုံပြင်ဆင်ထားသည်
   const handleUpdatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPost) return;
@@ -277,11 +359,11 @@ export default function AdminProductsPage() {
 
     if (res.ok) {
       alert("Card Item added successfully!");
-      setCardPostId("");
       setCardTitle("");
       setCardDesc("");
       setCardImage("");
       fetchData();
+      fetchCards(Number(cardPostId));
     } else {
       alert("Failed to create card item");
     }
@@ -294,6 +376,9 @@ export default function AdminProductsPage() {
       </div>
     );
 
+  const inputClass =
+    "w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition";
+
   return (
     <div className="p-8 text-slate-800 min-h-screen bg-slate-50/50 space-y-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -304,8 +389,7 @@ export default function AdminProductsPage() {
               Product Management
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Manage categories, product posts, and dynamic card items
-              seamlessly.
+              Choose a category, open a product, then manage its card items.
             </p>
           </div>
           <Link
@@ -458,229 +542,134 @@ export default function AdminProductsPage() {
           </div>
         )}
 
-        {/* 🚀 3 CREATION FORMS SECTION */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Form 1: Category */}
-          {canCreateCategories && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                  <h2 className="text-sm font-bold text-slate-900">
-                    1. Create Category
-                  </h2>
-                </div>
-                <form
-                  onSubmit={handleCreateCategory}
-                  id="cat-form"
-                  className="space-y-3"
-                >
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">
-                      Category Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Electronics"
-                      value={catName}
-                      onChange={(e) => setCatName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">
-                      Slug (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. electronics"
-                      value={catSlug}
-                      onChange={(e) => setCatSlug(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                    />
-                  </div>
-                </form>
-              </div>
+        {!canReadProducts ? (
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm text-center text-rose-500 text-xs font-medium">
+            You do not have permission (`products:read`) to view products.
+          </div>
+        ) : (
+          <>
+            {/* 🧭 BREADCRUMB */}
+            <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
               <button
-                type="submit"
-                form="cat-form"
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-xl text-white transition shadow-sm shadow-blue-500/20 cursor-pointer mt-4"
+                onClick={goToCategories}
+                className="hover:text-blue-600 font-semibold cursor-pointer"
               >
-                Add Category
+                📂 Categories
               </button>
+              {selectedCategory && (
+                <>
+                  <span>›</span>
+                  <button
+                    onClick={goToProducts}
+                    className="hover:text-blue-600 font-semibold cursor-pointer"
+                  >
+                    {selectedCategory.name}
+                  </button>
+                </>
+              )}
+              {selectedCategory && selectedPost && (
+                <>
+                  <span>›</span>
+                  <span className="font-semibold text-slate-800">
+                    {selectedPost.title}
+                  </span>
+                </>
+              )}
             </div>
-          )}
 
-          {/* Form 2: Product Post */}
-          {canCreateProducts && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+            {/* ================= LEVEL 1: CATEGORIES ================= */}
+            {level === "categories" && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
                   <h2 className="text-sm font-bold text-slate-900">
-                    2. Create Product Post
+                    📂 Categories ({categories.length})
                   </h2>
-                </div>
-                <form
-                  onSubmit={handleCreatePost}
-                  id="post-form"
-                  className="space-y-3"
-                >
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">
-                      Category
-                    </label>
-                    <select
-                      value={postCategoryId}
-                      onChange={(e) => setPostCategoryId(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition cursor-pointer"
+                  {canCreateCategories && (
+                    <button
+                      onClick={() => setShowCatForm(!showCatForm)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
                     >
-                      <option value="">Select Category</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">
-                      Product Title
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Product Title"
-                      value={postTitle}
-                      onChange={(e) => setPostTitle(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">
-                      Image URL
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      value={postImage}
-                      onChange={(e) => setPostImage(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                    />
-                  </div>
-                </form>
-              </div>
-              <button
-                type="submit"
-                form="post-form"
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs rounded-xl text-white transition shadow-sm shadow-emerald-500/20 cursor-pointer mt-4"
-              >
-                Save Product Post
-              </button>
-            </div>
-          )}
-
-          {/* Form 3: Card Item */}
-          {canCreateCards && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <span className="w-2 h-2 rounded-full bg-purple-600"></span>
-                  <h2 className="text-sm font-bold text-slate-900">
-                    3. Add Info/Pic to Product
-                  </h2>
+                      {showCatForm ? "✕ Close" : "+ New Category"}
+                    </button>
+                  )}
                 </div>
-                <form
-                  onSubmit={handleCreateCard}
-                  id="card-form"
-                  className="space-y-3"
-                >
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">
-                      Product Post
-                    </label>
-                    <select
-                      value={cardPostId}
-                      onChange={(e) => setCardPostId(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition cursor-pointer"
-                    >
-                      <option value="">Select Product Post</option>
-                      {posts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      placeholder="Info Title"
-                      value={cardTitle}
-                      onChange={(e) => setCardTitle(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Image URL"
-                      value={cardImage}
-                      onChange={(e) => setCardImage(e.target.value)}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                    />
-                  </div>
-                  <textarea
-                    placeholder="Info Description"
-                    rows={2}
-                    value={cardDesc}
-                    onChange={(e) => setCardDesc(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition resize-none"
-                  />
-                </form>
-              </div>
-              <button
-                type="submit"
-                form="card-form"
-                className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 font-bold text-xs rounded-xl text-white transition shadow-sm shadow-purple-500/20 cursor-pointer mt-4"
-              >
-                Add Card Item
-              </button>
-            </div>
-          )}
-        </div>
 
-        {/* 📋 TABLES SECTION */}
-        <div className="space-y-6">
-          {/* 1. Categories Management Table */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-slate-900">
-              📂 Categories Management
-            </h2>
-            {canReadCategories ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                      <th className="py-3 px-4">Name</th>
-                      <th className="py-3 px-4">Slug</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100/80 text-xs">
-                    {categories.length > 0 ? (
-                      categories.map((cat) => (
-                        <tr
+                {showCatForm && canCreateCategories && (
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Create Category
+                      </h3>
+                    </div>
+                    <form onSubmit={handleCreateCategory} className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Category Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Electronics"
+                            value={catName}
+                            onChange={(e) => setCatName(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Slug (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. electronics"
+                            value={catSlug}
+                            onChange={(e) => setCatSlug(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 font-bold text-xs rounded-xl text-white transition shadow-sm cursor-pointer"
+                      >
+                        Add Category
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {canReadCategories && categories.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {categories.map((cat) => {
+                      const count = posts.filter(
+                        (p) => p.categoryId === cat.id,
+                      ).length;
+                      return (
+                        <div
                           key={cat.id}
-                          className="hover:bg-slate-50/60 transition"
+                          onClick={() => openCategory(cat)}
+                          className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:border-blue-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between gap-4"
                         >
-                          <td className="py-3.5 px-4 font-semibold text-slate-900">
-                            {cat.name}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-500">
-                            {cat.slug}
-                          </td>
-                          <td className="py-3.5 px-4 text-right space-x-1.5">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-2xl">📁</span>
+                              <span className="text-[10px] font-mono bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full">
+                                {count} products
+                              </span>
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900">
+                              {cat.name}
+                            </h3>
+                            <p className="text-[11px] text-slate-400 font-mono">
+                              {cat.slug}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
                             {canUpdateCategories && (
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setEditingCategory(cat);
                                   setEditCatName(cat.name);
                                   setEditCatSlug(cat.slug);
@@ -697,151 +686,389 @@ export default function AdminProductsPage() {
                             {canDeleteCategories && (
                               <>
                                 <button
-                                  onClick={() =>
-                                    handleSoftDeleteCategory(cat.id)
-                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSoftDeleteCategory(cat.id);
+                                  }}
                                   className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-semibold cursor-pointer transition"
                                 >
                                   Trash
                                 </button>
                                 <button
-                                  onClick={() =>
-                                    handlePermanentDeleteCategory(cat.id)
-                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePermanentDeleteCategory(cat.id);
+                                  }}
                                   className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold cursor-pointer transition"
                                 >
                                   Delete
                                 </button>
                               </>
                             )}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={3}
-                          className="text-center py-8 text-slate-400 text-xs"
-                        >
-                          No active categories found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-6 text-rose-500 text-xs font-medium">
-                You do not have permission (`products:read`) to view categories.
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-white border border-slate-200/80 rounded-2xl p-10 text-center text-slate-400 text-xs">
+                    No active categories found.
+                  </div>
+                )}
               </div>
             )}
-          </div>
 
-          {/* 2. Product Posts Management Table */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-slate-900">
-              📦 Product Posts Management
-            </h2>
-            {canReadProducts ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                      <th className="py-3 px-4">Title</th>
-                      <th className="py-3 px-4">Category</th>
-                      <th className="py-3 px-4">Slug</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100/80 text-xs">
-                    {posts.length > 0 ? (
-                      posts.map((post) => {
-                        return (
-                          <tr
-                            key={post.id}
-                            className="hover:bg-slate-50/60 transition"
+            {/* ================= LEVEL 2: PRODUCTS IN CATEGORY ================= */}
+            {level === "products" && selectedCategory && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-slate-900">
+                    📦 Products in {selectedCategory.name} (
+                    {categoryPosts.length})
+                  </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={goToCategories}
+                      className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold cursor-pointer transition"
+                    >
+                      ← Back
+                    </button>
+                    {canCreateProducts && (
+                      <button
+                        onClick={() => setShowPostForm(!showPostForm)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                      >
+                        {showPostForm ? "✕ Close" : "+ New Product"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {showPostForm && canCreateProducts && (
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Create Product Post
+                      </h3>
+                    </div>
+                    <form onSubmit={handleCreatePost} className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Category
+                          </label>
+                          <select
+                            value={postCategoryId}
+                            onChange={(e) => setPostCategoryId(e.target.value)}
+                            className={`${inputClass} cursor-pointer`}
                           >
-                            <td className="py-3.5 px-4 font-semibold text-slate-900">
-                              {post.title}
-                            </td>
-                            <td className="py-3.5 px-4 text-blue-600 font-medium">
-                              {post.category?.name || "N/A"}
-                            </td>
-                            <td className="py-3.5 px-4 text-slate-500">
-                              {post.slug}
-                            </td>
-                            <td className="py-3.5 px-4 text-right space-x-1.5">
-                              <Link
-                                href={`/admin/products/${post.id}/cards`}
-                                className="px-3 py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg text-xs font-semibold inline-block transition"
-                              >
-                                View Cards
-                              </Link>
+                            <option value="">Select Category</option>
+                            {categories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Product Title
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Product Title"
+                            value={postTitle}
+                            onChange={(e) => setPostTitle(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Slug (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. future-hrms-solution"
+                            value={postSlug}
+                            onChange={(e) => setPostSlug(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Image URL
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="https://..."
+                            value={postImage}
+                            onChange={(e) => setPostImage(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                          Description
+                        </label>
+                        <textarea
+                          placeholder="Short description about this product"
+                          rows={3}
+                          value={postDesc}
+                          onChange={(e) => setPostDesc(e.target.value)}
+                          className={`${inputClass} resize-none`}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs rounded-xl text-white transition shadow-sm cursor-pointer"
+                      >
+                        Save Product Post
+                      </button>
+                    </form>
+                  </div>
+                )}
 
-                              {canUpdateProducts && (
+                {categoryPosts.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {categoryPosts.map((post) => (
+                      <div
+                        key={post.id}
+                        onClick={() => openPost(post)}
+                        className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm hover:border-emerald-400 hover:shadow-md transition cursor-pointer flex flex-col"
+                      >
+                        <div className="h-32 bg-slate-100 flex items-center justify-center overflow-hidden">
+                          {post.imageUrl ? (
+                            <img
+                              src={post.imageUrl}
+                              alt={post.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-4xl font-extrabold text-slate-300">
+                              {post.title?.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                          <div className="space-y-1.5">
+                            <h3 className="text-sm font-bold text-slate-900">
+                              {post.title}
+                            </h3>
+                            <p className="text-[11px] text-slate-400 font-mono">
+                              {post.slug}
+                            </p>
+                            <p className="text-xs text-slate-500 line-clamp-2">
+                              {post.description || "No description."}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {canUpdateProducts && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingPost(post);
+                                  setEditPostTitle(post.title);
+                                  setEditPostSlug(post.slug || "");
+                                  setEditPostCatId(post.categoryId);
+                                  setEditPostImage(post.imageUrl || "");
+                                  setEditPostDesc(post.description || "");
+                                  window.scrollTo({
+                                    top: 0,
+                                    behavior: "smooth",
+                                  });
+                                }}
+                                className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold cursor-pointer transition"
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {canDeleteProducts && (
+                              <>
                                 <button
-                                  onClick={() => {
-                                    setEditingPost(post);
-                                    setEditPostTitle(post.title);
-                                    setEditPostSlug(post.slug || "");
-                                    setEditPostCatId(post.categoryId);
-                                    setEditPostImage(post.imageUrl || "");
-                                    setEditPostDesc(post.description || "");
-                                    window.scrollTo({
-                                      top: 0,
-                                      behavior: "smooth",
-                                    });
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSoftDeletePost(post.id);
                                   }}
-                                  className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold cursor-pointer transition"
+                                  className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-semibold cursor-pointer transition"
                                 >
-                                  Edit
+                                  Trash
                                 </button>
-                              )}
-                              {canDeleteProducts && (
-                                <>
-                                  <button
-                                    onClick={() =>
-                                      handleSoftDeletePost(post.id)
-                                    }
-                                    className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-semibold cursor-pointer transition"
-                                  >
-                                    Trash
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handlePermanentDeletePost(post.id)
-                                    }
-                                    className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold cursor-pointer transition"
-                                  >
-                                    Delete
-                                  </button>
-                                </>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="text-center py-8 text-slate-400 text-xs"
-                        >
-                          No active product posts found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-6 text-rose-500 text-xs font-medium">
-                You do not have permission (`products:read`) to view product
-                posts.
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePermanentDeletePost(post.id);
+                                  }}
+                                  className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold cursor-pointer transition"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white border border-slate-200/80 rounded-2xl p-10 text-center text-slate-400 text-xs">
+                    No active products in this category yet.
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        </div>
+
+            {/* ================= LEVEL 3: CARDS OF PRODUCT ================= */}
+            {level === "cards" && selectedPost && (
+              <div className="space-y-6">
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                      {selectedPost.imageUrl ? (
+                        <img
+                          src={selectedPost.imageUrl}
+                          alt={selectedPost.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl font-extrabold text-slate-300">
+                          {selectedPost.title?.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <h2 className="text-sm font-bold text-slate-900">
+                        {selectedPost.title}
+                      </h2>
+                      <p className="text-xs text-slate-500 max-w-xl">
+                        {selectedPost.description || "No description."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      onClick={goToProducts}
+                      className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold cursor-pointer transition"
+                    >
+                      ← Back
+                    </button>
+                    <Link
+                      href={`/admin/products/${selectedPost.id}/cards`}
+                      className="px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl text-xs font-bold transition"
+                    >
+                      Manage Cards
+                    </Link>
+                    {canCreateCards && (
+                      <button
+                        onClick={() => setShowCardForm(!showCardForm)}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
+                      >
+                        {showCardForm ? "✕ Close" : "+ Add Card"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {showCardForm && canCreateCards && (
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <span className="w-2 h-2 rounded-full bg-purple-600"></span>
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Add Info/Pic to {selectedPost.title}
+                      </h3>
+                    </div>
+                    <form onSubmit={handleCreateCard} className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Info Title
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Attendance"
+                            value={cardTitle}
+                            onChange={(e) => setCardTitle(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Image URL
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="https://..."
+                            value={cardImage}
+                            onChange={(e) => setCardImage(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                          Info Description
+                        </label>
+                        <textarea
+                          placeholder="Write one point per line (each line can become a bullet point)"
+                          rows={4}
+                          value={cardDesc}
+                          onChange={(e) => setCardDesc(e.target.value)}
+                          className={`${inputClass} resize-none`}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 font-bold text-xs rounded-xl text-white transition shadow-sm cursor-pointer"
+                      >
+                        Add Card Item
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                <h2 className="text-sm font-bold text-slate-900">
+                  🃏 Cards ({cards.length})
+                </h2>
+
+                {cardsLoading ? (
+                  <div className="bg-white border border-slate-200/80 rounded-2xl p-10 text-center text-slate-400 text-xs">
+                    Loading cards...
+                  </div>
+                ) : cards.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {cards.map((card) => (
+                      <div
+                        key={card.id}
+                        className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                      >
+                        {card.imageUrl && (
+                          <img
+                            src={card.imageUrl}
+                            alt={card.title}
+                            className="w-full h-32 object-cover"
+                          />
+                        )}
+                        <div className="p-5 space-y-2">
+                          <h3 className="text-sm font-bold text-slate-900">
+                            {card.title}
+                          </h3>
+                          <p className="text-xs text-slate-500 whitespace-pre-line">
+                            {card.description || "No description."}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white border border-slate-200/80 rounded-2xl p-10 text-center text-slate-400 text-xs">
+                    No cards for this product yet.
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

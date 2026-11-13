@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link"; // 🔥 Link ကို import လုပ်ပါ
+import Link from "next/link";
 
 function ProductsContent() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -44,48 +44,98 @@ function ProductsContent() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white px-6 py-12">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="border-b border-slate-800 pb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              {currentCategory ? currentCategory.name : "All Products"}
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Explore items under this category.
-            </p>
+    <div className="min-h-screen bg-slate-950 text-white">
+      {/* ================= HEADER ================= */}
+      <section className="border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-6 py-16 md:py-20 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div className="space-y-3 max-w-2xl">
+              <p className="text-teal-400 text-xs font-mono uppercase tracking-widest">
+                Our Products
+              </p>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+                {currentCategory ? currentCategory.name : "All Products"}
+              </h1>
+              <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+                Explore items under this category.
+              </p>
+            </div>
+            <span className="text-xs font-mono bg-slate-900 border border-slate-800 text-teal-400 px-3.5 py-1.5 rounded-xl w-fit">
+              {filteredProducts.length} Items Found
+            </span>
           </div>
-          <span className="text-xs font-mono bg-slate-900 border border-slate-800 text-teal-400 px-3.5 py-1.5 rounded-xl">
-            {filteredProducts.length} Items Found
-          </span>
-        </div>
 
-        {/* Bento Grid (Product Cards Area) */}
+          {/* Category chips */}
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/user/products"
+              className={`px-4 py-2 rounded-full border text-xs font-semibold transition ${
+                !selectedCategoryId
+                  ? "bg-teal-500 border-teal-500 text-slate-950"
+                  : "bg-slate-900 border-slate-800 text-slate-300 hover:border-teal-500/50 hover:text-teal-300"
+              }`}
+            >
+              All
+            </Link>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/user/products?categoryId=${cat.id}`}
+                className={`px-4 py-2 rounded-full border text-xs font-semibold transition ${
+                  selectedCategoryId === cat.id.toString()
+                    ? "bg-teal-500 border-teal-500 text-slate-950"
+                    : "bg-slate-900 border-slate-800 text-slate-300 hover:border-teal-500/50 hover:text-teal-300"
+                }`}
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= PRODUCT GRID ================= */}
+      <section className="max-w-7xl mx-auto px-6 py-12">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map((item) => (
-              /* 🔥 Product Card ကို Link ဖြင့် ခြုံပေးခြင်းအားဖြင့် နှိပ်လို့ရသွားပါမည် */
               <Link
                 key={item.id}
-                href={`/products/${item.id}`} // နှိပ်လိုက်လျှင် ဤ Product ၏ detail/cards စာမျက်နှာသို့ သွားမည်
-                className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 p-6 shadow-xl space-y-4 hover:border-teal-500/50 transition flex flex-col justify-end min-h-[320px] group cursor-pointer"
+                href={`/user/products/${item.id}`}
+                className="group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl hover:border-teal-500/50 transition flex flex-col cursor-pointer"
               >
-                {item.imageUrl && (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition duration-500"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+                {/* Image */}
+                <div className="relative h-52 overflow-hidden bg-slate-950/40">
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-5xl font-extrabold font-mono text-teal-500/30">
+                      {item.title?.charAt(0)}
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+                </div>
 
-                <div className="relative z-10 space-y-2">
-                  <h3 className="text-2xl font-bold text-white group-hover:text-teal-400 transition">
+                {/* Body */}
+                <div className="p-6 space-y-3 flex-1 flex flex-col">
+                  {item.category?.name && (
+                    <span className="w-fit px-3 py-1 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-[10px] font-mono rounded-full">
+                      {item.category.name}
+                    </span>
+                  )}
+                  <h3 className="text-xl font-bold text-white group-hover:text-teal-400 transition">
                     {item.title}
                   </h3>
-                  <p className="text-slate-300 text-xs line-clamp-2">
+                  <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 flex-1">
                     {item.description || "No description provided."}
                   </p>
+                  <span className="text-teal-400 text-xs font-semibold pt-2">
+                    Learn more →
+                  </span>
                 </div>
               </Link>
             ))}
@@ -95,7 +145,7 @@ function ProductsContent() {
             No products found in this category.
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
