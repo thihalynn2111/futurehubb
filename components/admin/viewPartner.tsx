@@ -123,7 +123,7 @@ export default function ViewProjects() {
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
-          <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
+          <span className="text-blue-600 text-xs font-bold tracking-widest uppercase">
             Partner Management
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
@@ -142,9 +142,9 @@ export default function ViewProjects() {
           {canCreate && (
             <button
               onClick={() => router.push(`/admin/projects/new`)}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
             >
-              <span>Add Project</span>
+              <span>+ New Partner and Project</span>
             </button>
           )}
         </div>
@@ -184,7 +184,7 @@ export default function ViewProjects() {
                   <h2 className="text-xl font-bold text-gray-900 text-center">
                     {project.title}
                   </h2>
-                  <span className="text-orange-600 text-xs font-semibold tracking-wider uppercase mt-0.5">
+                  <span className="text-blue-600 text-xs font-semibold tracking-wider uppercase mt-0.5">
                     {project.subtitle || "Project"}
                   </span>
                 </div>

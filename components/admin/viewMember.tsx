@@ -113,7 +113,7 @@ export default function Member() {
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
-          <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
+          <span className="text-blue-600 text-xs font-bold tracking-widest uppercase">
             Team Management
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
@@ -133,9 +133,9 @@ export default function Member() {
           {canCreate && (
             <button
               onClick={() => router.push(`/admin/teamMember/new`)}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
             >
-              <span>Add Team</span>
+              <span>+ New Team</span>
             </button>
           )}
         </div>
@@ -175,7 +175,7 @@ export default function Member() {
                   <h2 className="text-xl font-bold text-gray-900 text-center">
                     {member.name}
                   </h2>
-                  <span className="text-orange-600 text-xs font-semibold tracking-wider uppercase mt-0.5">
+                  <span className="text-blue-600 text-xs font-semibold tracking-wider uppercase mt-0.5">
                     {member.position}
                   </span>
                 </div>
@@ -195,7 +195,7 @@ export default function Member() {
                     }
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-xl border border-gray-200 transition flex items-center justify-center space-x-1.5 text-sm shadow-sm"
                   >
-                    <Edit3 size={16} className="text-orange-600" />
+                    <Edit3 size={16} className="text-blue-600" />
                     <span>Edit</span>
                   </button>
                 )}

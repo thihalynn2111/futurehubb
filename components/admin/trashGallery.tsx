@@ -146,7 +146,7 @@ export default function TrashGallery() {
     <div className="p-8 max-w-7xl mx-auto text-gray-900 font-sans">
       <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
-          <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
+          <span className="text-blue-600 text-xs font-bold tracking-widest uppercase">
             Gallery Management
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
@@ -157,7 +157,7 @@ export default function TrashGallery() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push(`/admin/gallery`)}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-center py-2.5 px-8 rounded-xl shadow-sm transition flex items-center disabled:opacity-50"
           >
             <span>View gallery list</span>
           </button>
@@ -194,7 +194,7 @@ export default function TrashGallery() {
                     <h2 className="text-xl font-bold text-gray-900 text-center">
                       {gallery.title}
                     </h2>
-                    <span className="text-orange-600 text-xs font-semibold tracking-wider uppercase mt-0.5">
+                    <span className="text-blue-600 text-xs font-semibold tracking-wider uppercase mt-0.5">
                       {gallery.date
                         ? new Date(gallery.date).toISOString().split("T")[0]
                         : "-"}

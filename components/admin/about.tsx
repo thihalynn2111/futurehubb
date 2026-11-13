@@ -225,9 +225,6 @@ export default function AboutSection() {
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
-          <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
-            Configuration
-          </span>
           <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
             About Page Management
           </h1>
@@ -240,7 +237,7 @@ export default function AboutSection() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="animate-spin" size={18} />
@@ -278,7 +275,7 @@ export default function AboutSection() {
               className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm"
             >
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2 border-b border-gray-100 pb-4">
-                <span className="w-2.5 h-2.5 bg-orange-500 rounded-full"></span>
+                <span className="w-2.5 h-2.5 bg-blue-500 rounded-full"></span>
                 <span>{sectionTitle}</span>
               </h2>
 
@@ -300,7 +297,7 @@ export default function AboutSection() {
                             e.target.value,
                           )
                         }
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter hero title..."
                       />
                     </div>
@@ -318,7 +315,7 @@ export default function AboutSection() {
                           )
                         }
                         rows={3}
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter hero description..."
                       />
                     </div>
@@ -351,7 +348,7 @@ export default function AboutSection() {
                             htmlFor={`bg-${section.id}`}
                             className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
                           >
-                            <Upload size={16} className="text-orange-600" />
+                            <Upload size={16} className="text-blue-600" />
                             <span>Choose New Image</span>
                           </label>
                           <input
@@ -400,7 +397,7 @@ export default function AboutSection() {
                             e.target.value,
                           )
                         }
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter title..."
                       />
                     </div>
@@ -418,7 +415,7 @@ export default function AboutSection() {
                           )
                         }
                         rows={3}
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter description..."
                       />
                     </div>
@@ -442,7 +439,7 @@ export default function AboutSection() {
                             e.target.value,
                           )
                         }
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter title..."
                       />
                     </div>
@@ -460,7 +457,7 @@ export default function AboutSection() {
                           )
                         }
                         rows={3}
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter description..."
                       />
                     </div>
@@ -484,7 +481,7 @@ export default function AboutSection() {
                             e.target.value,
                           )
                         }
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter title..."
                       />
                     </div>
@@ -502,7 +499,7 @@ export default function AboutSection() {
                           )
                         }
                         rows={3}
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter description..."
                       />
                     </div>
@@ -525,7 +522,7 @@ export default function AboutSection() {
                             e.target.value,
                           )
                         }
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter hero title..."
                       />
                     </div>
@@ -543,7 +540,7 @@ export default function AboutSection() {
                           )
                         }
                         rows={3}
-                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+                        className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
                         placeholder="Enter hero description..."
                       />
                     </div>
@@ -576,7 +573,7 @@ export default function AboutSection() {
                             htmlFor={`bg-${section.id}`}
                             className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
                           >
-                            <Upload size={16} className="text-orange-600" />
+                            <Upload size={16} className="text-blue-600" />
                             <span>Choose New Image</span>
                           </label>
                           <input
@@ -618,7 +615,7 @@ export default function AboutSection() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="animate-spin" size={18} />

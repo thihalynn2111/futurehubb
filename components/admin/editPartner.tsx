@@ -94,7 +94,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
     <div className="p-8 max-w-3xl mx-auto text-gray-900 font-sans">
       {/* Header Section */}
       <div className="mb-8 border-b border-gray-200 pb-6">
-        <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
+        <span className="text-blue-600 text-xs font-bold tracking-widest uppercase">
           Partner Management
         </span>
         <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
@@ -186,7 +186,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
                 htmlFor="img"
                 className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
               >
-                <Upload size={16} className="text-orange-600" />
+                <Upload size={16} className="text-blue-600" />
                 <span>Choose Profile Photo</span>
               </label>
               <input
@@ -210,7 +210,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="name"
           >
-            <User size={16} className="text-orange-600 mr-1" />
+            <User size={16} className="text-blue-600 mr-1" />
             <span>Company name</span>
           </label>
           <input
@@ -221,7 +221,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter full name..."
           />
         </div>
@@ -232,7 +232,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="position"
           >
-            <Briefcase size={16} className="text-orange-600 mr-1" />
+            <Briefcase size={16} className="text-blue-600 mr-1" />
             <span>Project title</span>
           </label>
           <input
@@ -243,7 +243,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             onChange={(e) =>
               setFormData({ ...formData, subtitle: e.target.value })
             }
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter project title"
           />
         </div>
@@ -253,7 +253,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="sortOrder"
           >
-            <ListOrdered size={16} className="text-orange-600 mr-1" />
+            <ListOrdered size={16} className="text-blue-600 mr-1" />
             <span>Sort Order</span>
           </label>
           <input
@@ -264,7 +264,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             onChange={(e) =>
               setFormData({ ...formData, sortOrder: e.target.value })
             }
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
           />
         </div>
         <div>
@@ -272,7 +272,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="bio"
           >
-            <FileText size={16} className="text-orange-600 mr-1" />
+            <FileText size={16} className="text-blue-600 mr-1" />
             <span>Description</span>
           </label>
           <textarea
@@ -282,7 +282,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             rows={4}
             placeholder="Enter description"
           />
@@ -293,7 +293,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
           <button
             type="submit"
             disabled={saving}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
           >
             {saving ? (
               <Loader2 className="animate-spin" size={18} />

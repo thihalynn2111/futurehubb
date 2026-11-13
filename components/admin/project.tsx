@@ -142,14 +142,12 @@ export default function AddProject() {
     <div className="p-8 max-w-4xl mx-auto text-gray-900 font-sans">
       {/* Header Section */}
       <div className="mb-8 border-b border-gray-200 pb-6">
-        <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
-          Catalogue Management
-        </span>
         <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
-          Add New Project
+          + New Partner and Project
         </h1>
         <p className="text-gray-500 text-sm mt-1">
-          Create a new project entry with description, imagery, and details.
+          Create a new partner & project entry with description, imagery, and
+          details.
         </p>
       </div>
 
@@ -160,8 +158,8 @@ export default function AddProject() {
         {/* Project Image Upload */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
-            <ImageIcon size={16} className="text-orange-600 mr-1" />
-            <span>Project Image / Logo</span>
+            <ImageIcon size={16} className="text-blue-600 mr-1" />
+            <span>Partner Image / Logo</span>
           </label>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div className="w-[180px] h-[120px] bg-gray-50 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
@@ -184,7 +182,7 @@ export default function AddProject() {
                 htmlFor="projectImage"
                 className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
               >
-                <Upload size={16} className="text-orange-600" />
+                <Upload size={16} className="text-blue-600" />
                 <span>Choose Image</span>
               </label>
               <input
@@ -207,7 +205,7 @@ export default function AddProject() {
             htmlFor="title"
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
           >
-            <Type size={16} className="text-orange-600 mr-1" />
+            <Type size={16} className="text-blue-600 mr-1" />
             <span>Partner Name</span>
           </label>
           <input
@@ -217,7 +215,7 @@ export default function AddProject() {
             value={formData.title}
             onChange={handleChange}
             required
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter partner name..."
           />
         </div>
@@ -228,7 +226,7 @@ export default function AddProject() {
             htmlFor="subtitle"
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
           >
-            <Type size={16} className="text-orange-600 mr-1" />
+            <Type size={16} className="text-blue-600 mr-1" />
             <span>Project Title</span>
           </label>
           <input
@@ -237,7 +235,7 @@ export default function AddProject() {
             name="subtitle"
             value={formData.subtitle}
             onChange={handleChange}
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter project title..."
           />
         </div>
@@ -248,7 +246,7 @@ export default function AddProject() {
             htmlFor="description"
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
           >
-            <FileText size={16} className="text-orange-600 mr-1" />
+            <FileText size={16} className="text-blue-600 mr-1" />
             <span>Description</span>
           </label>
           <textarea
@@ -257,7 +255,7 @@ export default function AddProject() {
             value={formData.description}
             onChange={handleChange}
             rows={4}
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter project detailed description..."
           />
         </div>
@@ -268,7 +266,7 @@ export default function AddProject() {
             htmlFor="sortOrder"
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
           >
-            <ListOrdered size={16} className="text-orange-600 mr-1" />
+            <ListOrdered size={16} className="text-blue-600 mr-1" />
             <span>Sort Order</span>
           </label>
           <input
@@ -277,7 +275,7 @@ export default function AddProject() {
             name="sortOrder"
             value={formData.sortOrder}
             onChange={handleChange}
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
           />
         </div>
 
@@ -286,7 +284,7 @@ export default function AddProject() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
           >
             {loading ? (
               <Loader2 className="animate-spin" size={18} />

@@ -137,7 +137,7 @@ export default function AddGallery() {
     <div className="p-8 max-w-4xl mx-auto text-gray-900 font-sans">
       {/* Header Section */}
       <div className="mb-8 border-b border-gray-200 pb-6">
-        <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
+        <span className="text-blue-600 text-xs font-bold tracking-widest uppercase">
           Catalogue Management
         </span>
         <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
@@ -152,7 +152,7 @@ export default function AddGallery() {
       >
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-1">
-            <ImageIcon size={16} className="text-orange-600 mr-1" />
+            <ImageIcon size={16} className="text-blue-600 mr-1" />
             <span>Image</span>
           </label>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -176,7 +176,7 @@ export default function AddGallery() {
                 htmlFor="projectImage"
                 className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
               >
-                <Upload size={16} className="text-orange-600" />
+                <Upload size={16} className="text-blue-600" />
                 <span>Choose Image</span>
               </label>
               <input
@@ -199,7 +199,7 @@ export default function AddGallery() {
             htmlFor="title"
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
           >
-            <Type size={16} className="text-orange-600 mr-1" />
+            <Type size={16} className="text-blue-600 mr-1" />
             <span>Title</span>
           </label>
           <input
@@ -210,7 +210,7 @@ export default function AddGallery() {
             value={formData.title}
             onChange={handleChange}
             required
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter partner name..."
           />
         </div>
@@ -221,7 +221,7 @@ export default function AddGallery() {
             htmlFor="subtitle"
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
           >
-            <Type size={16} className="text-orange-600 mr-1" />
+            <Type size={16} className="text-blue-600 mr-1" />
             <span>Date</span>
           </label>
           <input
@@ -246,7 +246,7 @@ export default function AddGallery() {
             htmlFor="sortOrder"
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
           >
-            <ListOrdered size={16} className="text-orange-600 mr-1" />
+            <ListOrdered size={16} className="text-blue-600 mr-1" />
             <span>Sort Order</span>
           </label>
           <input
@@ -255,7 +255,7 @@ export default function AddGallery() {
             name="sortOrder"
             value={formData.sortOrder}
             onChange={handleChange}
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
           />
         </div>
 
@@ -264,7 +264,7 @@ export default function AddGallery() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
           >
             {loading ? (
               <Loader2 className="animate-spin" size={18} />

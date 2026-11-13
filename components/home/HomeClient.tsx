@@ -5,7 +5,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+import { ChevronLeft, ChevronRight } from "lucide-react";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 type CardData = {
@@ -33,7 +33,27 @@ type ProjectData = {
   description: string | null;
   clientLogo: string | null;
 };
+type ProductCard = {
+  id: number;
+  icon: string | null;
+  title: string | null;
+  description: string | null;
+  imageUrl: string | null;
+};
 
+type LatestProduct = {
+  id: number;
+  title: string;
+  slug: string;
+  description: string | null;
+  content: string | null;
+  imageUrl: string | null;
+  category: {
+    id: number;
+    name: string;
+  };
+  cards: ProductCard[];
+};
 function resolveImage(url: string | null, fallback: string) {
   if (!url) return fallback;
   if (url.startsWith("http") || url.startsWith("/")) return encodeURI(url);
@@ -43,9 +63,11 @@ function resolveImage(url: string | null, fallback: string) {
 export default function HomeClient({
   rows,
   projects,
+  latestProduct,
 }: {
   rows: SectionData[];
   projects: ProjectData[];
+  latestProduct: LatestProduct | null;
 }) {
   const container = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -58,7 +80,7 @@ export default function HomeClient({
   const roadmap = rows.find((r) => r.sectionKey === "roadmap");
   const about = rows.find((r) => r.sectionKey === "about call to action");
   const contact = rows.find((r) => r.sectionKey === "contact call to action");
-
+  const partner = rows.find((r) => r.sectionKey === "Partner & Project");
   // ---------- Partner slider ----------
   const slideTo = (direction: 1 | -1) => {
     const slider = sliderRef.current;
@@ -298,7 +320,37 @@ export default function HomeClient({
     },
     { scope: container, dependencies: [rows, projects] },
   );
+  // ---------- Latest Product Cards ----------
+  const productCards = latestProduct?.cards ?? [];
 
+  const half = Math.ceil(productCards.length / 2);
+  const leftCards = productCards.slice(0, half);
+  const rightCards = productCards.slice(half);
+
+  const renderFeatureCard = (card: ProductCard) => (
+    <div
+      key={card.id}
+      className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-3 hover:border-teal-500/40 transition"
+    >
+      {card.imageUrl && (
+        <img
+          src={resolveImage(card.imageUrl, "")}
+          alt={card.title ?? ""}
+          className="w-12 h-12 object-cover rounded-lg border border-slate-800"
+        />
+      )}
+
+      {card.title && (
+        <h3 className="text-lg font-bold text-teal-400 underline underline-offset-4 decoration-teal-500/40">
+          {card.title}
+        </h3>
+      )}
+
+      <p className="text-slate-400 text-sm leading-relaxed">
+        {card.description || "No additional description."}
+      </p>
+    </div>
+  );
   return (
     <main ref={container} className="overflow-x-hidden bg-[#04323c] text-white">
       {/* ===================== HERO ===================== */}
@@ -389,14 +441,14 @@ export default function HomeClient({
           <h2 className="reveal mb-4 px-4 text-center text-2xl font-extrabold sm:text-3xl md:text-4xl">
             Trusted by global companies
           </h2>
-          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
+          <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 " />
 
           <div className="mt-8 overflow-hidden md:mt-10">
             <div ref={trackRef} className="flex w-max">
               {[0, 1].map((groupIndex) => (
                 <div
                   key={groupIndex}
-                  className="image-group flex shrink-0 gap-3 pr-3 md:gap-4 md:pr-4"
+                  className="image-group flex shrink-0 gap-3 pr-3 md:gap-4 md:pr-4  "
                 >
                   {[0, 1, 2, 3].flatMap((repeat) =>
                     projects
@@ -406,7 +458,7 @@ export default function HomeClient({
                           key={`${groupIndex}-${repeat}-${p.id}`}
                           src={resolveImage(p.clientLogo, "")}
                           alt={p.title ?? "logo"}
-                          className="h-24 w-48 shrink-0 rounded-2xl bg-white/90 p-3 object-contain shadow-lg sm:h-32 sm:w-64 md:h-40 md:w-80 md:p-4 "
+                          className="h-24 w-48 shrink-0 rounded-2xl  border border-white/15 bg-white/10  text-center shadow-xl backdrop-blur-md p-3 object-contain  sm:h-32 sm:w-64 md:h-40 md:w-80 md:p-4 "
                         />
                       )),
                   )}
@@ -428,7 +480,7 @@ export default function HomeClient({
               {about.cards && about.cards[0] && (
                 <div
                   key={about.cards[0].id}
-                  className="tech-card about-card about-main-card will-change-transform group flex flex-col items-center justify-center rounded-3xl border border-white/15 bg-white/10 p-5 text-center shadow-xl backdrop-blur-md transition-colors duration-500 hover:border-cyan-300/50 sm:p-6 md:col-span-4"
+                  className="tech-card about-card about-main-card will-change-transform group flex flex-col items-center justify-center rounded-3xl border  bg-white/10 p-5 text-center shadow-xl backdrop-blur-md transition-colors duration-500  sm:p-6 md:col-span-4 border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]"
                 >
                   {about.cards[0].imageUrl && (
                     <div className="mb-4 w-full overflow-hidden rounded-2xl">
@@ -511,7 +563,7 @@ export default function HomeClient({
 
           <div className="relative mx-auto max-w-6xl space-y-10 md:space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2">
-              <div>
+              <div className="my-auto">
                 {contact.subtitle && (
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
                     {contact.subtitle}
@@ -573,6 +625,59 @@ export default function HomeClient({
           </div>
         </section>
       )}
+
+      {/* ================= LATEST PRODUCT FEATURES ================= */}
+      {latestProduct && latestProduct.cards.length > 0 && (
+        <section
+          id="latest-product-features"
+          className="bg-[#04323c] text-white mx-auto max-w-6xl space-y-12 scroll-mt-24 px-6 py-16"
+        >
+          <div className="mx-auto max-w-3xl space-y-3 text-center">
+            <p className="text-xs font-mono uppercase tracking-widest text-teal-400">
+              What's inside
+            </p>
+
+            <h2 className="text-3xl font-extrabold text-white md:text-4xl">
+              Features of {latestProduct.title}
+            </h2>
+
+            <p className="text-sm leading-relaxed text-slate-400 md:text-base">
+              {latestProduct.description ||
+                "No description provided for this product."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-3">
+            {/* Left Cards */}
+            <div className="order-2 space-y-6 lg:order-1">
+              {leftCards.map(renderFeatureCard)}
+            </div>
+
+            {/* Center Product Image */}
+            <div className="order-1 flex justify-center lg:order-2">
+              <div className="relative aspect-[9/19] w-60 overflow-hidden rounded-[2.5rem] border-[10px] border-slate-700 bg-slate-900 shadow-2xl md:w-64">
+                {latestProduct.imageUrl ? (
+                  <img
+                    src={resolveImage(latestProduct.imageUrl, "")}
+                    alt={latestProduct.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center px-4 text-center font-bold text-teal-400">
+                    {latestProduct.title}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Cards */}
+            <div className="order-3 space-y-6">
+              {rightCards.map(renderFeatureCard)}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ===================== TECHNOLOGY ===================== */}
       {tech && (
         <section
@@ -670,23 +775,29 @@ export default function HomeClient({
       {/* ===================== PARTNERS SLIDER ===================== */}
       {projects.length > 0 && (
         <section className="overflow-hidden bg-[#0a3f4d] px-4 py-16 sm:px-6 md:py-24">
-          <h2 className="reveal mb-8 text-3xl font-extrabold md:mb-10 md:text-4xl text-center">
-            Our Partners
-          </h2>
+          {partner ? (
+            <h2 className="reveal mb-8 text-center text-3xl font-extrabold md:mb-10 md:text-4xl">
+              {partner.title}
+            </h2>
+          ) : (
+            <h2 className="reveal mb-8 text-center text-3xl font-extrabold md:mb-10 md:text-4xl">
+              Partner and Project
+            </h2>
+          )}
 
-          <div className="overflow-hidden">
+          <div className="overflow-hidden pt-20">
             <div ref={sliderRef} className="flex gap-6">
               {projects.map((partner) => (
                 <div
                   key={partner.id}
-                  className="group w-full shrink-0 rounded-3xl border border-white/15 bg-white/10 p-4 backdrop-blur-md md:w-[calc((100%-3rem)/4)]"
+                  className="group w-full shrink-0 rounded-3xl border border-white/15 bg-white/10 px-4 pb-6 pt-0 backdrop-blur-md md:w-[calc((100%-4.5rem)/4)] transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]"
                 >
                   {partner.clientLogo && (
-                    <div className="overflow-hidden rounded-2xl bg-white/90">
+                    <div className="relative z-10 -mt-16 h-42 overflow-hidden rounded-full ">
                       <img
                         src={resolveImage(partner.clientLogo, "")}
                         alt={partner.title ?? "partner"}
-                        className="h-48 w-full rounded-md transition-transform duration-500 group-hover:scale-105 md:h-64 object-contain"
+                        className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                   )}
@@ -708,7 +819,7 @@ export default function HomeClient({
               aria-label="Previous"
               className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-white backdrop-blur-md transition hover:bg-cyan-300 hover:text-slate-900"
             >
-              <i className="fa-solid fa-less-than"></i>
+              <ChevronLeft size={20} />
             </button>
             <button
               type="button"
@@ -716,7 +827,7 @@ export default function HomeClient({
               aria-label="Next"
               className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-white backdrop-blur-md transition hover:bg-cyan-300 hover:text-slate-900"
             >
-              <i className="fa-solid fa-greater-than"></i>
+              <ChevronRight size={20} />
             </button>
           </div>
         </section>
