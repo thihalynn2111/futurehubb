@@ -31,7 +31,7 @@ export default function ProjectSection() {
   // Default sections
   const defaultSections: ProjectSection[] = [
     {
-      page: "home",
+      page: "project",
       sectionKey: "hero",
       title: "",
       subtitle: "",
@@ -39,7 +39,7 @@ export default function ProjectSection() {
       imageUrl: "",
     },
     {
-      page: "home",
+      page: "project",
       sectionKey: "header",
       title: "",
       subtitle: "",
@@ -200,7 +200,7 @@ export default function ProjectSection() {
       );
 
       // Save section data to database
-      const response = await fetch("/api/admin/pages/gallerySection", {
+      const response = await fetch("/api/admin/pages/projectSection", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

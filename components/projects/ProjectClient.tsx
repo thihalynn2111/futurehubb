@@ -4,7 +4,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+import Link from "next/link";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 type ProjectData = {
@@ -14,7 +14,14 @@ type ProjectData = {
   description: string | null;
   clientLogo: string | null;
 };
-
+type SectionData = {
+  id: number;
+  sectionKey: string;
+  title: string | null;
+  subtitle: string | null;
+  description: string | null;
+  imageUrl: string | null;
+};
 function resolveImage(url: string | null, fallback: string) {
   if (!url) return fallback;
   if (url.startsWith("http") || url.startsWith("/")) return encodeURI(url);
@@ -29,9 +36,16 @@ const ENTER_STYLES = [
   { x: 0, y: 100 }, // အောက်က တက်
 ];
 
-export default function ProjectClient({ rows }: { rows: ProjectData[] }) {
+export default function ProjectClient({
+  rows,
+  page,
+}: {
+  rows: ProjectData[];
+  page: SectionData[];
+}) {
   const container = useRef<HTMLElement>(null);
-
+  const hero = page.find((r) => r.sectionKey === "hero");
+  const header = page.find((r) => r.sectionKey === "header");
   useGSAP(
     () => {
       // ---------- Heading ----------
@@ -68,26 +82,39 @@ export default function ProjectClient({ rows }: { rows: ProjectData[] }) {
   );
 
   return (
-    <main
-      ref={container}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#04323c] via-[#055b66] to-[#0a3f4d] px-6 pb-24 pt-32 text-white"
-    >
+    <main ref={container} className="overflow-x-hidden bg-[#04323c] text-white">
+      {hero && (
+        <section
+          className="relative flex min-h-screen items-center bg-cover bg-center py-24"
+          style={{
+            backgroundImage: `url('${resolveImage(hero.imageUrl, "/bg.png")}')`,
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#04323c]/90 via-[#04323c]/60 to-[#04323c]/20 md:from-[#04323c]/85 md:via-[#04323c]/45 md:to-transparent" />
+
+          <div className="relative max-w-2xl px-6 text-white md:ml-16 md:px-0">
+            <h1 className="hero-title text-3xl font-extrabold leading-tight sm:text-4xl md:text-6xl">
+              {hero.title}
+            </h1>
+          </div>
+        </section>
+      )}
       {/* Background glow */}
-      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl " />
       <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl" />
 
-      <div className="relative mx-auto max-w-7xl">
+      <div className="relative mx-auto  max-w-7xl mt-3 mb-5">
         {/* HEADING */}
-        <div className="mb-16 text-center">
-          <h1 className="proj-heading mt-3 text-4xl font-extrabold md:text-6xl">
-            Our Projects
+        <div className="mb-16">
+          <h1 className="proj-heading mt-3 text-4xl font-extrabold md:text-6xl text-center">
+            {header ? header.title : "Our Projects"}
           </h1>
           <div className="proj-line mx-auto mt-5 h-1 w-24 origin-center rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
         </div>
 
         {/* PROJECT CARDS */}
         {rows.length > 0 ? (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mb-3">
             {rows.map((project, i) => (
               <div
                 key={project.id}
