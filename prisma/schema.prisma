@@ -116,7 +116,7 @@ model Permission {
   name        String           @unique
   resource    String
   action      String
-  deletedAt   DateTime?
+
   description String?          @db.Text
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
