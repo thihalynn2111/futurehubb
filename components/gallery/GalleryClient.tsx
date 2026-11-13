@@ -162,59 +162,57 @@ export default function GalleryClient({
         </section>
       )}
 
-      {header && (
-        <section className="relative bg-gradient-to-b from-[#04323c] via-[#055b66] to-[#0a3f4d] px-6 py-24 text-center">
-          <div className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -right-32 bottom-20 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl" />
+      <section className="relative bg-gradient-to-b from-[#04323c] via-[#055b66] to-[#0a3f4d] px-6 py-24 text-center">
+        <div className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 bottom-20 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl" />
 
-          <div className="relative mx-auto max-w-7xl">
-            <h2 className="header-title mb-3 text-4xl font-extrabold md:text-5xl">
-              {header.title}
-            </h2>
-            <h3 className="header-title mb-3 bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-3xl font-bold text-transparent md:text-4xl">
-              {header.subtitle}
-            </h3>
-            <div className="mx-auto mb-5 h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
-            <p className="header-desc mx-auto max-w-2xl leading-8 text-white/70">
-              {header.description}
-            </p>
-
-            {Gallery.length > 0 ? (
-              <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 mt-12">
-                {Gallery.map((img) => (
-                  <div key={img.id} className="mb-4 break-inside-avoid">
-                    <div className="gallery-item group text-left">
-                      <div className="overflow-hidden rounded-xl shadow-lg shadow-black/30 transition-shadow duration-500 group-hover:shadow-2xl group-hover:shadow-cyan-400/40">
-                        <img
-                          src={resolveImage(
-                            img.imageUrl,
-                            "/default-avatar.png",
-                          )}
-                          alt={img.title ?? "Gallery image"}
-                          onLoad={() => ScrollTrigger.refresh()}
-                          className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
-                        />
-                      </div>
-
-                      <h3 className="mt-2 text-lg font-semibold transition-colors duration-300 group-hover:text-cyan-300">
-                        {img.title}
-                      </h3>
-
-                      <h4 className="text-sm text-cyan-300/80 transition-colors duration-300 group-hover:text-cyan-200">
-                        {img.date
-                          ? new Date(img.date).toLocaleDateString("en-CA")
-                          : ""}
-                      </h4>
+        <div className="relative mx-auto max-w-7xl">
+          {header && (
+            <>
+              <h2 className="header-title mb-3 text-4xl font-extrabold md:text-5xl">
+                {header.title}
+              </h2>
+              <h3 className="header-title mb-3 bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-3xl font-bold text-transparent md:text-4xl">
+                {header.subtitle}
+              </h3>
+              <div className="mx-auto mb-5 h-1 w-24 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
+              <p className="header-desc mx-auto max-w-2xl leading-8 text-white/70">
+                {header.description}
+              </p>
+            </>
+          )}
+          {Gallery.length > 0 ? (
+            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 mt-12">
+              {Gallery.map((img) => (
+                <div key={img.id} className="mb-4 break-inside-avoid">
+                  <div className="gallery-item group text-left">
+                    <div className="overflow-hidden rounded-xl shadow-lg shadow-black/30 transition-shadow duration-500 group-hover:shadow-2xl group-hover:shadow-cyan-400/40">
+                      <img
+                        src={resolveImage(img.imageUrl, "/default-avatar.png")}
+                        alt={img.title ?? "Gallery image"}
+                        onLoad={() => ScrollTrigger.refresh()}
+                        className="w-full h-auto object-cover transition-transform duration-500 hover:scale-105"
+                      />
                     </div>
+
+                    <h3 className="mt-2 text-lg font-semibold transition-colors duration-300 group-hover:text-cyan-300">
+                      {img.title}
+                    </h3>
+
+                    <h4 className="text-sm text-cyan-300/80 transition-colors duration-300 group-hover:text-cyan-200">
+                      {img.date
+                        ? new Date(img.date).toLocaleDateString("en-CA")
+                        : ""}
+                    </h4>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-12 text-white/60">No images available.</p>
-            )}
-          </div>
-        </section>
-      )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-12 text-white/60">No images available.</p>
+          )}
+        </div>
+      </section>
     </main>
   );
 }

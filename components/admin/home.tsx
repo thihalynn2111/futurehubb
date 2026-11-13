@@ -104,6 +104,15 @@ export default function Home() {
       imageUrl: "",
       cards: [],
     },
+    {
+      page: "home",
+      sectionKey: "Partner & Project",
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      cards: [],
+    },
   ];
   const [seo, setSeo] = useState<SeoPage>({
     pageName: "home",

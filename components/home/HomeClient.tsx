@@ -5,7 +5,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+import { ChevronLeft, ChevronRight } from "lucide-react";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 type CardData = {
@@ -58,7 +58,7 @@ export default function HomeClient({
   const roadmap = rows.find((r) => r.sectionKey === "roadmap");
   const about = rows.find((r) => r.sectionKey === "about call to action");
   const contact = rows.find((r) => r.sectionKey === "contact call to action");
-
+  const partner = rows.find((r) => r.sectionKey === "Partner & Project");
   // ---------- Partner slider ----------
   const slideTo = (direction: 1 | -1) => {
     const slider = sliderRef.current;
@@ -670,23 +670,29 @@ export default function HomeClient({
       {/* ===================== PARTNERS SLIDER ===================== */}
       {projects.length > 0 && (
         <section className="overflow-hidden bg-[#0a3f4d] px-4 py-16 sm:px-6 md:py-24">
-          <h2 className="reveal mb-8 text-3xl font-extrabold md:mb-10 md:text-4xl text-center">
-            Our Partners
-          </h2>
+          {partner ? (
+            <h2 className="reveal mb-8 text-center text-3xl font-extrabold md:mb-10 md:text-4xl">
+              {partner.title}
+            </h2>
+          ) : (
+            <h2 className="reveal mb-8 text-center text-3xl font-extrabold md:mb-10 md:text-4xl">
+              Partner and Project
+            </h2>
+          )}
 
-          <div className="overflow-hidden">
+          <div className="overflow-hidden pt-20">
             <div ref={sliderRef} className="flex gap-6">
               {projects.map((partner) => (
                 <div
                   key={partner.id}
-                  className="group w-full shrink-0 rounded-3xl border border-white/15 bg-white/10 p-4 backdrop-blur-md md:w-[calc((100%-3rem)/4)]"
+                  className="group w-full shrink-0 rounded-3xl border border-white/15 bg-white/10 px-4 pb-6 pt-0 backdrop-blur-md md:w-[calc((100%-4.5rem)/4)] transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)]"
                 >
                   {partner.clientLogo && (
-                    <div className="overflow-hidden rounded-2xl bg-white/90">
+                    <div className="relative z-10 -mt-16 h-42 overflow-hidden rounded-full ">
                       <img
                         src={resolveImage(partner.clientLogo, "")}
                         alt={partner.title ?? "partner"}
-                        className="h-48 w-full rounded-md transition-transform duration-500 group-hover:scale-105 md:h-64 object-contain"
+                        className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                   )}
@@ -708,7 +714,7 @@ export default function HomeClient({
               aria-label="Previous"
               className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-white backdrop-blur-md transition hover:bg-cyan-300 hover:text-slate-900"
             >
-              <i className="fa-solid fa-less-than"></i>
+              <ChevronLeft size={20} />
             </button>
             <button
               type="button"
@@ -716,7 +722,7 @@ export default function HomeClient({
               aria-label="Next"
               className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-white backdrop-blur-md transition hover:bg-cyan-300 hover:text-slate-900"
             >
-              <i className="fa-solid fa-greater-than"></i>
+              <ChevronRight size={20} />
             </button>
           </div>
         </section>
