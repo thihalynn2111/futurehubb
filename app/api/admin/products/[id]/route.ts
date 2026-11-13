@@ -10,7 +10,6 @@ export async function PUT(
     const id = Number((await params).id);
     const body = await req.json();
 
-    // အကယ်၍ Request ထဲမှာ Restore လုပ်ရန် သို့မဟုတ် status ပြောင်းရန် သီးသန့်ပါလာလျှင် (သို့မဟုတ် Body ပါမလာလျှင် Restore လို့ ယူဆမည်)
     if (body.restore === true) {
       const restored = await prisma.productPost.update({
         where: { id },
@@ -19,8 +18,9 @@ export async function PUT(
       return NextResponse.json(restored, { status: 200 });
     }
 
-    // သာမန် Product Update (Edit) လုပ်ခြင်း
-    const { title, slug, categoryId, description, imageUrl } = body;
+    // 👇 type နဲ့ content ကို လက်ခံအောင် ထည့်ထားပါတယ်
+    const { title, slug, categoryId, description, imageUrl, type, content } =
+      body;
 
     const updatedProduct = await prisma.productPost.update({
       where: { id },
@@ -30,6 +30,8 @@ export async function PUT(
         categoryId: Number(categoryId),
         description,
         imageUrl,
+        type, // 👈 Update လုပ်တဲ့အခါ ထည့်မယ်
+        content, // 👈 Update လုပ်တဲ့အခါ ထည့်မယ်
       },
       include: {
         category: true,
@@ -68,7 +70,7 @@ export async function DELETE(
     } else {
       const trashed = await prisma.productPost.update({
         where: { id: Number(id) },
-        data: { deletedAt: new Date() }, // Soft delete
+        data: { deletedAt: new Date() },
       });
       return NextResponse.json(trashed, { status: 200 });
     }

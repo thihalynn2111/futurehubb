@@ -290,7 +290,7 @@ function ProductsContent() {
               {filteredProducts.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/user/products/${item.id}`}
+                  href={`/user/products/${item.slug}`}
                   className="group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl hover:border-teal-500/50 transition flex flex-col cursor-pointer"
                 >
                   <div className="relative h-52 overflow-hidden bg-slate-950/40">

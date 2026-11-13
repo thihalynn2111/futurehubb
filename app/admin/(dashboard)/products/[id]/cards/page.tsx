@@ -22,12 +22,15 @@ export default function ProductCardsManagementPage({
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editImage, setEditImage] = useState("");
+  // 👇 Edit အတွက် အသစ်ထည့်ရန်
+  const [editNumber, setEditNumber] = useState("");
+  const [editIcon, setEditIcon] = useState("");
+  const [editSortOrder, setEditSortOrder] = useState("0");
 
   const fetchProductCards = async () => {
     try {
       setLoading(true);
 
-      // 0. Fetch user auth & permissions
       const meRes = await fetch("/api/auth/me");
       if (meRes.ok) {
         const meData = await meRes.json();
@@ -37,7 +40,6 @@ export default function ProductCardsManagementPage({
         }
       }
 
-      // 1. Fetch Product details
       const resProd = await fetch(`/api/admin/products`);
       if (resProd.ok) {
         const products = await resProd.json();
@@ -47,7 +49,6 @@ export default function ProductCardsManagementPage({
         setProduct(currentProduct);
       }
 
-      // 2. Fetch cards directly by productId from card-items API
       const resCards = await fetch(
         `/api/admin/card-items?productId=${productId}`,
       );
@@ -68,7 +69,6 @@ export default function ProductCardsManagementPage({
     }
   }, [productId]);
 
-  // 🔑 Clean Permission Matrix Engine (Universal Super Admin Bypass + Dynamic Permissions)
   const isSuperAdmin = userRoles.some(
     (role) =>
       role.toLowerCase() === "super-admin" ||
@@ -80,7 +80,6 @@ export default function ProductCardsManagementPage({
     return isSuperAdmin || userPermissions.includes(permissionKey);
   };
 
-  // Cards Permissions
   const canReadCards =
     hasPermission("cards:read") || hasPermission("products:read");
   const canUpdateCards =
@@ -88,15 +87,17 @@ export default function ProductCardsManagementPage({
   const canDeleteCards =
     hasPermission("cards:delete") || hasPermission("products:delete");
 
-  // Handle Edit Click
   const handleEditClick = (card: any) => {
     setEditingCard(card);
     setEditTitle(card.title);
     setEditDesc(card.description || "");
     setEditImage(card.imageUrl || "");
+    // 👇 Edit လုပ်တဲ့အခါ Data တွေ ဖြည့်ရန်
+    setEditNumber(card.number || "");
+    setEditIcon(card.icon || "");
+    setEditSortOrder(String(card.sortOrder || "0"));
   };
 
-  // Handle Update Card
   const handleUpdateCard = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCard) return;
@@ -109,6 +110,9 @@ export default function ProductCardsManagementPage({
           title: editTitle,
           description: editDesc,
           imageUrl: editImage,
+          number: editNumber, // 👈 အသစ်ထည့်ထားသည်
+          icon: editIcon, // 👈 အသစ်ထည့်ထားသည်
+          sortOrder: Number(editSortOrder), // 👈 အသစ်ထည့်ထားသည်
         }),
       });
 
@@ -124,7 +128,6 @@ export default function ProductCardsManagementPage({
     }
   };
 
-  // Handle Delete / Trash Card
   const handleDeleteCard = async (cardId: number) => {
     if (!confirm("Are you sure you want to move this card to trash?")) return;
 
@@ -132,7 +135,6 @@ export default function ProductCardsManagementPage({
       const res = await fetch(`/api/admin/card-items/${cardId}`, {
         method: "DELETE",
       });
-
       if (res.ok) {
         alert("Card moved to trash!");
         fetchProductCards();
@@ -146,149 +148,242 @@ export default function ProductCardsManagementPage({
 
   if (loading)
     return (
-      <div className="p-8 text-center text-slate-600">Loading cards...</div>
+      <div className="p-8 text-center text-slate-600 bg-slate-50/50 min-h-screen">
+        Loading cards...
+      </div>
     );
 
+  const inputClass =
+    "w-full px-3.5 py-2.5 bg-white border border-purple-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition";
+
   return (
-    <div className="p-8 text-slate-800 min-h-screen bg-slate-100 space-y-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Back Link */}
-        <div>
+    <div className="p-8 text-slate-800 min-h-screen bg-slate-50/50 space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* 🧭 BREADCRUMB */}
+        <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
           <Link
             href="/admin/products"
-            className="text-sm font-bold text-blue-600 hover:underline"
+            className="hover:text-blue-600 font-semibold cursor-pointer"
           >
-            ← Back to Products Management
+            📦 Products
+          </Link>
+          {product && (
+            <>
+              <span>›</span>
+              <span className="font-semibold text-slate-800">
+                {product.title}
+              </span>
+            </>
+          )}
+          <span>›</span>
+          <span className="font-semibold text-purple-600">Cards</span>
+        </div>
+
+        {/* Header Section */}
+        <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">
+              Cards Management
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Edit or trash card items belonging to{" "}
+              <span className="font-semibold text-purple-600">
+                {product?.title || "this product"}
+              </span>
+              .
+            </p>
+          </div>
+          <Link
+            href="/admin/products"
+            className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold cursor-pointer transition"
+          >
+            ← Back to Products
           </Link>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-          <h1 className="text-xl font-bold text-slate-900">
-            Cards Management for Product:{" "}
-            <span className="text-teal-600">{product?.title || "Product"}</span>
-          </h1>
-          <p className="text-xs text-slate-500">
-            ဤစာမျက်နှာတွင် ဤထုတ်ကုန်နှင့် သက်ဆိုင်သော Card Items များကို Edit
-            လုပ်ခြင်း၊ Delete (Trash) ပြုလုပ်ခြင်းတို့ လုပ်ဆောင်နိုင်ပါသည်။
-          </p>
-
-          {canReadCards ? (
-            <div className="overflow-x-auto pt-4">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
-                    <th className="py-3 px-4">Card Title</th>
-                    <th className="py-3 px-4">Description</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
-                  {cards.length > 0 ? (
-                    cards.map((card) => (
-                      <tr key={card.id} className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-semibold text-slate-900">
-                          {card.title}
-                        </td>
-                        <td className="py-3 px-4 text-slate-500 truncate max-w-sm">
-                          {card.description || "N/A"}
-                        </td>
-                        <td className="py-3 px-4 text-right space-x-2">
-                          {canUpdateCards && (
-                            <button
-                              onClick={() => handleEditClick(card)}
-                              className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold cursor-pointer"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {canDeleteCards && (
-                            <button
-                              onClick={() => handleDeleteCard(card.id)}
-                              className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-bold cursor-pointer"
-                            >
-                              Trash
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="text-center py-6 text-slate-400"
-                      >
-                        No cards created for this product yet.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-6 text-rose-500 text-xs font-medium">
-              You do not have permission to view product cards.
-            </div>
-          )}
-        </div>
-
-        {/* Edit Modal / Form Section */}
+        {/* 🚀 EDIT MODAL SECTION */}
         {editingCard && canUpdateCards && (
-          <div className="bg-[#0b132b] text-white rounded-2xl p-6 shadow-lg space-y-4 border border-slate-800">
-            <h2 className="text-lg font-bold text-teal-400">
-              Edit Card Item: {editingCard.title}
-            </h2>
-            <form onSubmit={handleUpdateCard} className="space-y-4">
-              <div>
-                <label className="text-xs text-slate-300 block mb-1">
-                  Card Title
-                </label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#1c2541] border border-slate-700 rounded-xl text-sm outline-none text-white"
-                  required
-                />
+          <div className="bg-purple-50/90 border-2 border-purple-400 p-6 rounded-2xl space-y-4 shadow-lg">
+            <h3 className="text-sm font-bold text-purple-900">
+              ✏️ Edit Card Item: {editingCard.title}
+            </h3>
+            <form onSubmit={handleUpdateCard} className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-purple-800 uppercase">
+                    Card Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className={inputClass}
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-purple-800 uppercase">
+                    Image URL
+                  </label>
+                  <input
+                    type="text"
+                    value={editImage}
+                    onChange={(e) => setEditImage(e.target.value)}
+                    className={inputClass}
+                    placeholder="https://..."
+                  />
+                </div>
+                {/* 👇 Edit အတွက် အသစ်ထည့်ထားသော Input များ */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-purple-800 uppercase">
+                    Number
+                  </label>
+                  <input
+                    type="text"
+                    value={editNumber}
+                    onChange={(e) => setEditNumber(e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g. 01"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-purple-800 uppercase">
+                    Icon (URL / Class)
+                  </label>
+                  <input
+                    type="text"
+                    value={editIcon}
+                    onChange={(e) => setEditIcon(e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g. fa-user"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-purple-800 uppercase">
+                    Sort Order
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editSortOrder}
+                    onChange={(e) => setEditSortOrder(e.target.value)}
+                    className={inputClass}
+                    placeholder="0"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-xs text-slate-300 block mb-1">
-                  Image URL
-                </label>
-                <input
-                  type="text"
-                  value={editImage}
-                  onChange={(e) => setEditImage(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#1c2541] border border-slate-700 rounded-xl text-sm outline-none text-white"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-300 block mb-1">
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-purple-800 uppercase">
                   Description
                 </label>
                 <textarea
                   rows={3}
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#1c2541] border border-slate-700 rounded-xl text-sm outline-none text-white resize-none"
+                  className={`${inputClass} resize-none`}
+                  placeholder="Description"
                 />
               </div>
-              <div className="flex space-x-3">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold text-sm rounded-xl text-white cursor-pointer"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm"
                 >
                   Save Changes
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingCard(null)}
-                  className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 font-bold text-sm rounded-xl text-white cursor-pointer"
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold cursor-pointer transition"
                 >
                   Cancel
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* Content */}
+        {!canReadCards ? (
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm text-center text-rose-500 text-xs font-medium">
+            You do not have permission (`cards:read`) to view product cards.
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900">
+                🃏 Cards ({cards.length})
+              </h2>
+            </div>
+
+            {cards.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {cards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                  >
+                    {card.imageUrl && (
+                      <img
+                        src={card.imageUrl}
+                        alt={card.title}
+                        className="w-full h-32 object-cover"
+                      />
+                    )}
+                    <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          {/* 👇 List မှာ Number နဲ့ Icon ပြရန် */}
+                          {card.number && (
+                            <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md">
+                              {card.number}
+                            </span>
+                          )}
+                          {card.icon && (
+                            <span className="text-xs text-slate-500 italic">
+                              Icon: {card.icon}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-900">
+                          {card.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 whitespace-pre-line">
+                          {card.description || "No description."}
+                        </p>
+                        {card.sortOrder !== undefined && (
+                          <p className="text-[10px] text-slate-400">
+                            Sort Order: {card.sortOrder}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {canUpdateCards && (
+                          <button
+                            onClick={() => handleEditClick(card)}
+                            className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold cursor-pointer transition"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {canDeleteCards && (
+                          <button
+                            onClick={() => handleDeleteCard(card.id)}
+                            className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-semibold cursor-pointer transition"
+                          >
+                            Trash
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-10 text-center text-slate-400 text-xs">
+                No cards for this product yet.
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -32,11 +32,18 @@ export default function AdminProductsPage() {
   const [postCategoryId, setPostCategoryId] = useState("");
   const [postImage, setPostImage] = useState("");
   const [postDesc, setPostDesc] = useState("");
+  // 👇 ProductPost အသစ်ထည့်ရန်
+  const [postType, setPostType] = useState("standard");
+  const [postContent, setPostContent] = useState("");
 
   const [cardPostId, setCardPostId] = useState("");
   const [cardTitle, setCardTitle] = useState("");
   const [cardDesc, setCardDesc] = useState("");
   const [cardImage, setCardImage] = useState("");
+  // 👇 CardItem အသစ်ထည့်ရန်
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardIcon, setCardIcon] = useState("");
+  const [cardSortOrder, setCardSortOrder] = useState("0");
 
   // Edit States
   const [editingCategory, setEditingCategory] = useState<any>(null);
@@ -49,6 +56,9 @@ export default function AdminProductsPage() {
   const [editPostCatId, setEditPostCatId] = useState("");
   const [editPostImage, setEditPostImage] = useState("");
   const [editPostDesc, setEditPostDesc] = useState("");
+  // 👇 Edit ProductPost အသစ်ထည့်ရန်
+  const [editPostType, setEditPostType] = useState("");
+  const [editPostContent, setEditPostContent] = useState("");
 
   const fetchData = async () => {
     try {
@@ -81,7 +91,6 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Product တစ်ခုရဲ့ Card တွေကို ယူခြင်း
   const fetchCards = async (productId: number) => {
     setCardsLoading(true);
     try {
@@ -108,7 +117,6 @@ export default function AdminProductsPage() {
     fetchData();
   }, []);
 
-  // 🔑 Super Admin Bypass & Permission Checker
   const isSuperAdmin = userRoles.some((role) => {
     const r = role.toLowerCase().replace(/[\s_-]/g, "");
     return (
@@ -120,7 +128,6 @@ export default function AdminProductsPage() {
     return isSuperAdmin || userPermissions.includes(permissionKey);
   };
 
-  // 🌟 Unified Products Permissions Matrix
   const canReadProducts = hasPermission("products:read");
   const canCreateProducts = hasPermission("products:create");
   const canUpdateProducts = hasPermission("products:update");
@@ -164,7 +171,6 @@ export default function AdminProductsPage() {
     fetchCards(post.id);
   };
 
-  // Derived data
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
   const selectedPost = posts.find((p) => p.id === selectedPostId);
   const categoryPosts = posts.filter(
@@ -263,6 +269,8 @@ export default function AdminProductsPage() {
         categoryId: Number(postCategoryId),
         imageUrl: postImage,
         description: postDesc,
+        type: postType, // 👈 အသစ်ထည့်ထားသည်
+        content: postContent, // 👈 အသစ်ထည့်ထားသည်
       }),
     });
 
@@ -272,6 +280,8 @@ export default function AdminProductsPage() {
       setPostSlug("");
       setPostImage("");
       setPostDesc("");
+      setPostType("standard");
+      setPostContent("");
       setShowPostForm(false);
       fetchData();
     } else {
@@ -292,20 +302,19 @@ export default function AdminProductsPage() {
         categoryId: Number(editPostCatId),
         imageUrl: editPostImage,
         description: editPostDesc,
+        type: editPostType, // 👈 အသစ်ထည့်ထားသည်
+        content: editPostContent, // 👈 အသစ်ထည့်ထားသည်
       }),
     });
 
     if (res.ok) {
       const updatedProduct = await res.json();
       alert("Product Post updated successfully!");
-
-      // 🔄 React State ထဲရှိ posts array ကို Updated Product အသစ်ဖြင့် ချက်ချင်း အစားထိုးမည်
       setPosts((prevPosts) =>
         prevPosts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)),
       );
-
       setEditingPost(null);
-      fetchData(); // Sync with server background
+      fetchData();
     } else {
       alert("Failed to update product post");
     }
@@ -354,6 +363,9 @@ export default function AdminProductsPage() {
         title: cardTitle,
         description: cardDesc,
         imageUrl: cardImage,
+        number: cardNumber, // 👈 အသစ်ထည့်ထားသည်
+        icon: cardIcon, // 👈 အသစ်ထည့်ထားသည်
+        sortOrder: Number(cardSortOrder), // 👈 အသစ်ထည့်ထားသည်
       }),
     });
 
@@ -362,6 +374,9 @@ export default function AdminProductsPage() {
       setCardTitle("");
       setCardDesc("");
       setCardImage("");
+      setCardNumber("");
+      setCardIcon("");
+      setCardSortOrder("0");
       fetchData();
       fetchCards(Number(cardPostId));
     } else {
@@ -508,6 +523,32 @@ export default function AdminProductsPage() {
                     onChange={(e) => setEditPostImage(e.target.value)}
                     className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none"
                     placeholder="Image URL"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-emerald-800 uppercase">
+                    Product Type
+                  </label>
+                  <input
+                    type="text"
+                    value={editPostType}
+                    onChange={(e) => setEditPostType(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none"
+                    placeholder="e.g. standard, custom-hr"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-emerald-800 uppercase">
+                    Content
+                  </label>
+                  <input
+                    type="text"
+                    value={editPostContent}
+                    onChange={(e) => setEditPostContent(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white rounded-xl border border-emerald-300 text-slate-800 text-xs focus:outline-none"
+                    placeholder="Content"
                   />
                 </div>
               </div>
@@ -807,6 +848,31 @@ export default function AdminProductsPage() {
                             className={inputClass}
                           />
                         </div>
+                        {/* 👇 အသစ်ထည့်ထားသော Product Type နှင့် Content */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Product Type
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. standard, custom-hr"
+                            value={postType}
+                            onChange={(e) => setPostType(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Content
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Full content..."
+                            value={postContent}
+                            onChange={(e) => setPostContent(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[11px] font-semibold text-slate-500 uppercase">
@@ -862,6 +928,12 @@ export default function AdminProductsPage() {
                             <p className="text-xs text-slate-500 line-clamp-2">
                               {post.description || "No description."}
                             </p>
+                            {/* 👇 List မှာ Type ပြရန် */}
+                            {post.type && (
+                              <p className="text-[10px] bg-emerald-50 text-emerald-600 inline-block px-2 py-0.5 rounded">
+                                Type: {post.type}
+                              </p>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-1.5">
                             {canUpdateProducts && (
@@ -874,6 +946,8 @@ export default function AdminProductsPage() {
                                   setEditPostCatId(post.categoryId);
                                   setEditPostImage(post.imageUrl || "");
                                   setEditPostDesc(post.description || "");
+                                  setEditPostType(post.type || "");
+                                  setEditPostContent(post.content || "");
                                   window.scrollTo({
                                     top: 0,
                                     behavior: "smooth",
@@ -1004,6 +1078,44 @@ export default function AdminProductsPage() {
                             className={inputClass}
                           />
                         </div>
+                        {/* 👇 အသစ်ထည့်ထားသော Card Number, Icon, SortOrder */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Number
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 01"
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Icon (URL / Class)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. fa-user"
+                            value={cardIcon}
+                            onChange={(e) => setCardIcon(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase">
+                            Sort Order
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0"
+                            value={cardSortOrder}
+                            onChange={(e) => setCardSortOrder(e.target.value)}
+                            className={inputClass}
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[11px] font-semibold text-slate-500 uppercase">
@@ -1050,12 +1162,30 @@ export default function AdminProductsPage() {
                           />
                         )}
                         <div className="p-5 space-y-2">
+                          <div className="flex items-center gap-2">
+                            {/* 👇 List မှာ Number နဲ့ Icon ပြရန် */}
+                            {card.number && (
+                              <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md">
+                                {card.number}
+                              </span>
+                            )}
+                            {card.icon && (
+                              <span className="text-xs text-slate-500 italic">
+                                Icon: {card.icon}
+                              </span>
+                            )}
+                          </div>
                           <h3 className="text-sm font-bold text-slate-900">
                             {card.title}
                           </h3>
                           <p className="text-xs text-slate-500 whitespace-pre-line">
                             {card.description || "No description."}
                           </p>
+                          {card.sortOrder !== undefined && (
+                            <p className="text-[10px] text-slate-400">
+                              Sort Order: {card.sortOrder}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}

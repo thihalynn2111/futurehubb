@@ -11,12 +11,10 @@ export default function ProductTrashPage() {
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all trashed items & Auth permissions
   const fetchTrashData = async () => {
     try {
       setLoading(true);
 
-      // 0. Fetch user auth & permissions (Super Admin & Matrix support)
       const meRes = await fetch("/api/auth/me");
       if (meRes.ok) {
         const meData = await meRes.json();
@@ -26,21 +24,18 @@ export default function ProductTrashPage() {
         }
       }
 
-      // 1. Fetch trashed categories
       const resCat = await fetch("/api/admin/categories?trash=true");
       if (resCat.ok) {
         const dataCat = await resCat.json();
         setTrashedCategories(dataCat);
       }
 
-      // 2. Fetch trashed product posts
       const resPost = await fetch("/api/admin/products?trash=true");
       if (resPost.ok) {
         const dataPost = await resPost.json();
         setTrashedPosts(dataPost);
       }
 
-      // 3. Fetch trashed card items
       const resCard = await fetch("/api/admin/card-items");
       if (resCard.ok) {
         const dataCard = await resCard.json();
@@ -57,7 +52,6 @@ export default function ProductTrashPage() {
     fetchTrashData();
   }, []);
 
-  // 🔑 Universal Permission Matrix Engine
   const isSuperAdmin = userRoles.some(
     (role) =>
       role.toLowerCase().includes("super") || role.toLowerCase() === "admin",
@@ -67,7 +61,6 @@ export default function ProductTrashPage() {
     return isSuperAdmin || userPermissions.includes(permissionKey);
   };
 
-  // Permissions for Trash Bin (Restore = update, Permanent Delete = delete)
   const canUpdateCategories =
     hasPermission("categories:update") || hasPermission("products:update");
   const canDeleteCategories =
@@ -89,7 +82,7 @@ export default function ProductTrashPage() {
       const res = await fetch(`/api/admin/categories/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ restore: true }), // 🚀 ဤနေရာတွင် restore: true ထည့်သွင်းပေးထားပါသည်
+        body: JSON.stringify({ restore: true }),
       });
       if (res.ok) {
         alert("Category restored successfully! ✅");
@@ -261,6 +254,7 @@ export default function ProductTrashPage() {
               <thead>
                 <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">Title</th>
+                  <th className="py-3 px-4">Type</th> {/* 👇 Type ထည့်ထားသည် */}
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Deleted At</th>
                   <th className="py-3 px-4 text-right">Actions</th>
@@ -272,6 +266,15 @@ export default function ProductTrashPage() {
                     <tr key={post.id} className="hover:bg-slate-50">
                       <td className="py-3.5 px-4 font-semibold text-slate-900">
                         {post.title}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {post.type ? (
+                          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg font-bold">
+                            {post.type}
+                          </span>
+                        ) : (
+                          "N/A"
+                        )}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg font-bold">
@@ -306,7 +309,7 @@ export default function ProductTrashPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="text-center py-6 text-slate-400 text-xs"
                     >
                       No trashed product posts found.
@@ -328,6 +331,8 @@ export default function ProductTrashPage() {
               <thead>
                 <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">Card Title</th>
+                  <th className="py-3 px-4">Number / Icon</th>{" "}
+                  {/* 👇 Number/Icon ထည့်ထားသည် */}
                   <th className="py-3 px-4">Parent Product</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Deleted At</th>
@@ -344,6 +349,13 @@ export default function ProductTrashPage() {
                       <tr key={card.id} className="hover:bg-slate-50">
                         <td className="py-3.5 px-4 font-semibold text-slate-900">
                           {card.title}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-500">
+                          {card.number && (
+                            <span className="mr-2">{card.number}</span>
+                          )}
+                          {card.icon && <span>Icon: {card.icon}</span>}
+                          {!card.number && !card.icon && "N/A"}
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg font-bold">
@@ -384,7 +396,7 @@ export default function ProductTrashPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="text-center py-6 text-slate-400 text-xs"
                     >
                       No trashed card items found.

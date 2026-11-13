@@ -28,7 +28,16 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { title, description, categoryId, imageUrl } = body;
+    // 👇 type, content နဲ့ slug ကို လက်ခံအောင် ထည့်ထားပါတယ်
+    const {
+      title,
+      description,
+      categoryId,
+      imageUrl,
+      type,
+      content,
+      slug: customSlug,
+    } = body;
 
     if (!title || !categoryId) {
       return NextResponse.json(
@@ -37,30 +46,27 @@ export async function POST(req: Request) {
       );
     }
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    // Custom Slug မပါလာရင် Title ကနေ အလိုအလျောက် ဖန်တီးမယ်
+    const slug = customSlug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const parsedCategoryId = isNaN(Number(categoryId))
       ? categoryId
       : Number(categoryId);
 
-    // 🔥 Database schema တွင် required ဖြစ်နေသော author, authorType, type နှင့် category ကို ဖြည့်စွက်ခြင်း
-    // (အကယ်၍ Admin user id က 1 ဖြစ်နေပါက authorId: 1 ဟା သို့မဟုတ် connect ဖြင့် ချိတ်ပါ)
     const newProduct = await prisma.productPost.create({
       data: {
         title,
         slug,
         description: description || "",
         imageUrl: imageUrl || "",
-        type: "DEFAULT",
+        type: type || "standard", // 👈 Frontend ကနေ ပါလာတဲ့ type ကို သုံးမယ်
+        content: content || "", // 👈 Frontend ကနေ ပါလာတဲ့ content ကို သုံးမယ်
         authorType: "ADMIN",
-        // Category relation
         category: {
           connect: { id: parsedCategoryId },
         },
-        // 🔥 အကယ်၍ your schema uses authorId (number/string) သို့မဟုတ် author relation:
-        // ပထမဆုံး Admin User ကို ရှာပြီး ချိတ်ဆက်ပေးခြင်း (သို့မဟုတ် authorId: 1 ဟု တိုက်ရိုက်ထည့်နိုင်သည်)
         author: {
           connect: {
-            id: 1, // သင့် Database ထဲရှိ Admin User ၏ ID (သို့မဟုတ် ပထမဆုံး User ID) ကို ထည့်ပါ
+            id: 1, // သင့် Admin User ID ကို ထည့်ပါ
           },
         },
       } as any,
