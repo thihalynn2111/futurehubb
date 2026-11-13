@@ -42,6 +42,11 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
         { name: "About Content", href: "/admin/aboutSection", icon: "📄" },
         { name: "Contact Content", href: "/admin/contactSection", icon: "📩" },
         { name: "Gallery Content", href: "/admin/gallerySection", icon: "🖼️" },
+        {
+          name: "Partner & Project Content",
+          href: "/admin/projectSection",
+          icon: "🖼️",
+        },
       ],
     },
   ];

@@ -84,7 +84,7 @@ export default function EditMember({ id }: EditMemberProps) {
     <div className="p-8 max-w-3xl mx-auto text-gray-900 font-sans">
       {/* Header Section */}
       <div className="mb-8 border-b border-gray-200 pb-6">
-        <span className="text-orange-600 text-xs font-bold tracking-widest uppercase">
+        <span className="text-blue-600 text-xs font-bold tracking-widest uppercase">
           Team Management
         </span>
         <h1 className="text-3xl font-extrabold text-gray-900 mt-1">
@@ -181,7 +181,7 @@ export default function EditMember({ id }: EditMemberProps) {
                 htmlFor="img"
                 className="inline-flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium border border-gray-200 rounded-xl py-2.5 px-4 cursor-pointer text-sm transition shadow-sm"
               >
-                <Upload size={16} className="text-orange-600" />
+                <Upload size={16} className="text-blue-600" />
                 <span>Choose Profile Photo</span>
               </label>
               <input
@@ -205,7 +205,7 @@ export default function EditMember({ id }: EditMemberProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="name"
           >
-            <User size={16} className="text-orange-600 mr-1" />
+            <User size={16} className="text-blue-600 mr-1" />
             <span>Name</span>
           </label>
           <input
@@ -214,7 +214,7 @@ export default function EditMember({ id }: EditMemberProps) {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter full name..."
           />
         </div>
@@ -225,7 +225,7 @@ export default function EditMember({ id }: EditMemberProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="position"
           >
-            <Briefcase size={16} className="text-orange-600 mr-1" />
+            <Briefcase size={16} className="text-blue-600 mr-1" />
             <span>Position</span>
           </label>
           <input
@@ -236,7 +236,7 @@ export default function EditMember({ id }: EditMemberProps) {
             onChange={(e) =>
               setFormData({ ...formData, position: e.target.value })
             }
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             placeholder="Enter job position / title..."
           />
         </div>
@@ -247,7 +247,7 @@ export default function EditMember({ id }: EditMemberProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="bio"
           >
-            <FileText size={16} className="text-orange-600 mr-1" />
+            <FileText size={16} className="text-blue-600 mr-1" />
             <span>Bio</span>
           </label>
           <textarea
@@ -255,7 +255,7 @@ export default function EditMember({ id }: EditMemberProps) {
             id="bio"
             value={formData.bio ?? ""}
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
             rows={4}
             placeholder="Enter short biography..."
           />
@@ -265,7 +265,7 @@ export default function EditMember({ id }: EditMemberProps) {
             className="block text-sm font-semibold text-gray-700 mb-1 flex items-center space-x-1"
             htmlFor="sortOrder"
           >
-            <ListOrdered size={16} className="text-orange-600 mr-1" />
+            <ListOrdered size={16} className="text-blue-600 mr-1" />
             <span>Sort Order</span>
           </label>
           <input
@@ -276,7 +276,7 @@ export default function EditMember({ id }: EditMemberProps) {
             onChange={(e) =>
               setFormData({ ...formData, sortOrder: Number(e.target.value) })
             }
-            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-orange-500 transition text-sm"
+            className="w-full border border-gray-200 rounded-xl py-2.5 px-4 focus:outline-none focus:border-blue-500 transition text-sm"
           />
         </div>
         {/* Submit Button */}
@@ -284,7 +284,7 @@ export default function EditMember({ id }: EditMemberProps) {
           <button
             type="submit"
             disabled={saving}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-xl shadow-sm transition flex items-center space-x-2 disabled:opacity-55"
           >
             {saving ? (
               <Loader2 className="animate-spin" size={18} />
