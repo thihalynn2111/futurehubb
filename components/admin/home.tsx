@@ -29,13 +29,13 @@ type HomeSection = {
   cards: HomeCard[];
 };
 
-type SeoPage = {
-  id?: number;
-  pageName: string;
-  metaTitle: string;
-  metaDesc: string;
-  keywords: string;
-};
+// type SeoPage = {
+//   id?: number;
+//   pageName: string;
+//   metaTitle: string;
+//   metaDesc: string;
+//   keywords: string;
+// };
 
 export default function Home() {
   const [sections, setSections] = useState<HomeSection[]>([]);
@@ -114,12 +114,12 @@ export default function Home() {
       cards: [],
     },
   ];
-  const [seo, setSeo] = useState<SeoPage>({
-    pageName: "home",
-    metaTitle: "",
-    metaDesc: "",
-    keywords: "",
-  });
+  // const [seo, setSeo] = useState<SeoPage>({
+  //   pageName: "home",
+  //   metaTitle: "",
+  //   metaDesc: "",
+  //   keywords: "",
+  // });
 
   useEffect(() => {
     async function fetchSections() {
@@ -147,13 +147,13 @@ export default function Home() {
         });
 
         setSections(mergedSections);
-        setSeo({
-          id: result.seo?.id,
-          pageName: result.seo?.pageName ?? "home",
-          metaTitle: result.seo?.metaTitle ?? "",
-          metaDesc: result.seo?.metaDesc ?? "",
-          keywords: result.seo?.keywords ?? "",
-        });
+        // setSeo({
+        //   id: result.seo?.id,
+        //   pageName: result.seo?.pageName ?? "home",
+        //   metaTitle: result.seo?.metaTitle ?? "",
+        //   metaDesc: result.seo?.metaDesc ?? "",
+        //   keywords: result.seo?.keywords ?? "",
+        // });
       } catch (error) {
         console.error("Error fetching sections:", error);
         setError("Error fetching sections");
@@ -458,10 +458,9 @@ export default function Home() {
 
       <form className="space-y-6">
         {/* SEO Settings */}
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm mt-6">
+        {/* <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm mt-6">
           <h2 className="text-xl font-semibold mb-6">SEO Settings</h2>
 
-          {/* Meta Title */}
           <div className="mb-5">
             <label className="block text-sm font-medium mb-2">Meta Title</label>
 
@@ -478,8 +477,6 @@ export default function Home() {
               placeholder="Enter meta title"
             />
           </div>
-
-          {/* Meta Description */}
           <div className="mb-5">
             <label className="block text-sm font-medium mb-2">
               Meta Description
@@ -499,7 +496,6 @@ export default function Home() {
             />
           </div>
 
-          {/* Keywords */}
           <div className="mb-5">
             <label className="block text-sm font-medium mb-2">Keywords</label>
 
@@ -516,7 +512,7 @@ export default function Home() {
               placeholder="Enter keywords separated by commas"
             />
           </div>
-        </div>
+        </div>*/}
         {sections.map((section) => {
           const sectionTitle = section.sectionKey
             ? section.sectionKey.charAt(0).toUpperCase() +

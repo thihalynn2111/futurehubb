@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 type EditMemberProps = {
-  id: number;
+  slug: String;
 };
 
-export default function EditMember({ id }: EditMemberProps) {
+export default function EditMember({ slug }: EditMemberProps) {
   const [member, setMember] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,7 +42,7 @@ export default function EditMember({ id }: EditMemberProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`/api/admin/team-members/${id}`);
+        const response = await fetch(`/api/admin/team-members/${slug}`);
         const result = await response.json();
         if (result.success && result.data) {
           setMember(result.data);
@@ -61,7 +61,7 @@ export default function EditMember({ id }: EditMemberProps) {
       }
     };
     fetchData();
-  }, [id]);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -120,7 +120,7 @@ export default function EditMember({ id }: EditMemberProps) {
               imageUrl = uploadResult.imageUrl;
               formData.imageUrl = imageUrl;
             }
-            const response = await fetch(`/api/admin/team-members/${id}`, {
+            const response = await fetch(`/api/admin/team-members/${slug}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",

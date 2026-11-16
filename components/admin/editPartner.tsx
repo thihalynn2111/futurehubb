@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 type EditPartnerProps = {
-  id: number;
+  slug: String;
 };
 
-export default function EditPartner({ id }: EditPartnerProps) {
+export default function EditPartner({ slug }: EditPartnerProps) {
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,7 +52,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`/api/admin/partner/${id}`);
+        const response = await fetch(`/api/admin/partner/${slug}`);
         const result = await response.json();
         if (result.success && result.data) {
           setPartner(result.data);
@@ -71,7 +71,7 @@ export default function EditPartner({ id }: EditPartnerProps) {
       }
     };
     fetchData();
-  }, [id]);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -131,13 +131,15 @@ export default function EditPartner({ id }: EditPartnerProps) {
               }
 
               imageUrl = uploadResult.imageUrl;
+              formData.clientLogo = imageUrl;
             }
-            const response = await fetch(`/api/admin/partner/${id}`, {
+            const response = await fetch(`/api/admin/partner/${slug}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ formData, imageUrl: imageUrl }),
+
+              body: JSON.stringify(formData),
             });
 
             const result = await response.json();
@@ -148,15 +150,21 @@ export default function EditPartner({ id }: EditPartnerProps) {
             if (!response.ok || !result.success) {
               throw new Error(result.message || "Failed to update member");
             }
+
             Swal.fire({
               title: "Success!",
-              text: "Partner updated successfully!",
+              text: "Partner edited successfully!",
               icon: "success",
               confirmButtonText: "OK",
             });
           } catch (error: any) {
             console.error("Detailed Error:", error);
-            alert(error.message || "Something went wrong");
+            Swal.fire({
+              title: "Error!",
+              text: error.message || "Something went wrong",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
           } finally {
             setSaving(false);
           }

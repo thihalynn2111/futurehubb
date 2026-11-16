@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+function generateSlug(title: string) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -16,6 +23,30 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+    const baseSlug = generateSlug(body.title);
+
+    if (!baseSlug) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please use an English project title for slug generation",
+        },
+        { status: 400 },
+      );
+    }
+
+    // 2. Check whether slug already exists
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (
+      await prisma.projects.findUnique({
+        where: { slug },
+      })
+    ) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
     // Create new project
     const newProject = await prisma.projects.create({
@@ -25,6 +56,7 @@ export async function POST(request: NextRequest) {
         description: body.description.trim(),
         clientLogo: body.clientLogo || null,
         sortOrder: Number(body.sortOrder) || 0,
+        slug: slug,
       },
     });
 

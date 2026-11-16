@@ -14,6 +14,30 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+    const baseSlug = generateSlug(body.name);
+
+    if (!baseSlug) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please use an English project title for slug generation",
+        },
+        { status: 400 },
+      );
+    }
+
+    // 2. Check whether slug already exists
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (
+      await prisma.teamMember.findUnique({
+        where: { slug },
+      })
+    ) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
     const newMember = await prisma.teamMember.create({
       data: {
@@ -22,6 +46,7 @@ export async function POST(request: NextRequest) {
         bio: body.bio || null,
         imageUrl: body.imageUrl || null,
         sortOrder: Number(body.sortOrder) || 0,
+        slug: slug,
       },
     });
 
@@ -43,6 +68,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 },
     );
+  }
+  function generateSlug(title: string) {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
   }
 }
 

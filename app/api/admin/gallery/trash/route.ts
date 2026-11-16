@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const members = await prisma.teamMember.findMany({
+    const gallery = await prisma.gallery.findMany({
       where: {
         deletedAt: { not: null },
       },
@@ -14,15 +14,15 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: members,
+      data: gallery,
     });
   } catch (error) {
-    console.error("GET TEAM MEMBERS ERROR:", error);
+    console.error("GET GALLERY ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to fetch team members",
+        message: "Failed to fetch gallery",
       },
       { status: 500 },
     );

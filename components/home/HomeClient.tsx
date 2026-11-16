@@ -583,12 +583,10 @@ export default function HomeClient({
               </div>
               <div>
                 {contact.cards.map((card) => (
-                  // အပြင် wrapper = GSAP အတွက်ပဲ (grid မပါရ)
                   <div
                     key={card.id}
                     className="contact-card m-3 will-change-transform mt-6"
                   >
-                    {/* အတွင်း card = style + grid အားလုံး ဒီမှာ */}
                     <div
                       className={`group grid w-full grid-cols-1 rounded-l-3xl border border-white/15 bg-white/10 p-5 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)] sm:p-6 ${
                         card.imageUrl ? "md:grid-cols-[30%_70%]" : ""

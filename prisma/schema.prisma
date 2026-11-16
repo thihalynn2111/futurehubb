@@ -8,14 +8,14 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   name         String
-  email        String        @unique
+  email        String    @unique
   passwordHash String
-  status       Int           @default(1)
+  status       Int       @default(1)
   deletedAt    DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Relations
   posts        ProductPost[] @relation("UserAuthors")
@@ -27,22 +27,22 @@ model User {
 }
 
 model ProductCategory {
-  id        Int           @id @default(autoincrement())
-  name      String        @unique
-  slug      String        @unique
-  status    Int           @default(1)
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  status    Int       @default(1)
   deletedAt DateTime?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // Relations
-  posts     ProductPost[]
+  posts ProductPost[]
 
   @@map("product_categories")
 }
 
 model CardItem {
-  id          Int                  @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   productId   Int?
   sectionId   Int?
   type        String
@@ -51,19 +51,19 @@ model CardItem {
   number      String?
   icon        String?
   title       String?
-  description String?              @db.Text
+  description String?   @db.Text
   imageUrl    String?
-  sortOrder   Decimal              @default(0) @db.Decimal(10, 2)
-  isActive    Boolean              @default(true)
+  sortOrder   Decimal   @default(0) @db.Decimal(10, 2)
+  isActive    Boolean   @default(true)
   deletedAt   DateTime?
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  product     ProductPost?         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  section     PageSectionEditable? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  creator     User?                @relation("CardCreator", fields: [creatorId], references: [id], onDelete: SetNull)
-  updater     User?                @relation("CardUpdater", fields: [updaterId], references: [id], onDelete: SetNull)
+  product ProductPost?         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  section PageSectionEditable? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  creator User?                @relation("CardCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  updater User?                @relation("CardUpdater", fields: [updaterId], references: [id], onDelete: SetNull)
 
   @@map("card_items")
 }
@@ -74,22 +74,22 @@ model UserRole {
   deletedAt DateTime?
 
   // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
   @@id([userId, roleId])
   @@map("user_roles")
 }
 
 model Role {
-  id          Int              @id @default(autoincrement())
-  name        String           @unique
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
   label       String
-  description String?          @db.Text
-  isSystem    Boolean          @default(false)
+  description String?   @db.Text
+  isSystem    Boolean   @default(false)
   deletedAt   DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   userRoles   UserRole[]
@@ -104,25 +104,25 @@ model RolePermission {
   deletedAt    DateTime?
 
   // Relations
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
 
   @@id([roleId, permissionId])
   @@map("role_permissions")
 }
 
 model Permission {
-  id          Int              @id @default(autoincrement())
-  name        String           @unique
-  resource    String
-  action      String
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  resource String
+  action   String
 
-  description String?          @db.Text
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  roles       RolePermission[]
+  roles RolePermission[]
 
   @@unique([resource, action])
   @@map("permissions")
@@ -142,13 +142,14 @@ model PageSectionEditable {
   updatedAt   DateTime  @updatedAt
 
   // Relations
-  cards       CardItem[]
+  cards CardItem[]
 
   @@map("page_section_editables")
 }
 
 model Projects {
   id          Int       @id @default(autoincrement())
+  slug      String?   @unique
   title       String
   subtitle    String?
   description String?   @db.Text
@@ -164,6 +165,7 @@ model Projects {
 
 model TeamMember {
   id        Int       @id @default(autoincrement())
+  slug      String?   @unique
   name      String
   position  String
   imageUrl  String?
@@ -193,69 +195,70 @@ model Inquiry {
 }
 
 model SiteSetting {
-  id             Int       @id @default(autoincrement())
-  logoHeader     String?
-  logoHeaderLink String?
-  logoFooter     String?
-  logoFooterLink String?
-  favicon        String?
-  siteName       String
-  siteTagline    String?
-  emails         Json?
-  phones         Json?
-  contactAddress String?
-  officeHours    String?
-  socialLinks    Json?
-  footerText     String?
-  metaTitle      String?
+  id              Int      @id @default(autoincrement())
+  logoHeader      String?
+  logoHeaderLink  String?
+  logoFooter      String?
+  logoFooterLink  String?
+  favicon         String?
+  siteName        String
+  siteTagline     String?
+  emails          Json?
+  phones          Json?
+  contactAddress  String?
+  officeHours     String?
+  socialLinks     Json?
+  footerText      String?
+  metaTitle       String?
   metaDescription String?  @db.Text
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("site_settings")
 }
 
 model SeoPage {
-  id        Int       @id @default(autoincrement())
-  pageName  String    @unique
+  id        Int      @id @default(autoincrement())
+  pageName  String   @unique
   metaTitle String?
-  metaDesc  String?   @db.Text
+  metaDesc  String?  @db.Text
   keywords  String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("seo_pages")
 }
 
 model ProductPost {
-  id          Int             @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   categoryId  Int
   authorId    Int
-  authorType  String          // 'USER' သို့မဟုတ် 'TEAM_MEMBER' (Polymorphic tracking အတွက်)
+  authorType  String // 'USER' သို့မဟုတ် 'TEAM_MEMBER' (Polymorphic tracking အတွက်)
   type        String
   title       String
-  slug        String          @unique
-  description String?         @db.Text
-  content     String?         @db.LongText
+  slug        String    @unique
+  description String?   @db.Text
+  content     String?   @db.LongText
   imageUrl    String?
-  status      Int             @default(1)
+  status      Int       @default(1)
   publishedAt DateTime?
   deletedAt   DateTime?
   metaTitle   String?
-  metaDesc    String?         @db.Text
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  metaDesc    String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  category    ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  author      User            @relation("UserAuthors", fields: [authorId], references: [id], onDelete: Restrict)
-  cards       CardItem[]
+  category ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author   User            @relation("UserAuthors", fields: [authorId], references: [id], onDelete: Restrict)
+  cards    CardItem[]
 
   @@map("product_posts")
 }
 
 model Gallery {
   id        Int       @id @default(autoincrement())
+  slug String? @unique
   imageUrl  String    @db.Text
   title     String?
   date      DateTime? @db.Date

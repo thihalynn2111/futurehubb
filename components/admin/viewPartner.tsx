@@ -66,7 +66,7 @@ export default function ViewProjects() {
   const canUpdate = hasPermission("project:update");
   const canDelete = hasPermission("project:delete");
   const canCreate = hasPermission("project:create");
-  async function handleDelete(id: number) {
+  async function handleDelete(slug: String) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
       text: "You want to delete this!",
@@ -81,7 +81,7 @@ export default function ViewProjects() {
     if (!confirmed.isConfirmed) return;
 
     try {
-      const response = await fetch(`/api/admin/partner/${id}`, {
+      const response = await fetch(`/api/admin/partner/${slug}`, {
         method: "DELETE",
       });
 
@@ -92,7 +92,7 @@ export default function ViewProjects() {
       }
 
       setProjects((previous) =>
-        previous.filter((project) => project.id !== id),
+        previous.filter((project) => project.slug !== slug),
       );
 
       Swal.fire({
@@ -200,7 +200,7 @@ export default function ViewProjects() {
                 {canUpdate && (
                   <button
                     onClick={() =>
-                      router.push(`/admin/projects/${project.id}/edit`)
+                      router.push(`/admin/projects/${project.slug}/edit`)
                     }
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-xl border border-gray-200 transition flex items-center justify-center space-x-1.5 text-sm shadow-sm"
                   >
@@ -210,7 +210,7 @@ export default function ViewProjects() {
                 )}
                 {canDelete && (
                   <button
-                    onClick={() => handleDelete(project.id)}
+                    onClick={() => handleDelete(project.slug)}
                     className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
                   >
                     <Trash2 size={16} />

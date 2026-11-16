@@ -30,7 +30,7 @@ export default function TrashGallery() {
             setUserPermissions(meData.user.permissions || []);
           }
         }
-        const response = await fetch("/api/admin/gallery");
+        const response = await fetch("/api/admin/gallery/trash");
         const result = await response.json();
         if (result.success) {
           setGallery(result.data);
