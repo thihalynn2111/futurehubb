@@ -56,7 +56,7 @@ export default function Member() {
   const canUpdate = hasPermission("teammember:update");
   const canDelete = hasPermission("teammember:delete");
   const canCreate = hasPermission("teammember:create");
-  async function handleDelete(id: number) {
+  async function handleDelete(slug: String) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
       text: "You want to delete this!",
@@ -69,7 +69,7 @@ export default function Member() {
     });
     if (!confirmed.isConfirmed) return;
     try {
-      const response = await fetch(`/api/admin/team-members/${id}`, {
+      const response = await fetch(`/api/admin/team-members/${slug}`, {
         method: "DELETE",
       });
 
@@ -80,7 +80,7 @@ export default function Member() {
       }
 
       setTeamMembers((previous) =>
-        previous.filter((member) => member.id !== id),
+        previous.filter((member) => member.slug !== slug),
       );
       Swal.fire({
         title: "Success!",
@@ -191,7 +191,7 @@ export default function Member() {
                 {canUpdate && (
                   <button
                     onClick={() =>
-                      router.push(`/admin/teamMember/${member.id}/edit`)
+                      router.push(`/admin/teamMember/${member.slug}/edit`)
                     }
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-xl border border-gray-200 transition flex items-center justify-center space-x-1.5 text-sm shadow-sm"
                   >
@@ -201,7 +201,7 @@ export default function Member() {
                 )}
                 {canDelete && (
                   <button
-                    onClick={() => handleDelete(member.id)}
+                    onClick={() => handleDelete(member.slug)}
                     className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-xl border border-red-100 transition flex items-center justify-center space-x-1.5 text-sm"
                   >
                     <Trash2 size={16} />

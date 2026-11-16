@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+function generateSlug(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { id } = await params;
+    const { slug } = await params;
 
     const member = await prisma.teamMember.findUnique({
       where: {
-        id: Number(id),
+        slug: slug,
       },
     });
 
@@ -42,47 +49,76 @@ export async function GET(
 }
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { id } = await params;
-    const memberId = Number(id);
+    const { slug } = await params;
 
-    if (!Number.isInteger(memberId) || memberId <= 0) {
+    if (!slug || slug === "undefined") {
       return NextResponse.json(
-        { success: false, message: "Invalid member ID" },
+        { success: false, message: "Invalid team member slug" },
         { status: 400 },
       );
     }
 
     const body = await request.json();
+
+    // Validate required fields
     if (!body.name?.trim() || !body.position?.trim()) {
       return NextResponse.json(
         {
           success: false,
-          message: "Name,image and position are required",
+          message: "Name and position are required",
         },
         { status: 400 },
       );
     }
 
+    // Find existing member using current slug
     const existingMember = await prisma.teamMember.findUnique({
-      where: { id: memberId },
+      where: { slug },
     });
 
-    if (!existingMember) {
+    if (!existingMember || existingMember.deletedAt !== null) {
       return NextResponse.json(
         { success: false, message: "Team member not found" },
         { status: 404 },
       );
     }
 
+    // Generate new slug from updated name
+    const newSlug = generateSlug(body.name);
+
+    if (!newSlug) {
+      return NextResponse.json(
+        { success: false, message: "Invalid name for slug generation" },
+        { status: 400 },
+      );
+    }
+
+    // Check duplicate slug
+    const existingSlug = await prisma.teamMember.findUnique({
+      where: { slug: newSlug },
+    });
+
+    if (existingSlug && existingSlug.id !== existingMember.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "This name already exists. Please use another name.",
+        },
+        { status: 409 },
+      );
+    }
+
+    // Update member
     const updatedMember = await prisma.teamMember.update({
-      where: { id: memberId },
+      where: { slug },
       data: {
         name: body.name.trim(),
+        slug: newSlug,
         position: body.position.trim(),
-        bio: body.bio || null,
+        bio: body.bio?.trim() || null,
         imageUrl: body.imageUrl || null,
         sortOrder: Number(body.sortOrder) || 0,
       },
@@ -108,21 +144,21 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const { id } = await params;
-    const memberId = Number(id);
+    const { slug } = await params;
 
-    if (!Number.isInteger(memberId) || memberId <= 0) {
+    if (!slug || slug === "undefined") {
       return NextResponse.json(
-        { success: false, message: "Invalid member ID" },
+        { success: false, message: "Invalid team member slug" },
         { status: 400 },
       );
     }
 
+    // Find member using slug
     const member = await prisma.teamMember.findUnique({
-      where: { id: memberId },
+      where: { slug },
     });
 
     if (!member || member.deletedAt !== null) {
@@ -132,8 +168,9 @@ export async function DELETE(
       );
     }
 
+    // Soft delete member
     await prisma.teamMember.update({
-      where: { id: memberId },
+      where: { slug },
       data: {
         isActive: false,
         deletedAt: new Date(),
