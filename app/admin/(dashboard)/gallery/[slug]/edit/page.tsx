@@ -3,19 +3,19 @@ export const instant = false;
 
 type Props = {
   params: Promise<{
-    id: string;
+    slug: string;
   }>;
 };
 
 export default async function EditPartnerPage({ params }: Props) {
-  const { id } = await params;
+  const { slug } = await params;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* <AdminDashboard /> */}
 
       <main className="flex-1 p-8">
-        <EditGallery id={Number(id)} />
+        <EditGallery slug={slug} />
       </main>
     </div>
   );

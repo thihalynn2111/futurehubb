@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 type galleryProps = {
-  id: number;
+  slug: String;
 };
 
-export default function EditGallery({ id }: galleryProps) {
+export default function EditGallery({ slug }: galleryProps) {
   const [gallery, setGallery] = useState();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -41,10 +41,10 @@ export default function EditGallery({ id }: galleryProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/admin/gallery/${id}`);
+        const response = await fetch(`/api/admin/gallery/${slug}`);
         const result = await response.json();
         if (!response.ok || !result.success) {
-          throw new Error(result.message || "Failed to update member");
+          throw new Error(result.message || "Failed to update gallery");
         }
         setGallery(result.data);
         setFormData({
@@ -62,7 +62,7 @@ export default function EditGallery({ id }: galleryProps) {
       }
     };
     fetchData();
-  }, [id]);
+  }, [slug]);
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-400px text-gray-500 font-sans">
@@ -120,7 +120,7 @@ export default function EditGallery({ id }: galleryProps) {
               imageUrl = uploadResult.imageUrl;
               formData.imageUrl = imageUrl;
             }
-            const response = await fetch(`/api/admin/gallery/${id}`, {
+            const response = await fetch(`/api/admin/gallery/${slug}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
@@ -135,7 +135,7 @@ export default function EditGallery({ id }: galleryProps) {
             console.log("API Response Body:", result);
 
             if (!response.ok || !result.success) {
-              throw new Error(result.message || "Failed to update member");
+              throw new Error(result.message || "Failed to update gallery");
             }
 
             Swal.fire({
