@@ -103,8 +103,8 @@ export default function ProjectSection() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("projectsection:read");
-  const canUpdate = hasPermission("projectsection:update");
+  const canRead = hasPermission("page-sections:read");
+  const canUpdate = hasPermission("page-sections:update");
 
   // 2. Update section input values
   const handleInputChange = (
