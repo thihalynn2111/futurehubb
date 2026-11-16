@@ -60,7 +60,7 @@ export default function ProjectSection() {
             setUserPermissions(meData.user.permissions || []);
           }
         }
-        const response = await fetch("/api/admin/pages/projectSection");
+        const response = await fetch("/api/admin/pages/project");
 
         const result = await response.json();
 

@@ -143,7 +143,7 @@ model PageSectionEditable {
 
   // Relations
   cards CardItem[]
-
+@@unique([page, sectionKey])
   @@map("page_section_editables")
 }
 

@@ -31,7 +31,7 @@ export default function GallerySection() {
   // Default sections
   const defaultSections: GallerySection[] = [
     {
-      page: "home",
+      page: "gallery",
       sectionKey: "hero",
       title: "",
       subtitle: "",
@@ -39,7 +39,7 @@ export default function GallerySection() {
       imageUrl: "",
     },
     {
-      page: "home",
+      page: "gallery",
       sectionKey: "header",
       title: "",
       subtitle: "",
@@ -60,7 +60,7 @@ export default function GallerySection() {
             setUserPermissions(meData.user.permissions || []);
           }
         }
-        const response = await fetch("/api/admin/pages/gallerySection");
+        const response = await fetch("/api/admin/pages/gallery");
 
         const result = await response.json();
 
