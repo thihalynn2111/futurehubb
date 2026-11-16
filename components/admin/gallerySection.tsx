@@ -103,8 +103,8 @@ export default function GallerySection() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("gallerysection:read");
-  const canUpdate = hasPermission("gallerysection:update");
+  const canRead = hasPermission("page-sections:read");
+  const canUpdate = hasPermission("page-sections:update");
 
   // 2. Update section input values
   const handleInputChange = (

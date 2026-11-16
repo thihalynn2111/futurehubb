@@ -130,8 +130,8 @@ export default function AboutSection() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("aboutsection:read");
-  const canUpdate = hasPermission("aboutsection:update");
+  const canRead = hasPermission("page-sections:read");
+  const canUpdate = hasPermission("page-sections:update");
 
   const handleInputChange = (id: number, field: string, value: string) => {
     setSections((previousSections) =>

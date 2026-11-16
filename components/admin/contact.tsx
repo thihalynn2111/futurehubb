@@ -126,8 +126,8 @@ export default function Home() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("contactsection:read");
-  const canUpdate = hasPermission("contactsection:update");
+  const canRead = hasPermission("page-sections:read");
+  const canUpdate = hasPermission("page-sections:update");
 
   async function handleDelete(id: number) {
     setLoading(true);
