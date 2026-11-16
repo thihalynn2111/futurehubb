@@ -149,6 +149,7 @@ model PageSectionEditable {
 
 model Projects {
   id          Int       @id @default(autoincrement())
+  slug      String?   @unique
   title       String
   subtitle    String?
   description String?   @db.Text
