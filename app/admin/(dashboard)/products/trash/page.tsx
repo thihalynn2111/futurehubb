@@ -15,7 +15,7 @@ export default function ProductTrashPage() {
     try {
       setLoading(true);
 
-      const meRes = await fetch("/api/auth/me");
+      const meRes = await fetch("/api/auth/me", { cache: "no-store" });
       if (meRes.ok) {
         const meData = await meRes.json();
         if (meData?.user) {
@@ -24,19 +24,25 @@ export default function ProductTrashPage() {
         }
       }
 
-      const resCat = await fetch("/api/admin/categories?trash=true");
+      const resCat = await fetch("/api/admin/categories?trash=true", {
+        cache: "no-store",
+      });
       if (resCat.ok) {
         const dataCat = await resCat.json();
         setTrashedCategories(dataCat);
       }
 
-      const resPost = await fetch("/api/admin/products?trash=true");
+      const resPost = await fetch("/api/admin/products?trash=true", {
+        cache: "no-store",
+      });
       if (resPost.ok) {
         const dataPost = await resPost.json();
         setTrashedPosts(dataPost);
       }
 
-      const resCard = await fetch("/api/admin/card-items");
+      const resCard = await fetch("/api/admin/card-items", {
+        cache: "no-store",
+      });
       if (resCard.ok) {
         const dataCard = await resCard.json();
         setTrashedCards(dataCard.filter((card: any) => card.deletedAt));
@@ -100,6 +106,7 @@ export default function ProductTrashPage() {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restore: true }), // 🚀 Added restore body
       });
       if (res.ok) {
         alert("Product post restored successfully! ✅");
@@ -117,6 +124,7 @@ export default function ProductTrashPage() {
       const res = await fetch(`/api/admin/card-items/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restore: true }), // 🚀 Added restore body
       });
       if (res.ok) {
         alert("Card item restored successfully! ✅");
