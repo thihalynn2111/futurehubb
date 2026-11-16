@@ -184,7 +184,7 @@ export default function PermissionsPage() {
     { key: "roles", label: "Roles" },
     { key: "site_settings", label: "Site Settings" },
     { key: "teammember", label: "Team Member" },
-    { key: "project", label: "Project" },
+    { key: "projects", label: "Project" },
     { key: "gallery", label: "Gallery" },
     { key: "page-sections", label: "page-sections" },
   ];

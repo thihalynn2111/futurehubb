@@ -166,19 +166,25 @@ export default function HomeClient({
         });
       }
 
-      // Tech cards (About card မပါ)
-      gsap.from(".tech-grid:not(.about-sub-grid) .tech-card", {
-        y: 60,
-        opacity: 0,
-        duration: 1.2,
-        stagger: 0.15,
-        ease: "power3.out",
-        immediateRender: false,
-        scrollTrigger: {
-          trigger: ".tech-grid:not(.about-sub-grid)",
-          start: "top 85%",
-          once: true,
-        },
+      // CHANGED: Tech cards — animate in when scrolling down, out when scrolling back up
+      gsap.utils.toArray<HTMLElement>(".tech-reveal").forEach((el, i) => {
+        gsap.fromTo(
+          el,
+          { y: 60, opacity: 0, scale: 0.95 },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.9,
+            delay: (i % 3) * 0.12, // stagger within a row
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 88%",
+              toggleActions: "play reverse play reverse",
+            },
+          },
+        );
       });
 
       // DESIGN ONLY: section headings + roadmap + partners
@@ -693,29 +699,32 @@ export default function HomeClient({
             {tech.subtitle}
           </h2>
 
-          <div className="tech-grid mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {/* CHANGED: dynamic auto-fit grid */}
+          <div className="tech-grid mx-auto grid max-w-7xl grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
             {tech.cards.map((card) => (
-              <div
-                key={card.id}
-                className="tech-card group rounded-3xl border border-white/15 bg-white/10 p-5 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)] sm:p-6"
-              >
-                {card.imageUrl && (
-                  <div className="mb-4 overflow-hidden rounded-2xl">
-                    <img
-                      src={resolveImage(card.imageUrl, "")}
-                      alt={card.title ?? ""}
-                      className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  </div>
-                )}
-                {card.title && (
-                  <h3 className="pb-2 text-center text-xl font-semibold sm:text-2xl">
-                    {card.title}
-                  </h3>
-                )}
-                {card.description && (
-                  <p className="leading-7 text-white/70">{card.description}</p>
-                )}
+              // CHANGED: wrapper animated by GSAP (scroll in/out)
+              <div key={card.id} className="tech-reveal">
+                <div className="tech-card group h-full rounded-3xl border border-white/15 bg-white/10 p-5 shadow-xl backdrop-blur-md transition duration-500 hover:-translate-y-2 hover:border-cyan-300/50 hover:shadow-[0_20px_60px_-15px_rgba(34,211,238,0.4)] sm:p-6">
+                  {card.imageUrl && (
+                    <div className="mb-4 overflow-hidden rounded-2xl">
+                      <img
+                        src={resolveImage(card.imageUrl, "")}
+                        alt={card.title ?? ""}
+                        className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                  )}
+                  {card.title && (
+                    <h3 className="pb-2 text-center text-xl font-semibold sm:text-2xl">
+                      {card.title}
+                    </h3>
+                  )}
+                  {card.description && (
+                    <p className="leading-7 text-white/70">
+                      {card.description}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>

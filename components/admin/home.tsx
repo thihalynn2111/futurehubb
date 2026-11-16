@@ -634,7 +634,7 @@ export default function Home() {
                         <h3 className="text-lg font-bold text-gray-800">
                           Manage Cards
                         </h3>
-                        {canUpdate ?? (
+                        {canUpdate && (
                           <button
                             type="button"
                             onClick={() => handleAddCard(section.id!)}
@@ -656,7 +656,7 @@ export default function Home() {
                             </h4>
 
                             <span className="text-xs text-gray-400">
-                              {canUpdate ?? (
+                              {canUpdate && (
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -818,7 +818,7 @@ export default function Home() {
                         <h3 className="text-lg font-bold text-gray-800">
                           Manage Cards
                         </h3>
-                        {canUpdate ?? (
+                        {canUpdate && (
                           <button
                             type="button"
                             onClick={() => handleAddCard(section.id!)}
@@ -973,7 +973,7 @@ export default function Home() {
                       <h3 className="text-lg font-bold text-gray-800">
                         Manage Cards
                       </h3>
-                      {canUpdate ?? (
+                      {canUpdate && (
                         <button
                           type="button"
                           onClick={() => handleAddCard(section.id!)}
