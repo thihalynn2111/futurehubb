@@ -23,7 +23,7 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
     );
   };
 
-  // 🚀 Menu တွေကို သီးသန့် Group တွေ ခွဲထားပါတယ်
+  // 🚀 Menu တွေကို သီးသန့် Group တွေ ခွဲထားပါတယ် (SEO Settings ပါဝင်ပါတယ်)
   const menuGroups = [
     {
       category: "",
@@ -45,6 +45,7 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
       category: "CONTENT & CATALOGUE",
       items: [
         { name: "Products", href: "/admin/products", icon: "📦" },
+        { name: "SEO Settings", href: "/admin/seo", icon: "🔍" }, // 👈 ဒီနေရာမှာ ထည့်ထားပါတယ်
         { name: "Gallery", href: "/admin/gallery", icon: "📷" },
         { name: "Partner & Project", href: "/admin/projects", icon: "🤝" },
         { name: "Team member", href: "/admin/teamMember", icon: "👥" },
@@ -77,7 +78,6 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
                 className="w-full flex items-center justify-between px-3 py-2 mt-4 mb-1 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors cursor-pointer group"
               >
                 <span>{group.category}</span>
-                {/* ဖွင့်ထားရင် အောက်ညွှန်မြှား၊ ပိတ်ထားရင် ညာညွှန်မြှား */}
                 <svg
                   className={`w-3 h-3 transition-transform duration-300 ${isOpen ? "rotate-0" : "-rotate-90"}`}
                   fill="none"
@@ -116,7 +116,6 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
                           : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-l-2 border-transparent"
                       }`}
                     >
-                      {/* Icon လေးကို အကွက်လေးထဲမှာ ထည့်ထားတယ် */}
                       <span
                         className={`text-base shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? "opacity-100" : "opacity-70"}`}
                       >

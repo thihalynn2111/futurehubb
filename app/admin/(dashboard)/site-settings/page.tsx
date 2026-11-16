@@ -595,7 +595,7 @@ export default function SiteSettingsAdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              SEO Meta Title:
+              Global SEO Meta Title:
             </label>
             <input
               type="text"
@@ -608,7 +608,7 @@ export default function SiteSettingsAdminPage() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              SEO Meta Description:
+              Global SEO Meta Description:
             </label>
             <input
               type="text"
