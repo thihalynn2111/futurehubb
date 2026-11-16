@@ -56,7 +56,7 @@ export default function PublicLayout({
   }, []);
 
   // Settings Values & Fallbacks
-  const siteName = siteSetting?.siteName || "FutureHub";
+  const siteName = siteSetting?.siteName || "Future Hub";
   const logoHeader = siteSetting?.logoHeader;
   const logoFooter = siteSetting?.logoFooter;
   const contactAddress =
@@ -95,20 +95,20 @@ export default function PublicLayout({
         {/* ================= NAVBAR SECTION ================= */}
         <nav className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <Link
-              href="/products"
-              className="text-xl font-bold tracking-wider text-teal-400 flex items-center gap-3"
-            >
-              {logoHeader ? (
+            {/* 👇 Logo ပုံနဲ့ စာသား တွဲထားတဲ့အပိုင်း 👇 */}
+            <Link href="/user/home" className="flex items-center gap-3 group">
+              {logoHeader && (
                 <img
                   src={logoHeader}
                   alt={siteName}
-                  className="h-8 object-contain"
+                  className="h-8 md:h-10 object-contain"
                 />
-              ) : (
-                <span>⬛ {siteName}</span>
               )}
+              <span className="text-xl md:text-2xl font-bold tracking-[0.2em] text-white uppercase group-hover:text-teal-400 transition-colors">
+                {siteName}
+              </span>
             </Link>
+            {/* 👆 Logo အပိုင်း ပြီးပါပြီ 👆 */}
 
             <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-300">
               <Link
@@ -130,7 +130,6 @@ export default function PublicLayout({
                   <div className="absolute top-full left-0 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-2 mt-1 space-y-1 z-50">
                     {categories.length > 0 ? (
                       categories.map((cat) => (
-                        // 👇 ဒီနေရာမှာ cat.id အစား cat.slug ကို ပြောင်းထားပါတယ် 👇
                         <Link
                           key={cat.id}
                           href={`/user/products/category/${cat.slug}`}

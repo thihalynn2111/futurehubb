@@ -2,42 +2,98 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export default function RoleTrashPage() {
-  const [trashedRoles, setTrashedRoles] = useState<any[]>([]);
+export default function UserTrashPage() {
+  const router = useRouter();
+  const [trashedUsers, setTrashedUsers] = useState<any[]>([]);
   const [toast, setToast] = useState("");
+
+  // 🚀 Permissions
+  const [canRead, setCanRead] = useState(false);
+  const [canUpdate, setCanUpdate] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
   };
 
-  const fetchTrashedRoles = async () => {
+  const checkPermissions = async () => {
     try {
-      const res = await fetch("/api/admin/roles?trash=true");
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setTrashedRoles(data.filter((r: any) => r.deletedAt));
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        const userInfo = data.user || {};
+        const roles = userInfo.roles || [];
+        const permissions = userInfo.permissions || [];
+
+        const isSuper = roles.some((r: string) =>
+          ["super_admin", "super-admin", "admin", "system"].includes(
+            r.toLowerCase(),
+          ),
+        );
+
+        const lowerPerms = permissions.map((p: string) => p.toLowerCase());
+
+        const hasRead =
+          isSuper ||
+          lowerPerms.includes("users:read") ||
+          lowerPerms.includes("*");
+        const hasUpdate =
+          isSuper ||
+          lowerPerms.includes("users:update") ||
+          lowerPerms.includes("*");
+        const hasDelete =
+          isSuper ||
+          lowerPerms.includes("users:delete") ||
+          lowerPerms.includes("*");
+
+        setCanRead(hasRead);
+        setCanUpdate(hasUpdate);
+        setCanDelete(hasDelete);
+
+        if (hasRead) {
+          fetchTrashedUsers();
+        } else {
+          alert(
+            "Access Denied: You do not have permission to view trashed users.",
+          );
+          router.replace("/admin");
+        }
       }
     } catch (err) {
-      console.error("Failed to fetch trashed roles:", err);
+      console.error(err);
+    }
+  };
+
+  const fetchTrashedUsers = async () => {
+    try {
+      const res = await fetch("/api/admin/users?trash=true");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setTrashedUsers(data.filter((u: any) => u.deletedAt));
+      }
+    } catch (err) {
+      console.error("Failed to fetch trashed users:", err);
     }
   };
 
   useEffect(() => {
-    fetchTrashedRoles();
+    checkPermissions();
   }, []);
 
   const handleRestore = async (id: number) => {
+    if (!canUpdate) return;
     try {
-      const res = await fetch(`/api/admin/roles/${id}/restore`, {
+      const res = await fetch(`/api/admin/users/${id}/restore`, {
         method: "PUT",
       });
       if (res.ok) {
-        showToast("Role restored successfully! ✅");
-        fetchTrashedRoles();
+        showToast("User restored successfully! ✅");
+        fetchTrashedUsers();
       } else {
-        alert("Failed to restore role");
+        alert("Failed to restore user");
       }
     } catch (err) {
       console.error("Restore error:", err);
@@ -45,28 +101,36 @@ export default function RoleTrashPage() {
   };
 
   const handlePermanentDelete = async (id: number) => {
+    if (!canDelete) return;
     if (
       !confirm(
         "⚠️ PERMANENT DELETE: This action cannot be undone. Are you sure?",
       )
-    ) {
+    )
       return;
-    }
 
     try {
-      const res = await fetch(`/api/admin/roles?id=${id}&permanent=true`, {
+      const res = await fetch(`/api/admin/users?id=${id}&permanent=true`, {
         method: "DELETE",
       });
       if (res.ok) {
-        showToast("Role permanently deleted! 🗑️");
-        fetchTrashedRoles();
+        showToast("User permanently deleted! 🗑️");
+        fetchTrashedUsers();
       } else {
-        alert("Failed to permanently delete role");
+        const data = await res.json();
+        alert(data.message || "Failed to permanently delete user");
       }
     } catch (err) {
       console.error("Permanent delete error:", err);
     }
   };
+
+  if (!canRead)
+    return (
+      <div className="p-10 text-center text-slate-500">
+        Checking permissions...
+      </div>
+    );
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 p-8">
@@ -77,69 +141,88 @@ export default function RoleTrashPage() {
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-950">
-            🗑️ Roles Trash Bin (Archive Bin)
+          <h1 className="text-xl font-bold text-slate-950 flex items-center gap-2">
+            🗑️ Users Trash Bin
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Manage deleted roles, restore them, or delete them permanently.
+            Manage deleted users, restore them, or delete them permanently.
           </p>
         </div>
         <Link
-          href="/admin/roles"
+          href="/admin/users"
           className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm cursor-pointer"
         >
-          ← Back to Roles Management
+          ← Back to Users Management
         </Link>
       </div>
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden p-6">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b bg-gray-50 text-gray-700 text-xs uppercase tracking-wider">
-              <th className="p-3">Role Name</th>
-              <th className="p-3">Label</th>
-              <th className="p-3">Deleted At</th>
-              <th className="p-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-xs divide-y text-gray-800">
-            {trashedRoles.map((role) => (
-              <tr key={role.id} className="hover:bg-gray-50">
-                <td className="p-3 font-bold text-slate-900">{role.name}</td>
-                <td className="p-3 text-slate-600">{role.label}</td>
-                <td className="p-3 text-amber-600 font-medium">
-                  {role.deletedAt
-                    ? new Date(role.deletedAt).toLocaleString()
-                    : "N/A"}
-                </td>
-                <td className="p-3 text-right space-x-2">
-                  <button
-                    onClick={() => handleRestore(role.id)}
-                    className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold transition cursor-pointer"
-                  >
-                    ♻️ Restore
-                  </button>
-                  <button
-                    onClick={() => handlePermanentDelete(role.id)}
-                    className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold transition cursor-pointer"
-                  >
-                    ⚠️ Delete Permanently
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b bg-gray-50 text-gray-700 text-xs uppercase tracking-wider">
+                <th className="p-4 font-semibold">Name</th>
+                <th className="p-4 font-semibold">Email</th>
+                <th className="p-4 font-semibold">Role</th>
+                <th className="p-4 font-semibold">Deleted At</th>
+                {(canUpdate || canDelete) && (
+                  <th className="p-4 font-semibold text-right">Actions</th>
+                )}
               </tr>
-            ))}
-            {trashedRoles.length === 0 && (
-              <tr>
-                <td colSpan={4} className="text-center py-10 text-gray-400">
-                  Roles trash bin is empty.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="text-sm divide-y text-gray-800">
+              {trashedUsers.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="p-4 font-bold text-slate-900">{user.name}</td>
+                  <td className="p-4 text-slate-600">{user.email}</td>
+                  <td className="p-4">
+                    <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs font-bold">
+                      {user.role || "N/A"}
+                    </span>
+                  </td>
+                  <td className="p-4 text-amber-600 font-medium text-xs">
+                    {user.deletedAt
+                      ? new Date(user.deletedAt).toLocaleString()
+                      : "N/A"}
+                  </td>
+                  {(canUpdate || canDelete) && (
+                    <td className="p-4 text-right space-x-2">
+                      {canUpdate && (
+                        <button
+                          onClick={() => handleRestore(user.id)}
+                          className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition cursor-pointer"
+                        >
+                          ♻️ Restore
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          onClick={() => handlePermanentDelete(user.id)}
+                          className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold transition cursor-pointer"
+                        >
+                          ⚠️ Delete Permanently
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+              {trashedUsers.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={canUpdate || canDelete ? 5 : 4}
+                    className="text-center py-10 text-gray-400 text-sm"
+                  >
+                    Users trash bin is empty.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

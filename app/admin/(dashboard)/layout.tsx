@@ -4,13 +4,29 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-// 1. usePathname ကို အသုံးပြုနေသော Sidebar Navigation ကို သီးသန့် Component အဖြစ် ခွဲထုတ်ခြင်း
+// 🚀 ပိုမိုသပ်ရပ်သော Sidebar Component
 function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
   const pathname = usePathname();
 
+  // Category အားလုံးကို Default အနေနဲ့ ဖွင့်ထားမယ်
+  const [openCategories, setOpenCategories] = useState<string[]>([
+    "ACCESS & MANAGEMENT",
+    "CUSTOMER & COMMUNICATION",
+    "CONTENT & CATALOGUE",
+  ]);
+
+  const toggleCategory = (category: string) => {
+    setOpenCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category],
+    );
+  };
+
+  // 🚀 Menu တွေကို သီးသန့် Group တွေ ခွဲထားပါတယ်
   const menuGroups = [
     {
-      category: "", // Dashboard အတွက် ခေါင်းစဉ်မလိုပါ
+      category: "",
       items: [{ name: "Dashboard Overview", href: "/admin", icon: "📊" }],
     },
     {
@@ -19,70 +35,104 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
         { name: "Roles Management", href: "/admin/roles", icon: "🛡️" },
         { name: "Permissions", href: "/admin/permissions", icon: "🔑" },
         { name: "User Management", href: "/admin/users", icon: "👤" },
-        { name: "Inquiries", href: "/admin/inquiries", icon: "📩" },
-        { name: "Gallery", href: "/admin/gallery", icon: "📷" },
-        {
-          name: "Partner & Project",
-          href: "/admin/projects",
-          icon: "🤝",
-        },
-        { name: "Team member", href: "/admin/teamMember", icon: "👥" },
       ],
+    },
+    {
+      category: "COMMUNICATION",
+      items: [{ name: "Inquiries", href: "/admin/inquiries", icon: "📩" }],
     },
     {
       category: "CONTENT & CATALOGUE",
       items: [
         { name: "Products", href: "/admin/products", icon: "📦" },
+        { name: "Gallery", href: "/admin/gallery", icon: "📷" },
+        { name: "Partner & Project", href: "/admin/projects", icon: "🤝" },
+        { name: "Team member", href: "/admin/teamMember", icon: "👥" },
         { name: "Site Settings", href: "/admin/site-settings", icon: "⚙️" },
-        {
-          name: "Home Content",
-          href: "/admin/homeSection",
-          icon: "🏠",
-        },
+        { name: "Home Content", href: "/admin/homeSection", icon: "🏠" },
         { name: "About Content", href: "/admin/aboutSection", icon: "📄" },
         { name: "Contact Content", href: "/admin/contactSection", icon: "📩" },
         { name: "Gallery Content", href: "/admin/gallerySection", icon: "🖼️" },
         {
           name: "Partner & Project Content",
           href: "/admin/projectSection",
-          icon: "🖼️",
+          icon: "🤝",
         },
       ],
     },
   ];
 
   return (
-    <nav className="flex-1 py-4 px-3 space-y-6 overflow-y-auto">
-      {menuGroups.map((group, groupIdx) => (
-        <div key={groupIdx} className="space-y-1.5">
-          {group.category && sidebarOpen && (
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 pt-2">
-              {group.category}
-            </h3>
-          )}
+    <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto custom-scrollbar">
+      {menuGroups.map((group, groupIdx) => {
+        const isOpen = openCategories.includes(group.category);
+        const hasCategory = group.category !== "";
 
-          <div className="space-y-1">
-            {group.items.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={!sidebarOpen ? item.name : undefined}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-md font-semibold"
-                      : "text-gray-300 hover:bg-slate-800 hover:text-white"
-                  }`}
+        return (
+          <div key={groupIdx} className="space-y-1">
+            {/* 🚀 Category Header (Accordion Toggle) */}
+            {hasCategory && sidebarOpen && (
+              <button
+                onClick={() => toggleCategory(group.category)}
+                className="w-full flex items-center justify-between px-3 py-2 mt-4 mb-1 rounded-lg text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors cursor-pointer group"
+              >
+                <span>{group.category}</span>
+                {/* ဖွင့်ထားရင် အောက်ညွှန်မြှား၊ ပိတ်ထားရင် ညာညွှန်မြှား */}
+                <svg
+                  className={`w-3 h-3 transition-transform duration-300 ${isOpen ? "rotate-0" : "-rotate-90"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <span className="text-lg shrink-0">{item.icon}</span>
-                  {sidebarOpen && <span className="truncate">{item.name}</span>}
-                </Link>
-              );
-            })}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+            )}
+
+            {/* 🚀 Sub Items (Smooth Accordion Animation) */}
+            <div
+              className={`grid transition-all duration-300 ease-in-out ${
+                hasCategory && !isOpen && sidebarOpen
+                  ? "grid-rows-[0fr] opacity-0"
+                  : "grid-rows-[1fr] opacity-100"
+              }`}
+            >
+              <div className="overflow-hidden space-y-1">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      title={!sidebarOpen ? item.name : undefined}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                        isActive
+                          ? "bg-slate-800 text-teal-400 shadow-sm border-l-2 border-teal-400"
+                          : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-l-2 border-transparent"
+                      }`}
+                    >
+                      {/* Icon လေးကို အကွက်လေးထဲမှာ ထည့်ထားတယ် */}
+                      <span
+                        className={`text-base shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? "opacity-100" : "opacity-70"}`}
+                      >
+                        {item.icon}
+                      </span>
+                      {sidebarOpen && (
+                        <span className="truncate">{item.name}</span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </nav>
   );
 }
@@ -95,7 +145,6 @@ export default function AdminLayout({
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Logout Logic
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -107,42 +156,47 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex text-gray-900 font-sans">
+    <div className="min-h-screen bg-[#f3f4f6] flex text-gray-900 font-sans">
       {/* 1. SIDEBAR */}
       <aside
         className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-slate-900 text-white transition-all duration-300 flex flex-col fixed inset-y-0 left-0 z-50 shadow-xl`}
+          sidebarOpen ? "w-[260px]" : "w-20"
+        } bg-[#0f172a] text-white transition-all duration-300 flex flex-col fixed inset-y-0 left-0 z-50 shadow-2xl border-r border-slate-800/50`}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 bg-slate-950 border-b border-slate-800 shrink-0">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/50 shrink-0">
           {sidebarOpen ? (
-            <span className="font-extrabold text-xl tracking-wide text-blue-400">
-              FutureHub<span className="text-white">Admin</span>
+            <span className="font-extrabold text-xl tracking-wide text-white flex items-center gap-2">
+              <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-slate-900 font-black text-lg">
+                F
+              </div>
+              FutureHub<span className="text-teal-400 font-normal">Admin</span>
             </span>
           ) : (
-            <span className="font-bold text-xl text-blue-400 mx-auto">FH</span>
+            <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-slate-900 font-black text-lg mx-auto">
+              F
+            </div>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-400 hover:text-white p-1 rounded-md focus:outline-none cursor-pointer"
+            className="text-slate-400 hover:text-white p-1.5 rounded-md hover:bg-slate-800 transition-colors focus:outline-none cursor-pointer"
           >
             {sidebarOpen ? "◀" : "▶"}
           </button>
         </div>
 
-        {/* 2. Suspense ဖြင့် အုပ်ပေးထားခြင်း */}
+        {/* Sidebar Menu */}
         <Suspense
           fallback={
-            <div className="p-4 text-xs text-slate-500">Loading menu...</div>
+            <div className="p-4 text-xs text-slate-500">Loading...</div>
           }
         >
           <SidebarNav sidebarOpen={sidebarOpen} />
         </Suspense>
 
-        {/* User Info / Footer in Sidebar */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center gap-3 shrink-0">
-          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shrink-0">
+        {/* User Info Footer */}
+        <div className="p-4 border-t border-slate-800/50 flex items-center gap-3 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center font-bold text-white shrink-0 shadow-lg">
             A
           </div>
           {sidebarOpen && (
@@ -150,7 +204,7 @@ export default function AdminLayout({
               <p className="text-sm font-semibold text-white truncate">
                 System Admin
               </p>
-              <p className="text-xs text-gray-400 truncate">
+              <p className="text-[11px] text-slate-400 truncate">
                 system@futurehub.com
               </p>
             </div>
@@ -158,35 +212,41 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* 2. MAIN CONTENT AREA CONTAINER */}
+      {/* 2. MAIN CONTENT AREA */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-20"
+          sidebarOpen ? "ml-[260px]" : "ml-20"
         }`}
       >
-        {/* TOP NAVBAR */}
-        <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-40 flex items-center justify-between px-6 shadow-sm">
+        {/* TOP NAVBAR (Frosted Glass Effect) */}
+        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 flex items-center justify-between px-8 shadow-sm">
           <div className="flex items-center gap-4">
-            <h2 className="text-lg font-bold text-gray-800">
+            <h2 className="text-lg font-bold text-gray-800 tracking-tight">
               Admin Management Portal
             </h2>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ● Online
-            </span>
+            <Link
+              href="/user/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-600 text-sm font-semibold px-4 py-2 rounded-xl border border-teal-200/50 transition-all duration-200 cursor-pointer hover:shadow-sm"
+            >
+              🌐 View Live Site
+            </Link>
+
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-700 text-sm font-semibold px-3 py-1.5 rounded-md border border-gray-300 transition-colors cursor-pointer"
+              className="flex items-center gap-2 bg-gray-50 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-600 text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 transition-all duration-200 cursor-pointer hover:shadow-sm"
             >
               🚪 Logout
             </button>
           </div>
         </header>
 
-        {/* PAGE CONTENT CONTAINER */}
-        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+        {/* PAGE CONTENT */}
+        <main className="flex-1 p-8 overflow-y-auto">{children}</main>
       </div>
     </div>
   );
