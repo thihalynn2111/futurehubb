@@ -62,10 +62,10 @@ export default function ViewProjects() {
   };
 
   // 🌟 Unified HOme Permissions Matrix
-  const canRead = hasPermission("project:read");
-  const canUpdate = hasPermission("project:update");
-  const canDelete = hasPermission("project:delete");
-  const canCreate = hasPermission("project:create");
+  const canRead = hasPermission("projects:read");
+  const canUpdate = hasPermission("projects:update");
+  const canDelete = hasPermission("projects:delete");
+  const canCreate = hasPermission("projects:create");
   async function handleDelete(slug: String) {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
