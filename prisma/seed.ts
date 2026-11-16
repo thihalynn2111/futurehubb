@@ -81,7 +81,150 @@ async function main() {
       roleId: superAdminRole.id,
     },
   });
+  const sections = [
+    {
+      page: "home",
+      sectionKey: "hero",
+      title: "Future Hub Myanmar",
+      subtitle: "Welcome to our website",
+      description: "Explore more",
+      imageUrl: "/images/home-hero.jpg",
+    },
+    {
+      page: "home",
+      sectionKey: "about call to action",
+      title: "Why Choose Us",
+      subtitle: "Our Core Features",
+      description:
+        "Explore the amazing tools and capabilities we provide to scale your business.",
+    },
+    {
+      page: "home",
+      sectionKey: "contact call to action",
+      title: "Contact",
+      subtitle: "Share knowledge",
+      description: "Contact us",
+    },
+    {
+      page: "home",
+      sectionKey: "roadmap",
+      title: "Our Software Development Journey ",
+      subtitle: "From Ideas to Delivery, We Bring Vision to Life.",
+    },
+    {
+      page: "home",
+      sectionKey: "technology ",
+      title: "Our Technology",
+    },
+    {
+      page: "home",
+      sectionKey: "partner & project",
+      title: "Premier Partner & Success Stories",
+    },
+    {
+      page: "about",
+      sectionKey: "hero",
+      title: "About Our Company",
+      imageUrl: "/images/home-hero.jpg",
+    },
+    {
+      page: "about",
+      sectionKey: "mission",
+      title: "Mission",
+      description: "",
+    },
+    {
+      page: "about",
+      sectionKey: "vision",
+      title: "Our vision",
+      description: "",
+    },
+    {
+      page: "about",
+      sectionKey: "why choose us",
+      title: "Why choose us",
+      description: "",
+    },
+    {
+      page: "about",
+      sectionKey: "team",
+      title: "Meet our team",
+      description: "",
+      imageUrl: "/images/home-hero.jpg",
+    },
+    {
+      page: "contact",
+      sectionKey: "hero",
+      title: "Contact us",
+      imageUrl: "/images/home-hero.jpg",
+    },
+    {
+      page: "contact",
+      sectionKey: "info",
+      title: "Information box",
+      subtitle: "",
+    },
+    {
+      page: "contact",
+      sectionKey: "contact-box",
+      title: "contact Form",
+      subtitle: "",
+    },
+    {
+      page: "gallery",
+      sectionKey: "hero",
+      title: "Gallery",
+      imageUrl: "/images/home-hero.jpg",
+    },
+    {
+      page: "gallery",
+      sectionKey: "header",
+      title: "Our memory",
+      subtitle: "",
+      description: "",
+    },
+    {
+      page: "project",
+      sectionKey: "hero",
+      title: "Partner and Project",
 
+      imageUrl: "/images/home-hero.jpg",
+    },
+    {
+      page: "project",
+      sectionKey: "header",
+      title: "",
+      description: "",
+    },
+  ];
+
+  // Page Sections တွေ Seed လုပ်ခြင်း (findFirst နဲ့ update/create သုံးခြင်း)
+  for (const sec of sections) {
+    const existingSection = await prisma.pageSectionEditable.findFirst({
+      where: {
+        page: sec.page,
+        sectionKey: sec.sectionKey,
+      },
+    });
+
+    if (existingSection) {
+      // ရှိပြီးသားဆိုရင် update လုပ်မယ်
+      await prisma.pageSectionEditable.update({
+        where: { id: existingSection.id },
+        data: {
+          title: sec.title,
+          subtitle: sec.subtitle,
+          description: sec.description,
+          imageUrl: sec.imageUrl,
+        },
+      });
+    } else {
+      // မရှိသေးရင် အသစ် create လုပ်မယ်
+      await prisma.pageSectionEditable.create({
+        data: sec,
+      });
+    }
+  }
   console.log("Seeding completed successfully!");
 }
 
