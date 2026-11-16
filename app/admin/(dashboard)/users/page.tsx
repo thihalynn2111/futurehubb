@@ -17,9 +17,69 @@ export default function UsersManagementPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // 🚀 Permission States
+  const [canRead, setCanRead] = useState(false);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canUpdate, setCanUpdate] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  const checkPermissions = async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        const userInfo = data.user || {};
+        const userRoles = userInfo.roles || [];
+        const permissions = userInfo.permissions || [];
+
+        setCurrentUserId(userInfo.id);
+
+        const isSuper = userRoles.some((r: string) =>
+          ["super_admin", "super-admin", "admin", "system"].includes(
+            r.toLowerCase(),
+          ),
+        );
+
+        const lowerPerms = permissions.map((p: string) => p.toLowerCase());
+
+        const hasRead =
+          isSuper ||
+          lowerPerms.includes("users:read") ||
+          lowerPerms.includes("*");
+        const hasCreate =
+          isSuper ||
+          lowerPerms.includes("users:create") ||
+          lowerPerms.includes("*");
+        const hasUpdate =
+          isSuper ||
+          lowerPerms.includes("users:update") ||
+          lowerPerms.includes("*");
+        const hasDelete =
+          isSuper ||
+          lowerPerms.includes("users:delete") ||
+          lowerPerms.includes("*");
+
+        setCanRead(hasRead);
+        setCanCreate(hasCreate);
+        setCanUpdate(hasUpdate);
+        setCanDelete(hasDelete);
+
+        if (hasRead) {
+          fetchRoles();
+          fetchUsers();
+        } else {
+          alert("Access Denied: You do not have permission to view users.");
+          router.replace("/admin");
+        }
+      }
+    } catch (err) {
+      console.error("Permission check error:", err);
+    }
+  };
+
   useEffect(() => {
-    fetchRoles();
-    fetchUsers();
+    checkPermissions();
   }, []);
 
   const fetchRoles = async () => {
@@ -56,6 +116,8 @@ export default function UsersManagementPage() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canCreate) return;
+
     setLoading(true);
     setMessage("");
 
@@ -86,7 +148,8 @@ export default function UsersManagementPage() {
     userId: number | string,
     newStatus: number,
   ) => {
-    // 🚀 Banned လုပ်ရင် သေချာမေးမယ်
+    if (!canUpdate) return;
+
     const confirmMsg =
       newStatus === 0
         ? "Are you sure you want to BAN this user? They will not be able to log in."
@@ -109,27 +172,30 @@ export default function UsersManagementPage() {
     }
   };
 
-  const handleDeleteUser = async (
+  // 🚀 "Delete" အစား "Trash" လုပ်မယ့် Function
+  const handleTrashUser = async (
     userId: number | string,
     userRole: string,
     userEmail: string,
   ) => {
+    if (!canDelete) return;
+
     if (
       userRole?.includes("SUPER_ADMIN") ||
       userEmail === "admin@futurehub.com"
     ) {
-      alert("❌ Super Admin account cannot be deleted!");
+      alert("❌ Super Admin account cannot be trashed!");
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this user?")) return;
+    if (!confirm("Are you sure you want to move this user to trash?")) return;
 
     try {
       const res = await fetch(`/api/admin/users?id=${userId}`, {
         method: "DELETE",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to delete user");
+      if (!res.ok) throw new Error(data.message || "Failed to trash user");
 
       fetchUsers();
     } catch (err: any) {
@@ -137,202 +203,247 @@ export default function UsersManagementPage() {
     }
   };
 
+  const inputClass =
+    "w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition";
+
+  if (!canRead) {
+    return (
+      <div className="p-10 text-center text-slate-500">
+        Checking permissions...
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-12 p-8">
-      {/* Header with View Trash Bin Link */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+    <div className="max-w-7xl mx-auto space-y-6 pb-12 p-4 md:p-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             👥 User Management Portal
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Create, manage, and assign roles to system users and authors.
           </p>
         </div>
-        <Link
-          href="/admin/users/trash"
-          className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition shadow-sm flex items-center gap-2 cursor-pointer"
-        >
-          🗑️ View Trash Bin
-        </Link>
+
+        {canDelete && (
+          <Link
+            href="/admin/users/trash"
+            className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition shadow-sm flex items-center gap-2 cursor-pointer shrink-0"
+          >
+            🗑️ View Trash Bin
+          </Link>
+        )}
       </div>
 
-      {/* 1. CREATE USER FORM */}
-      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm max-w-2xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          👤 Create New Author / User
-        </h2>
+      <div
+        className={`grid grid-cols-1 ${canCreate ? "xl:grid-cols-3" : "xl:grid-cols-1"} gap-6 items-start`}
+      >
+        {/* 1. CREATE USER FORM */}
+        {canCreate && (
+          <div className="xl:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm sticky top-24">
+            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+              👤 Create New User
+            </h2>
 
-        {message && (
-          <div
-            className={`p-3 rounded-lg mb-4 text-sm font-semibold ${
-              message.includes("success")
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {message}
+            {message && (
+              <div
+                className={`p-3 rounded-xl mb-5 text-sm font-semibold ${
+                  message.includes("success")
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+              >
+                {message}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className={inputClass}
+                  placeholder="John Doe"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className={inputClass}
+                  placeholder="author@futurehub.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className={inputClass}
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                  Assign Role
+                </label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className={`${inputClass} cursor-pointer`}
+                >
+                  {roles.map((r, idx) => {
+                    const roleName = r.name || r;
+                    return (
+                      <option key={idx} value={roleName}>
+                        {roleName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl transition disabled:opacity-50 cursor-pointer shadow-sm mt-2"
+              >
+                {loading ? "Creating..." : "Save User"}
+              </button>
+            </form>
           </div>
         )}
 
-        <form onSubmit={handleCreateUser} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-3 py-2 border rounded-md text-gray-900"
-              placeholder="John Doe"
-            />
+        {/* 2. USERS LIST TABLE */}
+        <div
+          className={`${canCreate ? "xl:col-span-2" : "xl:col-span-1"} bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden`}
+        >
+          <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <h3 className="text-lg font-bold text-slate-900">
+              Existing Users ({users.length})
+            </h3>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border rounded-md text-gray-900"
-              placeholder="author@futurehub.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border rounded-md text-gray-900"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Assign Role
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md text-gray-900 bg-white cursor-pointer"
-            >
-              {roles.map((r, idx) => {
-                const roleName = r.name || r;
-                return (
-                  <option key={idx} value={roleName}>
-                    {roleName}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition disabled:opacity-50 cursor-pointer"
-          >
-            {loading ? "Creating..." : "Save User"}
-          </button>
-        </form>
-      </div>
-
-      {/* 2. DYNAMIC USERS LIST TABLE */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
-          👥 Existing Authors & Users
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b bg-gray-50 text-gray-700 text-sm">
-                <th className="p-3">Name</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Role</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y text-gray-800">
-              {users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
-                    No users or authors found. Create one above!
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
+                  <th className="p-4 font-semibold">User</th>
+                  <th className="p-4 font-semibold">Role</th>
+                  <th className="p-4 font-semibold">Status</th>
+                  <th className="p-4 font-semibold text-right">Actions</th>
                 </tr>
-              ) : (
-                users.map((u) => {
-                  const isSuper =
-                    u.role?.includes("SUPER_ADMIN") ||
-                    u.email === "admin@futurehub.com";
-                  return (
-                    <tr key={u.id} className="hover:bg-slate-50 transition">
-                      <td className="p-3 font-medium">{u.name}</td>
-                      <td className="p-3">{u.email}</td>
-                      <td className="p-3">
-                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold">
-                          {u.role || "N/A"}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        {isSuper ? (
-                          <span className="text-gray-400 font-semibold text-xs">
-                            -
-                          </span>
-                        ) : (
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                              Number(u.status) === 1
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {Number(u.status) === 1 ? "ACTIVE" : "BANNED"}
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3 flex items-center space-x-2">
-                        {!isSuper && (
-                          <>
-                            <select
-                              value={u.status ?? 1}
-                              onChange={(e) =>
-                                handleStatusChange(u.id, Number(e.target.value))
-                              }
-                              className="px-2 py-1 border rounded text-xs bg-gray-50 font-medium cursor-pointer"
-                            >
-                              <option value={1}>Active</option>
-                              <option value={0}>Banned</option>
-                            </select>
+              </thead>
+              <tbody className="text-sm divide-y divide-slate-100">
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center text-slate-400">
+                      No users or authors found.
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((u) => {
+                    const isSuper =
+                      u.role?.includes("SUPER_ADMIN") ||
+                      u.email === "admin@futurehub.com";
 
-                            <button
-                              onClick={() =>
-                                handleDeleteUser(u.id, u.role, u.email)
-                              }
-                              className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold transition cursor-pointer"
+                    const isSelf = u.id === currentUserId;
+
+                    return (
+                      <tr
+                        key={u.id}
+                        className="hover:bg-slate-50/80 transition-colors"
+                      >
+                        <td className="p-4">
+                          <p className="font-semibold text-slate-900">
+                            {u.name}{" "}
+                            {isSelf && (
+                              <span className="text-xs text-blue-500 font-normal">
+                                (You)
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-slate-500">{u.email}</p>
+                        </td>
+                        <td className="p-4">
+                          <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1 rounded-lg text-xs font-bold">
+                            {u.role || "N/A"}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          {isSuper ? (
+                            <span className="text-slate-400 text-xs">-</span>
+                          ) : (
+                            <span
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                                Number(u.status) === 1
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-rose-50 text-rose-700 border-rose-200"
+                              }`}
                             >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                              {Number(u.status) === 1 ? "ACTIVE" : "BANNED"}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 flex items-center justify-end space-x-2">
+                          {!isSuper && !isSelf && (
+                            <>
+                              {canUpdate && (
+                                <select
+                                  value={u.status ?? 1}
+                                  onChange={(e) =>
+                                    handleStatusChange(
+                                      u.id,
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                  className="px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                >
+                                  <option value={1}>Active</option>
+                                  <option value={0}>Banned</option>
+                                </select>
+                              )}
+
+                              {/* 🚀 Delete ခလုတ်နေရာမှာ Trash ခလုတ်လေး ပြောင်းထည့်ထားပါတယ် */}
+                              {canDelete && (
+                                <button
+                                  onClick={() =>
+                                    handleTrashUser(u.id, u.role, u.email)
+                                  }
+                                  className="bg-white hover:bg-amber-50 text-amber-600 border border-slate-200 hover:border-amber-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1"
+                                >
+                                  🗑️ Trash
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

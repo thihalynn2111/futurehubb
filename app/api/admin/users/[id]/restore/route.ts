@@ -9,7 +9,8 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } },
+  // 🚀 Next.js 15 အတွက် params ကို Promise အနေနဲ့ လက်ခံရပါမယ်
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const cookieStore = await cookies();
@@ -19,12 +20,15 @@ export async function PUT(
     }
     await jwtVerify(token, JWT_SECRET);
 
-    const userId = Number(params.id);
+    // 🚀 await လုပ်ပြီးမှ id ကို ယူရပါမယ်
+    const resolvedParams = await params;
+    const userId = Number(resolvedParams.id);
+
     if (!userId) {
       return NextResponse.json({ message: "Invalid User ID" }, { status: 400 });
     }
 
-    // ♻️ deletedAt ကို null သို့ ပြန်ပြောင်းပြီး status ကို 1 (Active) သို့ ပြန်ထားမည်
+    // ♻️ deletedAt ကို null ပြန်ထားမယ်၊ status ကို 1 ပြန်ထားမယ်
     const restoredUser = await prisma.user.update({
       where: { id: userId },
       data: {

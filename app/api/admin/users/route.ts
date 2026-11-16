@@ -8,30 +8,66 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "your-fallback-secret-key-change-it",
 );
 
-// GET: Active Users (သို့မဟုတ်) Trash Bin မှ ဖျက်ပြီးသား User များကို ဆွဲထုတ်ရန်
+async function verifyPermission(req: Request, requiredPermission: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("admin_token")?.value;
+  if (!token) return false;
+
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = Number(payload.userId || payload.id);
+    if (!userId) return false;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: { permissions: { include: { permission: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user || user.deletedAt || Number(user.status) !== 1) return false;
+
+    const isSuper = user.userRoles.some((ur: any) =>
+      ["SUPER_ADMIN", "SUPER ADMIN", "ADMIN"].includes(
+        ur.role.name.toUpperCase(),
+      ),
+    );
+    if (isSuper) return true;
+
+    const userPerms = user.userRoles.flatMap((ur: any) =>
+      ur.role.permissions.map((rp: any) => rp.permission.name.toLowerCase()),
+    );
+
+    return (
+      userPerms.includes(requiredPermission.toLowerCase()) ||
+      userPerms.includes("*")
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
 export async function GET(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("admin_token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    await jwtVerify(token, JWT_SECRET);
+    const hasAccess = await verifyPermission(req, "users:read");
+    if (!hasAccess)
+      return NextResponse.json(
+        { message: "Forbidden: Requires users:read permission" },
+        { status: 403 },
+      );
 
     const { searchParams } = new URL(req.url);
     const isTrash = searchParams.get("trash") === "true";
 
     const users = await prisma.user.findMany({
       where: isTrash ? { deletedAt: { not: null } } : { deletedAt: null },
-      include: {
-        userRoles: {
-          include: {
-            role: true,
-          },
-        },
-      },
+      include: { userRoles: { include: { role: true } } },
       orderBy: { createdAt: "desc" },
     });
 
@@ -53,7 +89,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json(formattedUsers, { status: 200 });
   } catch (error: any) {
-    console.error("GET USERS ERROR:", error);
     return NextResponse.json(
       { message: error.message || "Failed to fetch users" },
       { status: 500 },
@@ -61,41 +96,34 @@ export async function GET(req: Request) {
   }
 }
 
-// POST: User အသစ် ဖန်တီးရန်
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("admin_token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    await jwtVerify(token, JWT_SECRET);
+    const hasAccess = await verifyPermission(req, "users:create");
+    if (!hasAccess)
+      return NextResponse.json(
+        { message: "Forbidden: Requires users:create permission" },
+        { status: 403 },
+      );
 
     const { name, email, password, role } = await req.json();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password)
       return NextResponse.json(
         { message: "Please fill in all required fields" },
         { status: 400 },
       );
-    }
-
-    if (role === "SUPER_ADMIN" || role === "SUPER ADMIN") {
+    if (role === "SUPER_ADMIN" || role === "SUPER ADMIN")
       return NextResponse.json(
         { message: "Cannot create another Super Admin account." },
         { status: 403 },
       );
-    }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
+    if (existingUser)
       return NextResponse.json(
         { message: "Email already exists" },
         { status: 400 },
       );
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const targetRole = await prisma.role.findUnique({
@@ -109,9 +137,7 @@ export async function POST(req: Request) {
         passwordHash: hashedPassword,
         status: 1,
         userRoles: targetRole
-          ? {
-              create: [{ role: { connect: { id: targetRole.id } } }],
-            }
+          ? { create: [{ role: { connect: { id: targetRole.id } } }] }
           : undefined,
       },
     });
@@ -121,7 +147,6 @@ export async function POST(req: Request) {
       { status: 201 },
     );
   } catch (error: any) {
-    console.error("Create user error:", error);
     return NextResponse.json(
       { message: error.message || "Internal Server Error" },
       { status: 500 },
@@ -129,17 +154,32 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH: Status ပြောင်းရန် (Active <-> Banned)
 export async function PATCH(req: Request) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("admin_token")?.value;
     if (!token)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    await jwtVerify(token, JWT_SECRET);
+
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const currentUserId = Number(payload.userId || payload.id);
+
+    const hasAccess = await verifyPermission(req, "users:update");
+    if (!hasAccess)
+      return NextResponse.json(
+        { message: "Forbidden: Requires users:update permission" },
+        { status: 403 },
+      );
 
     const body = await req.json();
     const { userId, status } = body;
+
+    if (currentUserId === Number(userId)) {
+      return NextResponse.json(
+        { message: "You cannot change the status of your own account!" },
+        { status: 403 },
+      );
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: Number(userId) },
@@ -158,14 +198,22 @@ export async function PATCH(req: Request) {
   }
 }
 
-// DELETE: Soft Delete (သို့) Permanent Delete
 export async function DELETE(req: Request) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("admin_token")?.value;
     if (!token)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    await jwtVerify(token, JWT_SECRET);
+
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const currentUserId = Number(payload.userId || payload.id);
+
+    const hasAccess = await verifyPermission(req, "users:delete");
+    if (!hasAccess)
+      return NextResponse.json(
+        { message: "Forbidden: Requires users:delete permission" },
+        { status: 403 },
+      );
 
     const { searchParams } = new URL(req.url);
     const rawId = searchParams.get("id");
@@ -178,6 +226,13 @@ export async function DELETE(req: Request) {
       );
 
     const userId = Number(rawId);
+
+    if (currentUserId === userId) {
+      return NextResponse.json(
+        { message: "You cannot delete your own account!" },
+        { status: 403 },
+      );
+    }
 
     const targetUser: any = await prisma.user.findUnique({
       where: { id: userId },
@@ -198,7 +253,26 @@ export async function DELETE(req: Request) {
     }
 
     if (permanent) {
+      // 🚀 အပြီးတိုင်ဖျက်မယ်ဆိုရင် အရင်ဆုံး သူ့မှာ Post တွေ ရှိမရှိ စစ်ပါ
+      const postsCount = await prisma.productPost.count({
+        where: { authorId: userId },
+      });
+      if (postsCount > 0) {
+        return NextResponse.json(
+          {
+            message:
+              "Cannot permanently delete this user because they have existing posts. Please reassign or delete their posts first.",
+          },
+          { status: 400 },
+        );
+      }
+
+      // ပြီးမှ သူ့ရဲ့ Role Relationship တွေကို အရင်ဖျက်ပါ
+      await prisma.userRole.deleteMany({ where: { userId } });
+
+      // နောက်ဆုံးမှ User ကို ဖျက်ပါ
       await prisma.user.delete({ where: { id: userId } });
+
       return NextResponse.json(
         { message: "User permanently deleted successfully" },
         { status: 200 },
@@ -206,19 +280,14 @@ export async function DELETE(req: Request) {
     } else {
       await prisma.user.update({
         where: { id: userId },
-        data: {
-          deletedAt: new Date(),
-          status: 0,
-        } as any,
+        data: { deletedAt: new Date(), status: 0 } as any,
       });
-
       return NextResponse.json(
         { message: "User soft deleted successfully" },
         { status: 200 },
       );
     }
   } catch (error: any) {
-    console.error("Delete user error:", error);
     return NextResponse.json(
       { message: error.message || "Failed to delete user" },
       { status: 500 },

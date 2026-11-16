@@ -9,7 +9,7 @@ export default function SiteSettingsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
   const [canRead, setCanRead] = useState(false);
-  const [canUpdate, setCanUpdate] = useState(false); // 👈 Default အနေဖြင့် ပိတ်ထားမည် (Permission ရှိမှ True ဖြစ်မည်)
+  const [canUpdate, setCanUpdate] = useState(false);
 
   const [siteName, setSiteName] = useState("");
   const [siteTagline, setSiteTagline] = useState("");
@@ -20,6 +20,9 @@ export default function SiteSettingsAdminPage() {
   const [metaDescription, setMetaDescription] = useState("");
   const [logoHeader, setLogoHeader] = useState("");
   const [logoFooter, setLogoFooter] = useState("");
+
+  const [uploadingHeader, setUploadingHeader] = useState(false);
+  const [uploadingFooter, setUploadingFooter] = useState(false);
 
   const [emails, setEmails] = useState<string[]>([""]);
   const [phones, setPhones] = useState<string[]>([""]);
@@ -32,7 +35,6 @@ export default function SiteSettingsAdminPage() {
     setTimeout(() => setToast(""), 3000);
   };
 
-  // 🔍 User တွင် Read နှင့် Update Permission ရှိမရှိ စစ်ဆေးခြင်း
   const checkPermissions = async () => {
     try {
       const res = await fetch("/api/auth/me");
@@ -42,7 +44,6 @@ export default function SiteSettingsAdminPage() {
         const roles = userInfo.roles || [];
         const permissions = userInfo.permissions || [];
 
-        // ၁။ System Admin / Super Admin ဖြစ်ပါက အမြဲတမ်း ခွင့်ပြုမည်
         const isSuper = roles.some(
           (r: string) =>
             r.toLowerCase() === "super_admin" ||
@@ -125,6 +126,39 @@ export default function SiteSettingsAdminPage() {
   useEffect(() => {
     checkPermissions();
   }, []);
+
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setUrl: (url: string) => void,
+    setUploading: (status: boolean) => void,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUrl(data.url);
+        showToast("Image uploaded successfully! ✅");
+      } else {
+        alert("Failed to upload image.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading image.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleAddField = (type: "email" | "phone") => {
     if (!canUpdate) return;
@@ -234,7 +268,6 @@ export default function SiteSettingsAdminPage() {
         Loading site settings...
       </div>
     );
-
   if (!canRead) return null;
 
   return (
@@ -295,35 +328,97 @@ export default function SiteSettingsAdminPage() {
           </div>
         </div>
 
-        {/* Logos */}
+        {/* 👇 Logos (File Upload & Image Preview ပါဝင်လာပြီ) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Header Logo */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Header Logo URL:
             </label>
-            <input
-              type="text"
-              disabled={!canUpdate}
-              value={logoHeader}
-              onChange={(e) => setLogoHeader(e.target.value)}
-              placeholder="/images/logo.png"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-            />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  disabled={!canUpdate}
+                  value={logoHeader}
+                  onChange={(e) => setLogoHeader(e.target.value)}
+                  placeholder="/uploads/logo.png"
+                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
+                />
+                {/* 🚀 လက်ရှိ Logo ပုံလေး ပြပေးမယ် */}
+                {logoHeader && (
+                  <div className="w-12 h-12 bg-slate-100 rounded-lg border border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      src={logoHeader}
+                      alt="Header Logo"
+                      className="w-full h-full object-contain p-1"
+                    />
+                  </div>
+                )}
+              </div>
+              {canUpdate && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      handleFileUpload(e, setLogoHeader, setUploadingHeader)
+                    }
+                    className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                  />
+                  {uploadingHeader && (
+                    <span className="text-xs text-blue-600">Uploading...</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Footer Logo */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Footer Logo URL:
             </label>
-            <input
-              type="text"
-              disabled={!canUpdate}
-              value={logoFooter}
-              onChange={(e) => setLogoFooter(e.target.value)}
-              placeholder="/images/logo-footer.png"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-            />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  disabled={!canUpdate}
+                  value={logoFooter}
+                  onChange={(e) => setLogoFooter(e.target.value)}
+                  placeholder="/uploads/logo-footer.png"
+                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
+                />
+                {/* 🚀 လက်ရှိ Footer Logo ပုံလေး ပြပေးမယ် */}
+                {logoFooter && (
+                  <div className="w-12 h-12 bg-slate-100 rounded-lg border border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      src={logoFooter}
+                      alt="Footer Logo"
+                      className="w-full h-full object-contain p-1"
+                    />
+                  </div>
+                )}
+              </div>
+              {canUpdate && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      handleFileUpload(e, setLogoFooter, setUploadingFooter)
+                    }
+                    className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                  />
+                  {uploadingFooter && (
+                    <span className="text-xs text-blue-600">Uploading...</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
+        {/* 👆 Logo အပိုင်း ပြီးပါပြီ */}
 
         {/* Contact Address & Office Hours */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -500,7 +595,7 @@ export default function SiteSettingsAdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              SEO Meta Title:
+              Global SEO Meta Title:
             </label>
             <input
               type="text"
@@ -513,7 +608,7 @@ export default function SiteSettingsAdminPage() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              SEO Meta Description:
+              Global SEO Meta Description:
             </label>
             <input
               type="text"
@@ -540,7 +635,7 @@ export default function SiteSettingsAdminPage() {
           />
         </div>
 
-        {/* 💾 Save Button - (Update Permission ရှိမှသာ ပေါ်မည်) */}
+        {/* 💾 Save Button */}
         {canUpdate && (
           <div className="pt-4 text-right">
             <button

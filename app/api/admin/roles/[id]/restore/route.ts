@@ -9,20 +9,26 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } },
+  // 🚀 Next.js 15 အတွက် params ကို Promise အနေနဲ့ လက်ခံရပါမယ်
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("admin_token")?.value;
-    if (!token)
+    if (!token) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
     await jwtVerify(token, JWT_SECRET);
 
-    const roleId = Number(params.id);
-    if (!roleId)
-      return NextResponse.json({ message: "Invalid Role ID" }, { status: 400 });
+    // 🚀 await လုပ်ပြီးမှ id ကို ယူရပါမယ်
+    const resolvedParams = await params;
+    const roleId = Number(resolvedParams.id);
 
-    // ♻️ deletedAt ကို null သို့ ပြန်ပြောင်းမည်
+    if (!roleId) {
+      return NextResponse.json({ message: "Invalid Role ID" }, { status: 400 });
+    }
+
+    // ♻️ deletedAt ကို null ပြန်ထားမယ်
     await prisma.role.update({
       where: { id: roleId },
       data: { deletedAt: null } as any,
