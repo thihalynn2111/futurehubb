@@ -179,6 +179,7 @@ export default function PermissionsPage() {
 
   const predefinedResources = [
     { key: "products", label: "Products" },
+    { key: "seo", label: "SEO Settings" }, // 👈 SEO ကို ဒီနေရာမှာ ထည့်ထားပါတယ်
     { key: "inquiries", label: "Inquiries" },
     { key: "users", label: "Users" },
     { key: "roles", label: "Roles" },
@@ -310,10 +311,14 @@ export default function PermissionsPage() {
 
                     {["create", "read", "update", "delete"].map(
                       (actionType) => {
+                        // 👇 ဒီနေရာမှာ SEO အတွက် Create နဲ့ Delete ကို Lock လုပ်ထားပါတယ်
                         const isLockedCell =
                           (resKey.toLowerCase() === "inquiries" &&
                             actionType === "create") ||
                           (resKey.toLowerCase() === "site_settings" &&
+                            (actionType === "create" ||
+                              actionType === "delete")) ||
+                          (resKey.toLowerCase() === "seo" &&
                             (actionType === "create" ||
                               actionType === "delete"));
 

@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-// 🚀 ပိုမိုသပ်ရပ်သော Sidebar Component
-function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
+// 🚀 ပိုမိုသပ်ရပ်သော Sidebar Component (User Roles ကို လက်ခံပါမယ်)
+function SidebarNav({
+  sidebarOpen,
+  userRoles,
+}: {
+  sidebarOpen: boolean;
+  userRoles: string[];
+}) {
   const pathname = usePathname();
 
   // Category အားလုံးကို Default အနေနဲ့ ဖွင့်ထားမယ်
@@ -15,6 +21,13 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
     "CONTENT & CATALOGUE",
   ]);
 
+  // 🚀 Super Admin ဟုတ်မဟုတ် စစ်ဆေးခြင်း
+  const isSuperAdmin = userRoles.some((role) =>
+    ["SUPER_ADMIN", "SUPER ADMIN", "ADMIN", "SYSTEM"].includes(
+      role.toUpperCase(),
+    ),
+  );
+
   const toggleCategory = (category: string) => {
     setOpenCategories((prev) =>
       prev.includes(category)
@@ -23,7 +36,7 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
     );
   };
 
-  // 🚀 Menu တွေကို သီးသန့် Group တွေ ခွဲထားပါတယ် (SEO Settings ပါဝင်ပါတယ်)
+  // 🚀 Menu တွေကို သီးသန့် Group တွေ ခွဲထားပါတယ်
   const menuGroups = [
     {
       category: "",
@@ -33,7 +46,7 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
       category: "ACCESS & MANAGEMENT",
       items: [
         { name: "Roles Management", href: "/admin/roles", icon: "🛡️" },
-        { name: "Permissions", href: "/admin/permissions", icon: "🔑" },
+        { name: "Permissions", href: "/admin/permissions", icon: "🔑" }, // 👈 ဒါကို ဖျောက်မယ်
         { name: "User Management", href: "/admin/users", icon: "👤" },
       ],
     },
@@ -45,7 +58,7 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
       category: "CONTENT & CATALOGUE",
       items: [
         { name: "Products", href: "/admin/products", icon: "📦" },
-        { name: "SEO Settings", href: "/admin/seo", icon: "🔍" }, // 👈 ဒီနေရာမှာ ထည့်ထားပါတယ်
+        { name: "SEO Settings", href: "/admin/seo", icon: "🔍" },
         { name: "Gallery", href: "/admin/gallery", icon: "📷" },
         { name: "Partner & Project", href: "/admin/projects", icon: "🤝" },
         { name: "Team member", href: "/admin/teamMember", icon: "👥" },
@@ -71,7 +84,6 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
 
         return (
           <div key={groupIdx} className="space-y-1">
-            {/* 🚀 Category Header (Accordion Toggle) */}
             {hasCategory && sidebarOpen && (
               <button
                 onClick={() => toggleCategory(group.category)}
@@ -94,7 +106,6 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
               </button>
             )}
 
-            {/* 🚀 Sub Items (Smooth Accordion Animation) */}
             <div
               className={`grid transition-all duration-300 ease-in-out ${
                 hasCategory && !isOpen && sidebarOpen
@@ -103,30 +114,38 @@ function SidebarNav({ sidebarOpen }: { sidebarOpen: boolean }) {
               }`}
             >
               <div className="overflow-hidden space-y-1">
-                {group.items.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      title={!sidebarOpen ? item.name : undefined}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                        isActive
-                          ? "bg-slate-800 text-teal-400 shadow-sm border-l-2 border-teal-400"
-                          : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-l-2 border-transparent"
-                      }`}
-                    >
-                      <span
-                        className={`text-base shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? "opacity-100" : "opacity-70"}`}
+                {group.items
+                  .filter((item) => {
+                    // 🚀 Super Admin မဟုတ်ရင် "Permissions" ကို လုံးဝ ဖျောက်မယ်
+                    if (item.name === "Permissions" && !isSuperAdmin) {
+                      return false;
+                    }
+                    return true;
+                  })
+                  .map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        title={!sidebarOpen ? item.name : undefined}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                          isActive
+                            ? "bg-slate-800 text-teal-400 shadow-sm border-l-2 border-teal-400"
+                            : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-l-2 border-transparent"
+                        }`}
                       >
-                        {item.icon}
-                      </span>
-                      {sidebarOpen && (
-                        <span className="truncate">{item.name}</span>
-                      )}
-                    </Link>
-                  );
-                })}
+                        <span
+                          className={`text-base shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? "opacity-100" : "opacity-70"}`}
+                        >
+                          {item.icon}
+                        </span>
+                        {sidebarOpen && (
+                          <span className="truncate">{item.name}</span>
+                        )}
+                      </Link>
+                    );
+                  })}
               </div>
             </div>
           </div>
@@ -143,6 +162,28 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [userRoles, setUserRoles] = useState<string[]>([]); // 👈 Roles သိမ်းရန် State
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+
+  // 🚀 User Roles ကို ဆွဲထုတ်မယ်
+  useEffect(() => {
+    const fetchUserRoles = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.user?.roles) {
+            setUserRoles(data.user.roles);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch user roles:", err);
+      } finally {
+        setIsAuthLoaded(true);
+      }
+    };
+    fetchUserRoles();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -190,7 +231,10 @@ export default function AdminLayout({
             <div className="p-4 text-xs text-slate-500">Loading...</div>
           }
         >
-          <SidebarNav sidebarOpen={sidebarOpen} />
+          {/* 👈 Roles ရလာမှ Sidebar ကို ပြမယ် */}
+          {isAuthLoaded && (
+            <SidebarNav sidebarOpen={sidebarOpen} userRoles={userRoles} />
+          )}
         </Suspense>
 
         {/* User Info Footer */}
@@ -217,7 +261,7 @@ export default function AdminLayout({
           sidebarOpen ? "ml-[260px]" : "ml-20"
         }`}
       >
-        {/* TOP NAVBAR (Frosted Glass Effect) */}
+        {/* TOP NAVBAR */}
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 flex items-center justify-between px-8 shadow-sm">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-bold text-gray-800 tracking-tight">
