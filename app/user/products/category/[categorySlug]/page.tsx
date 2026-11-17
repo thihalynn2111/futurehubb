@@ -35,8 +35,11 @@ export default function CategoryProductsPage({
         .then((res) => res.json())
         .catch(() => []),
     ]).then(([catData, prodData]) => {
-      if (Array.isArray(catData)) setCategories(catData);
-      if (Array.isArray(prodData)) setProducts(prodData);
+      // Oldest first (ID ascending): အဟောင်းအပေါ်၊ အသစ်အောက်
+      if (Array.isArray(catData))
+        setCategories([...catData].sort((a, b) => a.id - b.id));
+      if (Array.isArray(prodData))
+        setProducts([...prodData].sort((a, b) => a.id - b.id));
       setLoading(false);
     });
   }, []);
@@ -81,6 +84,7 @@ export default function CategoryProductsPage({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, filteredIds]);
 
   if (loading) {
@@ -92,10 +96,9 @@ export default function CategoryProductsPage({
   }
 
   return (
-    // 🚀 Header အကုန်ဖျက်လိုက်လို့ Navbar အောက်ကနေ ချက်ချင်း စပါမယ်။
-    // အောက်ပိုင်း အကွက်လွတ်မဖြစ်အောင် min-h-screen ကို ဖျက်ထားပါတယ်။
+    // Navbar အောက်ကနေ ချက်ချင်း စပါမယ်။ min-h-screen မပါဘူး (content အရွယ်အတိုင်း)
     <div className="w-full bg-slate-950 text-white pb-12">
-      {/* 🚀 PRODUCT LIST (Type အလိုက် Layout ခွဲပြမယ်) */}
+      {/* PRODUCT LIST (Type အလိုက် Layout ခွဲပြမယ်) */}
       {filteredProducts.length === 0 ? (
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="text-center py-16 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-slate-500 italic text-sm">
@@ -149,7 +152,7 @@ export default function CategoryProductsPage({
           })}
 
           {/* Call to Action */}
-          <section className="max-w-6xl mx-auto px-6 py-16">
+          <section className="max-w-6xl mx-auto px-6 py-12">
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 text-center space-y-5">
               <h2 className="text-2xl md:text-3xl font-extrabold text-white">
                 Let's talk about your new project

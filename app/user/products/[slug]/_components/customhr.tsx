@@ -8,6 +8,7 @@ export default function CustomHrLayout({
   const half = Math.ceil(cards.length / 2);
   const leftCards = cards.slice(0, half);
   const rightCards = cards.slice(half);
+  const hasCards = cards.length > 0;
 
   const renderFeatureCard = (card: any) => (
     <div
@@ -31,8 +32,12 @@ export default function CustomHrLayout({
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <section className="relative overflow-hidden border-b border-slate-800">
+    <div className="bg-slate-950 text-white">
+      <section
+        className={`relative overflow-hidden ${
+          hasCards ? "border-b border-slate-800" : ""
+        }`}
+      >
         {product.imageUrl && (
           <img
             src={product.imageUrl}
@@ -42,7 +47,11 @@ export default function CustomHrLayout({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/30" />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-24 space-y-6">
+        <div
+          className={`relative z-10 max-w-6xl mx-auto px-6 space-y-6 ${
+            hasCards ? "py-16 md:py-20" : "py-10 md:py-14"
+          }`}
+        >
           <div className="space-y-5 max-w-3xl">
             <span className="inline-block px-3 py-1 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-mono rounded-full">
               {product.category?.name || "Category"}
@@ -58,17 +67,17 @@ export default function CustomHrLayout({
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-16 space-y-12">
-        <div className="text-center space-y-3 max-w-3xl mx-auto">
-          <p className="text-teal-400 text-xs font-mono uppercase tracking-widest">
-            What's inside
-          </p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white">
-            Features of {product.title}
-          </h2>
-        </div>
+      {hasCards && (
+        <section className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+          <div className="text-center space-y-3 max-w-3xl mx-auto">
+            <p className="text-teal-400 text-xs font-mono uppercase tracking-widest">
+              What's inside
+            </p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white">
+              Features of {product.title}
+            </h2>
+          </div>
 
-        {cards.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
             <div className="space-y-6 order-2 lg:order-1">
               {leftCards.map(renderFeatureCard)}
@@ -95,12 +104,8 @@ export default function CustomHrLayout({
               {rightCards.map(renderFeatureCard)}
             </div>
           </div>
-        ) : (
-          <div className="text-center py-16 bg-slate-900/30 border border-slate-800 rounded-2xl text-slate-500 italic text-sm">
-            No card items found for this product yet.
-          </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }

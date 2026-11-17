@@ -9,6 +9,7 @@ function ProductSection({ product, cards }: { product: any; cards: any[] }) {
   const half = Math.ceil(cards.length / 2);
   const leftCards = cards.slice(0, half);
   const rightCards = cards.slice(half);
+  const hasCards = cards.length > 0;
 
   const renderFeatureCard = (card: any) => (
     <div
@@ -47,7 +48,11 @@ function ProductSection({ product, cards }: { product: any; cards: any[] }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/30" />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-10 md:py-14 space-y-5">
+        <div
+          className={`relative z-10 max-w-6xl mx-auto px-6 space-y-5 ${
+            hasCards ? "py-10 md:py-14" : "py-8 md:py-10"
+          }`}
+        >
           <span className="inline-block px-3 py-1 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-mono rounded-full">
             {product.category?.name || "Category"}
           </span>
@@ -60,52 +65,46 @@ function ProductSection({ product, cards }: { product: any; cards: any[] }) {
         </div>
       </div>
 
-      {/* Features (phone center layout) */}
-      <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
-        {cards.length > 0 ? (
-          <>
-            <div className="text-center space-y-2">
-              <p className="text-teal-400 text-xs font-mono uppercase tracking-widest">
-                What's inside
-              </p>
-              <h3 className="text-2xl md:text-3xl font-extrabold text-white">
-                Features of {product.title}
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-              <div className="space-y-6 order-2 lg:order-1">
-                {leftCards.map(renderFeatureCard)}
-              </div>
-
-              <div className="flex justify-center order-1 lg:order-2">
-                <div className="relative w-60 md:w-64 aspect-[9/19] rounded-[2.5rem] border-[10px] border-slate-700 bg-slate-900 shadow-2xl overflow-hidden">
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-950 rounded-full z-10" />
-                  {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-center px-4 text-teal-400 font-bold">
-                      {product.title}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-6 order-3">
-                {rightCards.map(renderFeatureCard)}
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-10 bg-slate-900/30 border border-slate-800 rounded-2xl text-slate-500 italic text-sm">
-            No card items found for this product yet.
+      {/* Features (phone center layout) - cards ရှိမှသာ ပြမယ်၊ မရှိရင် နေရာမယူဘူး */}
+      {hasCards && (
+        <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
+          <div className="text-center space-y-2">
+            <p className="text-teal-400 text-xs font-mono uppercase tracking-widest">
+              What's inside
+            </p>
+            <h3 className="text-2xl md:text-3xl font-extrabold text-white">
+              Features of {product.title}
+            </h3>
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <div className="space-y-6 order-2 lg:order-1">
+              {leftCards.map(renderFeatureCard)}
+            </div>
+
+            <div className="flex justify-center order-1 lg:order-2">
+              <div className="relative w-60 md:w-64 aspect-[9/19] rounded-[2.5rem] border-[10px] border-slate-700 bg-slate-900 shadow-2xl overflow-hidden">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-950 rounded-full z-10" />
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-center px-4 text-teal-400 font-bold">
+                    {product.title}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-6 order-3">
+              {rightCards.map(renderFeatureCard)}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -131,8 +130,16 @@ function ProductsContent() {
         .then((res) => res.json())
         .catch(() => []),
     ]).then(([catData, prodData]) => {
-      if (Array.isArray(catData)) setCategories(catData);
-      if (Array.isArray(prodData)) setProducts(prodData);
+      if (Array.isArray(catData)) {
+        // Oldest first (ID ascending): အဟောင်းအပေါ်၊ အသစ်အောက်
+        const sortedCategories = [...catData].sort((a, b) => a.id - b.id);
+        setCategories(sortedCategories);
+      }
+      if (Array.isArray(prodData)) {
+        // Oldest first (ID ascending): အဟောင်းအပေါ်၊ အသစ်အောက်
+        const sortedProducts = [...prodData].sort((a, b) => a.id - b.id);
+        setProducts(sortedProducts);
+      }
       setLoading(false);
     });
   }, []);
@@ -188,13 +195,13 @@ function ProductsContent() {
   }
 
   return (
-    // Header အပိုင်း အကုန်ဖျက်ထားတဲ့အတွက် Navbar အောက်ကနေ ချက်ချင်း Content စပါမယ်
-    <div className="bg-slate-950 text-white min-h-screen">
+    // min-h-screen ဖယ်ထားတယ်: content အရွယ်အတိုင်း flexible ဖြစ်မယ်
+    <div className="bg-slate-950 text-white">
       {/* ================= CATEGORY SELECTED: FULL PRODUCT PAGES ================= */}
       {selectedCategoryId ? (
         <>
           {filteredProducts.length === 0 ? (
-            <div className="max-w-7xl mx-auto px-6 py-20">
+            <div className="max-w-7xl mx-auto px-6 py-10">
               <div className="text-center py-16 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-slate-500 italic text-sm">
                 No products found in this category.
               </div>
@@ -213,7 +220,7 @@ function ProductsContent() {
                 />
               ))}
 
-              <section className="max-w-6xl mx-auto px-6 py-16">
+              <section className="max-w-6xl mx-auto px-6 py-12">
                 <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-12 text-center space-y-4">
                   <h2 className="text-2xl md:text-3xl font-extrabold text-white">
                     Let's talk about your new project
@@ -234,7 +241,7 @@ function ProductsContent() {
         </>
       ) : (
         /* ================= ALL: PRODUCT LIST ================= */
-        <section className="max-w-7xl mx-auto px-6 py-16">
+        <section className="max-w-7xl mx-auto px-6 py-12">
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredProducts.map((item) => (
